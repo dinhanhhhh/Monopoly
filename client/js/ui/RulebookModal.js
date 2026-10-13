@@ -9,12 +9,12 @@ export class RulebookModal {
   }
 
   init() {
-    let overlay = document.getElementById('rulebook-modal');
+    let overlay = document.getElementById("rulebook-modal");
     if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.id = 'rulebook-modal';
-      overlay.className = 'modal-backdrop';
-      overlay.style.display = 'none';
+      overlay = document.createElement("div");
+      overlay.id = "rulebook-modal";
+      overlay.className = "modal-backdrop";
+      overlay.style.display = "none";
       document.body.appendChild(overlay);
     }
     this.overlay = overlay;
@@ -92,18 +92,22 @@ export class RulebookModal {
       </div>
     `;
 
-    this.overlay.style.display = 'flex';
-    this.overlay.classList.add('active');
+    this.overlay.style.display = "flex";
+    this.overlay.classList.add("active");
 
     const closeHandler = () => this.close();
-    document.getElementById('btn-close-rulebook')?.addEventListener('click', closeHandler);
-    document.getElementById('btn-rulebook-understand')?.addEventListener('click', closeHandler);
+    document
+      .getElementById("btn-close-rulebook")
+      ?.addEventListener("click", closeHandler);
+    document
+      .getElementById("btn-rulebook-understand")
+      ?.addEventListener("click", closeHandler);
   }
 
   close() {
     if (this.overlay) {
-      this.overlay.classList.remove('active');
-      this.overlay.style.display = 'none';
+      this.overlay.classList.remove("active");
+      this.overlay.style.display = "none";
     }
   }
 }

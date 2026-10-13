@@ -3,16 +3,20 @@
  * Hiển thị chi tiết tài sản ròng, phân nhóm đất theo bộ màu, số nhà/khách sạn và trạng thái thế chấp
  */
 
-import { SAIGON_BOARD_DATA } from '../../../shared/data/board-data.js';
-import { GAME_CONSTANTS, formatVND, formatVNDFull } from '../../../shared/constants.js';
-import { GameRules } from '../../../shared/rules.js';
-import { getPlayerAvatar } from '../render/AvatarsData.js';
+import { SAIGON_BOARD_DATA } from "../../../shared/data/board-data.js";
+import {
+  GAME_CONSTANTS,
+  formatVND,
+  formatVNDFull,
+} from "../../../shared/constants.js";
+import { GameRules } from "../../../shared/rules.js";
+import { getPlayerAvatar } from "../render/AvatarsData.js";
 
 export class PortfolioModal {
-  constructor(containerId = 'modal-container') {
+  constructor(containerId = "modal-container") {
     this.container = document.getElementById(containerId);
     if (!this.container) {
-      this.container = document.createElement('div');
+      this.container = document.createElement("div");
       this.container.id = containerId;
       document.body.appendChild(this.container);
     }
@@ -23,11 +27,14 @@ export class PortfolioModal {
 
     const { properties = {}, players = [] } = engineState;
     const playerIdx = players.findIndex((p) => p.id === player.id);
-    const avatarInfo = getPlayerAvatar(player.id, playerIdx >= 0 ? playerIdx : 0);
+    const avatarInfo = getPlayerAvatar(
+      player.id,
+      playerIdx >= 0 ? playerIdx : 0,
+    );
 
     // 1. Phân loại và gom nhóm BĐS thuộc sở hữu của người chơi
     const ownedTiles = SAIGON_BOARD_DATA.filter(
-      (tile) => properties[tile.id]?.owner === player.id
+      (tile) => properties[tile.id]?.owner === player.id,
     );
 
     // Tính toán chi tiết giá trị tài sản
@@ -50,75 +57,88 @@ export class PortfolioModal {
 
     // 2. Gom nhóm tài sản theo nhóm màu / bến xe / tiện ích
     const groupOrder = [
-      'BROWN', 'LIGHT_BLUE', 'PINK', 'ORANGE',
-      'RED', 'YELLOW', 'GREEN', 'DARK_BLUE',
-      'RAILROAD', 'UTILITY'
+      "BROWN",
+      "LIGHT_BLUE",
+      "PINK",
+      "ORANGE",
+      "RED",
+      "YELLOW",
+      "GREEN",
+      "DARK_BLUE",
+      "RAILROAD",
+      "UTILITY",
     ];
 
     const groupedHoldings = [];
 
     // Nhóm đất phố thường
-    Object.entries(GAME_CONSTANTS.COLOR_GROUPS).forEach(([groupKey, groupDef]) => {
-      const allGroupTiles = SAIGON_BOARD_DATA.filter((t) => t.group === groupDef.id);
-      const playerGroupTiles = ownedTiles.filter((t) => t.group === groupDef.id);
+    Object.entries(GAME_CONSTANTS.COLOR_GROUPS).forEach(
+      ([groupKey, groupDef]) => {
+        const allGroupTiles = SAIGON_BOARD_DATA.filter(
+          (t) => t.group === groupDef.id,
+        );
+        const playerGroupTiles = ownedTiles.filter(
+          (t) => t.group === groupDef.id,
+        );
 
-      if (playerGroupTiles.length > 0) {
-        const isMonopoly = playerGroupTiles.length === allGroupTiles.length;
-        groupedHoldings.push({
-          key: groupKey,
-          name: groupDef.name,
-          colorHex: groupDef.colorHex,
-          isMonopoly,
-          count: playerGroupTiles.length,
-          total: allGroupTiles.length,
-          tiles: playerGroupTiles
-        });
-      }
-    });
+        if (playerGroupTiles.length > 0) {
+          const isMonopoly = playerGroupTiles.length === allGroupTiles.length;
+          groupedHoldings.push({
+            key: groupKey,
+            name: groupDef.name,
+            colorHex: groupDef.colorHex,
+            isMonopoly,
+            count: playerGroupTiles.length,
+            total: allGroupTiles.length,
+            tiles: playerGroupTiles,
+          });
+        }
+      },
+    );
 
     // Nhóm Bến Xe / Ga Tàu
-    const allRailroads = SAIGON_BOARD_DATA.filter((t) => t.type === 'railroad');
-    const playerRailroads = ownedTiles.filter((t) => t.type === 'railroad');
+    const allRailroads = SAIGON_BOARD_DATA.filter((t) => t.type === "railroad");
+    const playerRailroads = ownedTiles.filter((t) => t.type === "railroad");
     if (playerRailroads.length > 0) {
       groupedHoldings.push({
-        key: 'RAILROAD',
-        name: 'Bến Xe & Cảng Biển',
-        colorHex: '#4A3B32',
+        key: "RAILROAD",
+        name: "Bến Xe & Cảng Biển",
+        colorHex: "#4A3B32",
         isMonopoly: playerRailroads.length === allRailroads.length,
         count: playerRailroads.length,
         total: allRailroads.length,
-        tiles: playerRailroads
+        tiles: playerRailroads,
       });
     }
 
     // Nhóm Tiện Ích (Điện / Nước)
-    const allUtilities = SAIGON_BOARD_DATA.filter((t) => t.type === 'utility');
-    const playerUtilities = ownedTiles.filter((t) => t.type === 'utility');
+    const allUtilities = SAIGON_BOARD_DATA.filter((t) => t.type === "utility");
+    const playerUtilities = ownedTiles.filter((t) => t.type === "utility");
     if (playerUtilities.length > 0) {
       groupedHoldings.push({
-        key: 'UTILITY',
-        name: 'Công Ty Tiện Ích',
-        colorHex: '#0284C7',
+        key: "UTILITY",
+        name: "Công Ty Tiện Ích",
+        colorHex: "#0284C7",
         isMonopoly: playerUtilities.length === allUtilities.length,
         count: playerUtilities.length,
         total: allUtilities.length,
-        tiles: playerUtilities
+        tiles: playerUtilities,
       });
     }
 
     // Trạng thái người chơi
-    let statusBadgeText = 'Đang thi đấu';
-    let statusBadgeClass = 'badge-active';
+    let statusBadgeText = "Đang thi đấu";
+    let statusBadgeClass = "badge-active";
     if (player.isBankrupt) {
-      statusBadgeText = 'Đã phá sản';
-      statusBadgeClass = 'badge-bankrupt';
+      statusBadgeText = "Đã phá sản";
+      statusBadgeClass = "badge-bankrupt";
     } else if (player.inJail) {
-      statusBadgeText = 'Đang ở tù';
-      statusBadgeClass = 'badge-jail';
+      statusBadgeText = "Đang ở tù";
+      statusBadgeClass = "badge-jail";
     }
 
     // HTML Danh sách tài sản
-    let holdingsHtml = '';
+    let holdingsHtml = "";
     if (ownedTiles.length === 0) {
       holdingsHtml = `
         <div class="portfolio-empty-state">
@@ -137,36 +157,44 @@ export class PortfolioModal {
               const isMortgaged = !!prop.isMortgaged;
 
               // Tính tiền thuê hiện tại
-              let rentDisplay = '';
+              let rentDisplay = "";
               if (isMortgaged) {
-                rentDisplay = '<span class="tile-rent-val val-mortgaged">0đ (Thế chấp)</span>';
-              } else if (tile.type === 'utility') {
+                rentDisplay =
+                  '<span class="tile-rent-val val-mortgaged">0đ (Thế chấp)</span>';
+              } else if (tile.type === "utility") {
                 const factor = group.count >= 2 ? 10 : 4;
                 rentDisplay = `<span class="tile-rent-val">×${factor} Nút xúc xắc</span>`;
               } else {
-                const currentRent = GameRules.calculateRent(tile, player, properties, 7);
+                const currentRent = GameRules.calculateRent(
+                  tile,
+                  player,
+                  properties,
+                  7,
+                );
                 rentDisplay = `<span class="tile-rent-val">${formatVND(currentRent)}</span>`;
               }
 
               // Nhãn nhà / khách sạn
-              let houseBadge = '';
-              if (tile.type === 'property') {
+              let houseBadge = "";
+              if (tile.type === "property") {
                 if (houses === 5) {
-                  houseBadge = '<span class="prop-house-tag tag-hotel">🏨 Khách sạn</span>';
+                  houseBadge =
+                    '<span class="prop-house-tag tag-hotel">🏨 Khách sạn</span>';
                 } else if (houses > 0) {
-                  houseBadge = `<span class="prop-house-tag tag-houses">${'🏠'.repeat(houses)} (${houses} nhà)</span>`;
+                  houseBadge = `<span class="prop-house-tag tag-houses">${"🏠".repeat(houses)} (${houses} nhà)</span>`;
                 } else {
-                  houseBadge = '<span class="prop-house-tag tag-empty">Đất trống</span>';
+                  houseBadge =
+                    '<span class="prop-house-tag tag-empty">Đất trống</span>';
                 }
               }
 
               return `
-                <div class="portfolio-tile-item ${isMortgaged ? 'is-mortgaged' : ''}" data-tile-id="${tile.id}">
+                <div class="portfolio-tile-item ${isMortgaged ? "is-mortgaged" : ""}" data-tile-id="${tile.id}">
                   <div class="tile-color-indicator" style="background-color: ${tile.colorHex || group.colorHex};"></div>
                   <div class="tile-info-col">
                     <div class="tile-name-row">
                       <span class="tile-name-title">${tile.name}</span>
-                      ${isMortgaged ? '<span class="badge-mortgage-tag">🔒 Cầm sổ</span>' : ''}
+                      ${isMortgaged ? '<span class="badge-mortgage-tag">🔒 Cầm sổ</span>' : ""}
                     </div>
                     <div class="tile-meta-row">
                       <span class="tile-price-tag">Giá: ${formatVND(tile.price)}</span>
@@ -181,15 +209,15 @@ export class PortfolioModal {
                 </div>
               `;
             })
-            .join('');
+            .join("");
 
           return `
             <div class="portfolio-group-box">
               <div class="group-header">
                 <div class="group-color-pill" style="background-color: ${group.colorHex};"></div>
                 <div class="group-title">${group.name}</div>
-                <div class="group-badge ${group.isMonopoly ? 'is-monopoly' : ''}">
-                  ${group.isMonopoly ? '🏆 Đủ bộ màu' : `${group.count}/${group.total}`}
+                <div class="group-badge ${group.isMonopoly ? "is-monopoly" : ""}">
+                  ${group.isMonopoly ? "🏆 Đủ bộ màu" : `${group.count}/${group.total}`}
                 </div>
               </div>
               <div class="group-tiles-list">
@@ -198,7 +226,7 @@ export class PortfolioModal {
             </div>
           `;
         })
-        .join('');
+        .join("");
     }
 
     // Modal Markup
@@ -214,14 +242,14 @@ export class PortfolioModal {
               <div class="portfolio-player-titles">
                 <div class="player-name-heading">
                   <h3>${player.name}</h3>
-                  <span class="player-type-pill ${player.isBot ? 'bot-pill' : 'human-pill'}">
-                    ${player.isBot ? '🤖 AI Bot' : '👤 Người chơi'}
+                  <span class="player-type-pill ${player.isBot ? "bot-pill" : "human-pill"}">
+                    ${player.isBot ? "🤖 AI Bot" : "👤 Người chơi"}
                   </span>
                   <span class="player-status-tag ${statusBadgeClass}">${statusBadgeText}</span>
                 </div>
                 <div class="player-token-row">
                   <span>Quân cờ đại diện:</span>
-                  <span class="token-name-text"><strong>${player.token?.name || 'Quân cờ'}</strong></span>
+                  <span class="token-name-text"><strong>${player.token?.name || "Quân cờ"}</strong></span>
                 </div>
               </div>
             </div>
@@ -255,7 +283,7 @@ export class PortfolioModal {
           <!-- Holdings Section -->
           <div class="portfolio-section-title">
             <span>Danh mục Bất động sản (${ownedTiles.length} ô)</span>
-            ${totalMortgagedCount > 0 ? `<span class="mortgaged-alert-count">⚠️ Có ${totalMortgagedCount} ô đang thế chấp</span>` : ''}
+            ${totalMortgagedCount > 0 ? `<span class="mortgaged-alert-count">⚠️ Có ${totalMortgagedCount} ô đang thế chấp</span>` : ""}
           </div>
 
           <div class="portfolio-holdings-scroll">
@@ -272,9 +300,9 @@ export class PortfolioModal {
     `;
 
     // 3. Gán sự kiện đóng và click BĐS
-    const closeBtn = document.getElementById('btn-close-portfolio');
-    const okBtn = document.getElementById('btn-portfolio-ok');
-    const backdrop = document.getElementById('portfolio-modal-overlay');
+    const closeBtn = document.getElementById("btn-close-portfolio");
+    const okBtn = document.getElementById("btn-portfolio-ok");
+    const backdrop = document.getElementById("portfolio-modal-overlay");
 
     const handleClose = () => this.hide();
     if (closeBtn) closeBtn.onclick = handleClose;
@@ -287,14 +315,14 @@ export class PortfolioModal {
 
     // Sự kiện bàn phím Escape
     this.escHandler = (e) => {
-      if (e.key === 'Escape') this.hide();
+      if (e.key === "Escape") this.hide();
     };
-    window.addEventListener('keydown', this.escHandler);
+    window.addEventListener("keydown", this.escHandler);
 
     // Gán click vào từng thẻ ô đất để mở Title Deed Modal
-    const tileItems = this.container.querySelectorAll('.portfolio-tile-item');
+    const tileItems = this.container.querySelectorAll(".portfolio-tile-item");
     tileItems.forEach((item) => {
-      item.addEventListener('click', () => {
+      item.addEventListener("click", () => {
         const tileId = parseInt(item.dataset.tileId, 10);
         const tile = SAIGON_BOARD_DATA.find((t) => t.id === tileId);
         if (tile && onTileClick) {
@@ -307,11 +335,11 @@ export class PortfolioModal {
 
   hide() {
     if (this.escHandler) {
-      window.removeEventListener('keydown', this.escHandler);
+      window.removeEventListener("keydown", this.escHandler);
       this.escHandler = null;
     }
     if (this.container) {
-      this.container.innerHTML = '';
+      this.container.innerHTML = "";
     }
   }
 }

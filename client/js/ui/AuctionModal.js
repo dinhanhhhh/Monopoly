@@ -1,10 +1,10 @@
-import { formatVND } from '../../../shared/constants.js';
+import { formatVND } from "../../../shared/constants.js";
 
 export class AuctionModal {
-  constructor(containerId = 'auction-modal-container') {
+  constructor(containerId = "auction-modal-container") {
     this.container = document.getElementById(containerId);
     if (!this.container) {
-      this.container = document.createElement('div');
+      this.container = document.createElement("div");
       this.container.id = containerId;
       document.body.appendChild(this.container);
     }
@@ -27,13 +27,29 @@ export class AuctionModal {
       return;
     }
 
-    const { tile, currentBid, highestBidder, activePlayerIds, currentTurnPlayerId } = auction;
-    const highestBidderPlayer = engine.state.players.find((p) => p.id === highestBidder);
-    const currentTurnPlayer = engine.state.players.find((p) => p.id === currentTurnPlayerId);
+    const {
+      tile,
+      currentBid,
+      highestBidder,
+      activePlayerIds,
+      currentTurnPlayerId,
+    } = auction;
+    const highestBidderPlayer = engine.state.players.find(
+      (p) => p.id === highestBidder,
+    );
+    const currentTurnPlayer = engine.state.players.find(
+      (p) => p.id === currentTurnPlayerId,
+    );
 
-    const tileColor = tile.colorHex || tile.color || '#1F6F8B';
-    const isLightColor = ['#FFE066', '#FFD166', '#87CEEB', '#06D6A0', '#F5CB63'].includes(tileColor);
-    const headerTextColor = isLightColor ? '#1E293B' : '#FFFFFF';
+    const tileColor = tile.colorHex || tile.color || "#1F6F8B";
+    const isLightColor = [
+      "#FFE066",
+      "#FFD166",
+      "#87CEEB",
+      "#06D6A0",
+      "#F5CB63",
+    ].includes(tileColor);
+    const headerTextColor = isLightColor ? "#1E293B" : "#FFFFFF";
     const colorHeader = `background-color: ${tileColor} !important; color: ${headerTextColor} !important; border-bottom: 3px solid #2E241B;`;
 
     // Danh sách người chơi tham gia
@@ -52,9 +68,9 @@ export class AuctionModal {
         }
 
         return `
-          <div class="bidder-item ${isTurn ? 'current-bidder' : ''} ${!isActive ? 'folded' : ''}">
+          <div class="bidder-item ${isTurn ? "current-bidder" : ""} ${!isActive ? "folded" : ""}">
             <div class="bidder-info">
-              <span class="bidder-token">${p.token?.icon || '🛵'}</span>
+              <span class="bidder-token">${p.token?.icon || "🛵"}</span>
               <span class="bidder-name">${p.name}</span>
               <span class="bidder-funds">(${this.formatMoney(p.money)})</span>
             </div>
@@ -62,27 +78,28 @@ export class AuctionModal {
           </div>
         `;
       })
-      .join('');
+      .join("");
 
     // Nút đặt giá nhanh
     const quickBids = [
-      { label: '+100K', val: currentBid + 100_000 },
-      { label: '+500K', val: currentBid + 500_000 },
-      { label: '+1 Triệu', val: currentBid + 1_000_000 }
+      { label: "+100K", val: currentBid + 100_000 },
+      { label: "+500K", val: currentBid + 500_000 },
+      { label: "+1 Triệu", val: currentBid + 1_000_000 },
     ];
 
-    const canCurrentAfford = (val) => currentTurnPlayer && currentTurnPlayer.money >= val;
+    const canCurrentAfford = (val) =>
+      currentTurnPlayer && currentTurnPlayer.money >= val;
 
     const bidButtonsHtml = quickBids
       .map((b) => {
-        const disabled = !canCurrentAfford(b.val) ? 'disabled' : '';
+        const disabled = !canCurrentAfford(b.val) ? "disabled" : "";
         return `
           <button class="btn-bid-action btn-raise" data-amount="${b.val}" ${disabled}>
             ${b.label} <small>(${this.formatMoney(b.val)})</small>
           </button>
         `;
       })
-      .join('');
+      .join("");
 
     this.container.innerHTML = `
       <div class="modal-backdrop fade-in" id="auction-backdrop">
@@ -102,7 +119,7 @@ export class AuctionModal {
                 ${
                   highestBidderPlayer
                     ? `👑 Đang dẫn đầu: <strong>${highestBidderPlayer.name}</strong>`
-                    : 'Chưa có ai đặt giá'
+                    : "Chưa có ai đặt giá"
                 }
               </div>
             </div>
@@ -115,7 +132,7 @@ export class AuctionModal {
 
             <!-- Bảng hành động của người đến lượt -->
             <div class="auction-turn-banner">
-              Lượt ra giá: <strong style="color: ${currentTurnPlayer?.token?.color || '#FF7A00'}">${currentTurnPlayer?.name || ''}</strong>
+              Lượt ra giá: <strong style="color: ${currentTurnPlayer?.token?.color || "#FF7A00"}">${currentTurnPlayer?.name || ""}</strong>
             </div>
 
             <div class="auction-actions">
@@ -132,17 +149,17 @@ export class AuctionModal {
     `;
 
     // Gán sự kiện click nút tăng giá
-    this.container.querySelectorAll('.btn-raise').forEach((btn) => {
+    this.container.querySelectorAll(".btn-raise").forEach((btn) => {
       btn.onclick = () => {
-        const amount = parseInt(btn.getAttribute('data-amount'), 10);
+        const amount = parseInt(btn.getAttribute("data-amount"), 10);
         const res = engine.applyAction({
-          type: 'BID_AUCTION',
+          type: "BID_AUCTION",
           playerId: currentTurnPlayerId,
-          amount
+          amount,
         });
 
         if (res.success) {
-          if (res.event === 'AUCTION_COMPLETED' || !engine.state.auction) {
+          if (res.event === "AUCTION_COMPLETED" || !engine.state.auction) {
             this.showResult(res, onFinish);
           } else {
             this.render(engine, onFinish);
@@ -152,16 +169,20 @@ export class AuctionModal {
     });
 
     // Gán sự kiện nút Bỏ cuộc
-    const btnPass = document.getElementById('btn-auction-pass');
+    const btnPass = document.getElementById("btn-auction-pass");
     if (btnPass) {
       btnPass.onclick = () => {
         const res = engine.applyAction({
-          type: 'PASS_AUCTION',
-          playerId: currentTurnPlayerId
+          type: "PASS_AUCTION",
+          playerId: currentTurnPlayerId,
         });
 
         if (res.success) {
-          if (res.event === 'AUCTION_COMPLETED' || res.event === 'AUCTION_CANCELLED' || !engine.state.auction) {
+          if (
+            res.event === "AUCTION_COMPLETED" ||
+            res.event === "AUCTION_CANCELLED" ||
+            !engine.state.auction
+          ) {
             this.showResult(res, onFinish);
           } else {
             this.render(engine, onFinish);
@@ -172,14 +193,14 @@ export class AuctionModal {
   }
 
   showResult(result, onFinish) {
-    const isWinner = result.event === 'AUCTION_COMPLETED';
-    const title = isWinner ? '🎉 ĐẤU GIÁ THÀNH CÔNG!' : '⛔ ĐÃ HỦY ĐẤU GIÁ';
+    const isWinner = result.event === "AUCTION_COMPLETED";
+    const title = isWinner ? "🎉 ĐẤU GIÁ THÀNH CÔNG!" : "⛔ ĐÃ HỦY ĐẤU GIÁ";
     const desc = result.message;
 
     this.container.innerHTML = `
       <div class="modal-backdrop fade-in">
-        <div class="auction-result-card pop-in ${isWinner ? 'success' : 'cancelled'}">
-          <div class="result-icon">${isWinner ? '🏆' : '💨'}</div>
+        <div class="auction-result-card pop-in ${isWinner ? "success" : "cancelled"}">
+          <div class="result-icon">${isWinner ? "🏆" : "💨"}</div>
           <h2>${title}</h2>
           <p class="result-desc">${desc}</p>
           <button id="btn-close-auction-result" class="btn-modal btn-buy-property">XÁC NHẬN & TIẾP TỤC</button>
@@ -187,7 +208,7 @@ export class AuctionModal {
       </div>
     `;
 
-    const btnClose = document.getElementById('btn-close-auction-result');
+    const btnClose = document.getElementById("btn-close-auction-result");
     if (btnClose) {
       btnClose.onclick = () => {
         this.hide();
@@ -197,6 +218,6 @@ export class AuctionModal {
   }
 
   hide() {
-    this.container.innerHTML = '';
+    this.container.innerHTML = "";
   }
 }

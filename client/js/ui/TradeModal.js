@@ -2,15 +2,15 @@
  * TradeModal.js - Hộp thoại Giao Dịch & Trao Đổi Đất / Tiền giữa người chơi
  */
 
-import { SAIGON_BOARD_DATA } from '../../../shared/data/board-data.js';
-import { GameRules } from '../../../shared/rules.js';
-import { formatVND } from '../../../shared/constants.js';
+import { SAIGON_BOARD_DATA } from "../../../shared/data/board-data.js";
+import { GameRules } from "../../../shared/rules.js";
+import { formatVND } from "../../../shared/constants.js";
 
 export class TradeModal {
-  constructor(containerId = 'trade-modal-container') {
+  constructor(containerId = "trade-modal-container") {
     this.container = document.getElementById(containerId);
     if (!this.container) {
-      this.container = document.createElement('div');
+      this.container = document.createElement("div");
       this.container.id = containerId;
       document.body.appendChild(this.container);
     }
@@ -23,11 +23,11 @@ export class TradeModal {
   show(engine, onComplete = null) {
     const sender = engine.getCurrentPlayer();
     const otherPlayers = engine.state.players.filter(
-      (p) => p.id !== sender.id && !p.isBankrupt
+      (p) => p.id !== sender.id && !p.isBankrupt,
     );
 
     if (otherPlayers.length === 0) {
-      alert('Không có người chơi nào khác để giao dịch!');
+      alert("Không có người chơi nào khác để giao dịch!");
       return;
     }
 
@@ -38,7 +38,9 @@ export class TradeModal {
     let selectedRequestTiles = new Set();
 
     const renderTradeForm = () => {
-      const partner = engine.state.players.find((p) => p.id === selectedPartnerId);
+      const partner = engine.state.players.find(
+        (p) => p.id === selectedPartnerId,
+      );
 
       // Lấy danh sách đất của Người đề nghị
       const senderProps = SAIGON_BOARD_DATA.filter((tile) => {
@@ -56,12 +58,12 @@ export class TradeModal {
       const partnerOptionsHtml = otherPlayers
         .map(
           (p) => `
-          <option value="${p.id}" ${p.id === selectedPartnerId ? 'selected' : ''}>
+          <option value="${p.id}" ${p.id === selectedPartnerId ? "selected" : ""}>
             ${p.name} (Có: ${this.formatMoney(p.money)})
           </option>
-        `
+        `,
         )
-        .join('');
+        .join("");
 
       // Render danh sách đất của sender
       const renderTileCheckboxes = (tiles, selectedSet, isSender) => {
@@ -71,20 +73,23 @@ export class TradeModal {
 
         return tiles
           .map((tile) => {
-            const check = GameRules.canTradeProperty(tile, engine.state.properties);
+            const check = GameRules.canTradeProperty(
+              tile,
+              engine.state.properties,
+            );
             const isChecked = selectedSet.has(tile.id);
             const disabled = !check.canTrade;
-            const tip = !check.canTrade ? ` (Đang có nhà - không thể đổi)` : '';
+            const tip = !check.canTrade ? ` (Đang có nhà - không thể đổi)` : "";
 
             return `
-              <label class="trade-tile-item ${disabled ? 'disabled' : ''}">
-                <input type="checkbox" data-tile-id="${tile.id}" ${isChecked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
-                <span class="trade-color-pill" style="background: ${tile.color || '#666'}"></span>
+              <label class="trade-tile-item ${disabled ? "disabled" : ""}">
+                <input type="checkbox" data-tile-id="${tile.id}" ${isChecked ? "checked" : ""} ${disabled ? "disabled" : ""}>
+                <span class="trade-color-pill" style="background: ${tile.color || "#666"}"></span>
                 <span class="trade-tile-name">${tile.name}${tip}</span>
               </label>
             `;
           })
-          .join('');
+          .join("");
       };
 
       this.container.innerHTML = `
@@ -106,7 +111,7 @@ export class TradeModal {
               <!-- Cột 1: Người gửi đưa ra -->
               <div class="trade-column trade-offer-col">
                 <div class="col-header">
-                  <span class="user-badge" style="background: ${sender.token?.color || '#27ae60'}">${sender.name}</span>
+                  <span class="user-badge" style="background: ${sender.token?.color || "#27ae60"}">${sender.name}</span>
                   <span class="col-title">Bạn Đưa Ra:</span>
                 </div>
                 
@@ -129,7 +134,7 @@ export class TradeModal {
               <!-- Cột 2: Yêu cầu từ đối tác -->
               <div class="trade-column trade-request-col">
                 <div class="col-header">
-                  <span class="user-badge" style="background: ${partner.token?.color || '#e67e22'}">${partner.name}</span>
+                  <span class="user-badge" style="background: ${partner.token?.color || "#e67e22"}">${partner.name}</span>
                   <span class="col-title">Bạn Muốn Nhận:</span>
                 </div>
 
@@ -159,7 +164,7 @@ export class TradeModal {
       `;
 
       // Event change đối tác
-      const partnerSelect = document.getElementById('trade-partner-select');
+      const partnerSelect = document.getElementById("trade-partner-select");
       if (partnerSelect) {
         partnerSelect.onchange = (e) => {
           selectedPartnerId = e.target.value;
@@ -170,51 +175,75 @@ export class TradeModal {
       }
 
       // Event inputs tiền
-      const inputOffer = document.getElementById('input-offer-money');
+      const inputOffer = document.getElementById("input-offer-money");
       if (inputOffer) {
         inputOffer.oninput = (e) => {
-          offerMoney = Math.max(0, Math.min(sender.money, parseInt(e.target.value, 10) || 0));
+          offerMoney = Math.max(
+            0,
+            Math.min(sender.money, parseInt(e.target.value, 10) || 0),
+          );
         };
       }
-      const inputRequest = document.getElementById('input-request-money');
+      const inputRequest = document.getElementById("input-request-money");
       if (inputRequest) {
         inputRequest.oninput = (e) => {
-          requestMoney = Math.max(0, Math.min(partner.money, parseInt(e.target.value, 10) || 0));
+          requestMoney = Math.max(
+            0,
+            Math.min(partner.money, parseInt(e.target.value, 10) || 0),
+          );
         };
       }
 
       // Event checkboxes
-      const senderCheckboxes = document.querySelectorAll('#sender-tiles-list input[type="checkbox"]');
+      const senderCheckboxes = document.querySelectorAll(
+        '#sender-tiles-list input[type="checkbox"]',
+      );
       senderCheckboxes.forEach((cb) => {
         cb.onchange = () => {
-          const id = parseInt(cb.getAttribute('data-tile-id'), 10);
+          const id = parseInt(cb.getAttribute("data-tile-id"), 10);
           if (cb.checked) selectedOfferTiles.add(id);
           else selectedOfferTiles.delete(id);
         };
       });
 
-      const partnerCheckboxes = document.querySelectorAll('#partner-tiles-list input[type="checkbox"]');
+      const partnerCheckboxes = document.querySelectorAll(
+        '#partner-tiles-list input[type="checkbox"]',
+      );
       partnerCheckboxes.forEach((cb) => {
         cb.onchange = () => {
-          const id = parseInt(cb.getAttribute('data-tile-id'), 10);
+          const id = parseInt(cb.getAttribute("data-tile-id"), 10);
           if (cb.checked) selectedRequestTiles.add(id);
           else selectedRequestTiles.delete(id);
         };
       });
 
       // Event nút gửi đề nghị
-      const btnSend = document.getElementById('btn-send-trade-offer');
+      const btnSend = document.getElementById("btn-send-trade-offer");
       if (btnSend) {
         btnSend.onclick = () => {
-          if (offerMoney === 0 && selectedOfferTiles.size === 0 && requestMoney === 0 && selectedRequestTiles.size === 0) {
-            alert('Bạn chưa đưa ra hoặc yêu cầu tài sản nào!');
+          if (
+            offerMoney === 0 &&
+            selectedOfferTiles.size === 0 &&
+            requestMoney === 0 &&
+            selectedRequestTiles.size === 0
+          ) {
+            alert("Bạn chưa đưa ra hoặc yêu cầu tài sản nào!");
             return;
           }
-          this.showConfirmation(engine, sender, partner, offerMoney, Array.from(selectedOfferTiles), requestMoney, Array.from(selectedRequestTiles), onComplete);
+          this.showConfirmation(
+            engine,
+            sender,
+            partner,
+            offerMoney,
+            Array.from(selectedOfferTiles),
+            requestMoney,
+            Array.from(selectedRequestTiles),
+            onComplete,
+          );
         };
       }
 
-      const btnClose = document.getElementById('btn-close-trade');
+      const btnClose = document.getElementById("btn-close-trade");
       if (btnClose) {
         btnClose.onclick = () => this.hide();
       }
@@ -223,10 +252,22 @@ export class TradeModal {
     renderTradeForm();
   }
 
-  showConfirmation(engine, sender, partner, offerMoney, offerTiles, requestMoney, requestTiles, onComplete) {
+  showConfirmation(
+    engine,
+    sender,
+    partner,
+    offerMoney,
+    offerTiles,
+    requestMoney,
+    requestTiles,
+    onComplete,
+  ) {
     const getTileNames = (ids) => {
-      if (ids.length === 0) return '<em>Không có</em>';
-      return ids.map((id) => SAIGON_BOARD_DATA[id]?.name).filter(Boolean).join(', ');
+      if (ids.length === 0) return "<em>Không có</em>";
+      return ids
+        .map((id) => SAIGON_BOARD_DATA[id]?.name)
+        .filter(Boolean)
+        .join(", ");
     };
 
     this.container.innerHTML = `
@@ -264,17 +305,17 @@ export class TradeModal {
       </div>
     `;
 
-    const btnAccept = document.getElementById('btn-accept-trade');
+    const btnAccept = document.getElementById("btn-accept-trade");
     if (btnAccept) {
       btnAccept.onclick = () => {
         const res = engine.applyAction({
-          type: 'EXECUTE_TRADE',
+          type: "EXECUTE_TRADE",
           senderId: sender.id,
           receiverId: partner.id,
           offerMoney,
           offerTiles,
           requestMoney,
-          requestTiles
+          requestTiles,
         });
 
         this.hide();
@@ -282,14 +323,14 @@ export class TradeModal {
       };
     }
 
-    const btnDecline = document.getElementById('btn-decline-trade');
+    const btnDecline = document.getElementById("btn-decline-trade");
     if (btnDecline) {
       btnDecline.onclick = () => {
         this.hide();
         if (onComplete) {
           onComplete({
             success: false,
-            message: `${partner.name} đã từ chối đề nghị giao dịch.`
+            message: `${partner.name} đã từ chối đề nghị giao dịch.`,
           });
         }
       };
@@ -297,6 +338,6 @@ export class TradeModal {
   }
 
   hide() {
-    this.container.innerHTML = '';
+    this.container.innerHTML = "";
   }
 }

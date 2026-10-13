@@ -11,11 +11,11 @@ export class DiceRenderer {
   }
 
   init() {
-    this.die1El = document.getElementById('die-1');
-    this.die2El = document.getElementById('die-2');
-    this.btnRoll = document.getElementById('btn-roll');
-    this.sumTextEl = document.getElementById('dice-sum-text');
-    this.subTextEl = document.getElementById('dice-sub-text');
+    this.die1El = document.getElementById("die-1");
+    this.die2El = document.getElementById("die-2");
+    this.btnRoll = document.getElementById("btn-roll");
+    this.sumTextEl = document.getElementById("dice-sum-text");
+    this.subTextEl = document.getElementById("dice-sub-text");
 
     if (this.btnRoll) {
       this.btnRoll.onclick = () => this.roll();
@@ -30,11 +30,11 @@ export class DiceRenderer {
     this.isRolling = true;
 
     if (this.btnRoll) this.btnRoll.disabled = true;
-    if (this.subTextEl) this.subTextEl.textContent = 'Đang lắc...';
+    if (this.subTextEl) this.subTextEl.textContent = "Đang lắc...";
 
     // Thêm class xoay vòng
-    if (this.die1El) this.die1El.classList.add('rolling');
-    if (this.die2El) this.die2El.classList.add('rolling');
+    if (this.die1El) this.die1El.classList.add("rolling");
+    if (this.die2El) this.die2El.classList.add("rolling");
 
     // Random giá trị 1 đến 6 cho 2 viên
     const val1 = Math.floor(Math.random() * 6) + 1;

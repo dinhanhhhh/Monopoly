@@ -7,7 +7,7 @@
   --board-wood: #3b2a1a; /* Viền nâu sẫm cà phê */
   --board-tile-bg: #fffdf8; /* Nền trắng ngà chuẩn */
   --board-tile-hover: #f6f1e6;
-  --board-grid-line: #8A7358; /* Đường kẻ viền 1.5px #8A7358 */
+  --board-grid-line: #8a7358; /* Đường kẻ viền 1.5px #8A7358 */
   --color-primary: #1f6f8b; /* Xanh sông chủ đạo */
   --color-accent: #ff7a00; /* Cam nút chính */
 
@@ -24,8 +24,8 @@
   width: min(calc(100dvh - 78px), calc(100vw - 490px), 800px);
   height: min(calc(100dvh - 78px), calc(100vw - 490px), 800px);
   aspect-ratio: 1 / 1;
-  background-color: #F4EEDD;
-  border: 4px solid #3B2A1A;
+  background-color: #f4eedd;
+  border: 4px solid #3b2a1a;
   border-radius: 12px;
   box-shadow: 0 10px 28px rgba(59, 42, 26, 0.22);
   padding: 5px;
@@ -37,7 +37,7 @@
 /* ================= Ô CỜ CHUNG (Board Tiles): Đường ngăn 1.5px #8A7358 ================= */
 .board-tile {
   background-color: var(--board-tile-bg);
-  border: 1.5px solid #8A7358;
+  border: 1.5px solid #8a7358;
   display: flex;
   position: relative;
   cursor: pointer;
@@ -49,11 +49,11 @@
 
 /* Tô màu ô thẻ theo chuẩn mẫu hoài cổ (Cơ Hội kem cam nhạt, Khí Vận xanh băng nhạt) */
 .board-tile.tile-chance {
-  background-color: #FDF3ED !important;
+  background-color: #fdf3ed !important;
 }
 
 .board-tile.tile-chest {
-  background-color: #EBF5FB !important;
+  background-color: #ebf5fb !important;
 }
 
 .board-tile:hover {
@@ -61,7 +61,7 @@
   z-index: 5;
   transform: scale(1.03);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-  border-color: #8A7358;
+  border-color: #8a7358;
 }
 
 /* Cạnh đáy: Dải màu ở trên đỉnh ô (mép trong bàn cờ) */
@@ -73,7 +73,7 @@
   width: 100%;
   height: 17%;
   min-height: 14px;
-  border-bottom: 1.5px solid #8A7358;
+  border-bottom: 1.5px solid #8a7358;
 }
 
 /* Cạnh trên: Dải màu ở đáy ô (mép trong bàn cờ) */
@@ -85,7 +85,7 @@
   width: 100%;
   height: 17%;
   min-height: 14px;
-  border-top: 1.5px solid #8A7358;
+  border-top: 1.5px solid #8a7358;
 }
 
 /* Cạnh trái: Dải màu ở bên phải ô (mép trong bàn cờ) */
@@ -97,7 +97,7 @@
   width: 17%;
   min-width: 14px;
   height: 100%;
-  border-left: 1.5px solid #8A7358;
+  border-left: 1.5px solid #8a7358;
 }
 
 /* Cạnh phải: Dải màu ở bên trái ô (mép trong bàn cờ) */
@@ -109,7 +109,7 @@
   width: 17%;
   min-width: 14px;
   height: 100%;
-  border-right: 1.5px solid #8A7358;
+  border-right: 1.5px solid #8a7358;
 }
 
 /* ================= 4 Ô GÓC ĐẶC BIỆT ================= */
@@ -182,7 +182,7 @@
   font-size: 1.15rem !important;
   border-radius: 5px !important;
   border: 1.5px solid #3b2a1a !important;
-  background: linear-gradient(135deg, #F39C12, #E67E22) !important;
+  background: linear-gradient(135deg, #f39c12, #e67e22) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -202,14 +202,14 @@
 
 /* Badge số tiền hũ Quỹ Trúng Thưởng Jackpot trên ô 20 */
 .jackpot-pool-badge {
-  background: linear-gradient(135deg, #F39C12, #D35400);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #f39c12, #d35400);
+  color: #ffffff;
   font-family: var(--font-retro);
   font-size: clamp(9px, 13cqw, 10.5px);
   font-weight: 900;
   padding: 1px 6px;
   border-radius: 8px;
-  border: 1px solid #BA4A00;
+  border: 1px solid #ba4a00;
   box-shadow: 0 1px 4px rgba(211, 84, 0, 0.45);
   letter-spacing: 0.2px;
   white-space: nowrap;
@@ -219,7 +219,8 @@
 }
 
 @keyframes pulseGold {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 1px 4px rgba(211, 84, 0, 0.45);
   }
@@ -232,19 +233,19 @@
 /* ================= MÀU NỀN 3 Ô GÓC THEO YÊU CẦU ================= */
 .tile-corner-go,
 #tile-0 {
-  background-color: #FFF1C9 !important;
+  background-color: #fff1c9 !important;
   padding: 4px !important;
   box-sizing: border-box !important;
 }
 
 .tile-corner-jackpot,
 #tile-20 {
-  background-color: #E6F1FB !important;
+  background-color: #e6f1fb !important;
 }
 
 .tile-corner-gotojail,
 #tile-30 {
-  background-color: #FDE8E4 !important;
+  background-color: #fde8e4 !important;
 }
 
 .go-corner-layout {
@@ -274,7 +275,7 @@
   font-family: var(--font-retro);
   font-size: clamp(10.5px, 14cqw, 12.5px);
   font-weight: 900;
-  color: #BE123C;
+  color: #be123c;
   text-transform: uppercase;
   line-height: 1.1;
   letter-spacing: 0.2px;
@@ -284,7 +285,7 @@
   font-family: var(--font-ui);
   font-size: clamp(8.5px, 11cqw, 10px);
   font-weight: 800;
-  color: #1F6F8B;
+  color: #1f6f8b;
   line-height: 1.1;
   margin-top: 1px;
 }
@@ -372,7 +373,7 @@
 .tile-price.tile-rent-active,
 .edge-left .tile-price.tile-rent-active,
 .edge-right .tile-price.tile-rent-active {
-  color: #C0392B !important;
+  color: #c0392b !important;
   font-weight: 900;
   display: inline-flex;
   align-items: center;
@@ -389,32 +390,32 @@
   opacity: 0.85;
   line-height: 1;
   text-transform: uppercase;
-  color: #C0392B !important;
+  color: #c0392b !important;
 }
 
 .tile-price.tile-rent-active .rent-val {
   font-size: clamp(10px, 14cqw, 11px);
   font-weight: 900;
   line-height: 1;
-  color: #C0392B !important;
+  color: #c0392b !important;
 }
 
 /* Tiền thuê Khách Sạn (cấp tối đa cực khủng: Đỏ sẫm báo động) */
 .tile-price.tile-rent-hotel,
 .edge-left .tile-price.tile-rent-hotel,
 .edge-right .tile-price.tile-rent-hotel {
-  color: #922B21 !important;
+  color: #922b21 !important;
   font-weight: 900;
   text-shadow: 0 0 1px rgba(146, 43, 33, 0.45);
 }
 
 .tile-price.tile-rent-hotel .rent-label {
-  color: #922B21 !important;
+  color: #922b21 !important;
   font-weight: 800;
 }
 
 .tile-price.tile-rent-hotel .rent-val {
-  color: #78281F !important;
+  color: #78281f !important;
   font-weight: 900;
   font-size: clamp(10.5px, 15cqw, 11.5px);
 }
@@ -500,14 +501,14 @@
 /* ================= ĐỊNH DẠNG Ô CƠ HỘI & KHÍ VẬN THEO MẪU ================= */
 .tile-chance .tile-name,
 .tile-chance .tile-card-action {
-  color: #C0392B;
+  color: #c0392b;
   font-weight: 900;
   letter-spacing: 0.3px;
 }
 
 .tile-chest .tile-name,
 .tile-chest .tile-card-action {
-  color: #0284C7;
+  color: #0284c7;
   font-weight: 900;
   letter-spacing: 0.3px;
 }
@@ -527,7 +528,7 @@
   font-size: clamp(22px, 26cqw, 26px);
   font-weight: 900;
   line-height: 1;
-  background: linear-gradient(180deg, #FF4B72 0%, #D81B60 100%);
+  background: linear-gradient(180deg, #ff4b72 0%, #d81b60 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
@@ -559,7 +560,6 @@
   justify-content: center;
   margin: 1px 0;
 }
-
 
 /* ================= QUÂN CỜ NGƯỜI CHƠI (VÙNG GIỮA Ô, GIỮA TÊN VÀ GIÁ, LƯỚI 2x2, KHÔNG CHE TÊN) ================= */
 .tile-tokens-grid {
@@ -625,7 +625,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  border: 2px solid #FFFFFF !important;
+  border: 2px solid #ffffff !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
@@ -683,8 +683,8 @@
   right: 2px;
   width: 65%;
   height: 65%;
-  background: #EFEBE4;
-  border: 1.5px solid #78281F;
+  background: #efebe4;
+  border: 1.5px solid #78281f;
   border-radius: 6px;
   display: flex;
   flex-direction: column;
@@ -701,7 +701,7 @@
   font-family: var(--font-retro);
   font-size: 0.58rem;
   font-weight: 800;
-  color: #78281F;
+  color: #78281f;
   line-height: 1;
 }
 
@@ -719,7 +719,7 @@
 .jail-inmate-tokens .player-token {
   width: 18px;
   height: 18px;
-  border: 1.5px solid #FFFFFF !important;
+  border: 1.5px solid #ffffff !important;
 }
 
 .jail-visiting-strip {
@@ -759,7 +759,7 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  border: 1.5px solid #FFFFFF;
+  border: 1.5px solid #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
@@ -803,15 +803,23 @@
 /* ================= HIỆU ỨNG HOVER PANEL NGƯỜI CHƠI ================= */
 .board-tile.tile-dimmed {
   opacity: 0.55 !important;
-  transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .board-tile.tile-highlight-owner {
   opacity: 1 !important;
   z-index: 15 !important;
-  box-shadow: 0 0 12px 3px var(--glow-color, #7B4BD8), inset 0 0 0 1.5px var(--glow-color, #7B4BD8) !important;
+  box-shadow:
+    0 0 12px 3px var(--glow-color, #7b4bd8),
+    inset 0 0 0 1.5px var(--glow-color, #7b4bd8) !important;
   transform: scale(1.03);
-  transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 /* Ghim giá cho Tiện ích (Điện Lực, Cấp Nước) & Ga tàu, icon co gọn không che chữ/giá */
@@ -863,7 +871,7 @@
   grid-area: 2 / 2 / 11 / 11;
   position: relative;
   background-color: #faf7f0;
-  border: 1.5px solid #8A7358;
+  border: 1.5px solid #8a7358;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -967,7 +975,9 @@
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(46, 36, 27, 0.28);
   cursor: pointer;
-  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1), box-shadow 0.22s ease;
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1),
+    box-shadow 0.22s ease;
   z-index: 5;
   pointer-events: auto;
   user-select: none;
@@ -998,16 +1008,16 @@
 .deck-chance {
   top: 6%;
   left: 6%;
-  background: #FFF8F5;
-  border: 1.6px solid #C0392B;
+  background: #fff8f5;
+  border: 1.6px solid #c0392b;
   transform: rotate(-32deg);
 }
 
 .deck-chance .deck-title {
-  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-family: var(--font-retro), "Baloo 2", sans-serif;
   font-size: clamp(9px, 1.25vw, 11px);
   font-weight: 900;
-  color: #C0392B;
+  color: #c0392b;
   letter-spacing: 0.4px;
   line-height: 1.1;
   text-transform: uppercase;
@@ -1021,20 +1031,20 @@
 }
 
 .deck-chance-glyph {
-  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-family: var(--font-retro), "Baloo 2", sans-serif;
   font-size: clamp(24px, 3.4vw, 30px) !important;
   font-weight: 900;
-  color: #E63946;
+  color: #e63946;
   line-height: 1 !important;
   display: block;
   text-shadow: 0 1px 2px rgba(230, 57, 70, 0.25);
 }
 
 .deck-chance .deck-bottom-label {
-  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-family: var(--font-retro), "Baloo 2", sans-serif;
   font-size: clamp(7.5px, 1.05vw, 9px);
   font-weight: 900;
-  color: #C0392B;
+  color: #c0392b;
   letter-spacing: 0.3px;
   line-height: 1;
   text-transform: uppercase;
@@ -1044,8 +1054,8 @@
 .deck-chance .deck-count-tag {
   font-size: clamp(6.5px, 0.9vw, 7.5px);
   font-weight: 800;
-  color: #FFFFFF;
-  background: #C0392B;
+  color: #ffffff;
+  background: #c0392b;
   padding: 1px 4px;
   border-radius: 4px;
   line-height: 1;
@@ -1056,16 +1066,16 @@
 .deck-chest {
   bottom: 6%;
   right: 6%;
-  background: #F0F9FF;
-  border: 1.6px solid #0284C7;
+  background: #f0f9ff;
+  border: 1.6px solid #0284c7;
   transform: rotate(38deg);
 }
 
 .deck-chest .deck-title {
-  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-family: var(--font-retro), "Baloo 2", sans-serif;
   font-size: clamp(9px, 1.25vw, 11px);
   font-weight: 900;
-  color: #0284C7;
+  color: #0284c7;
   letter-spacing: 0.4px;
   line-height: 1.1;
   text-transform: uppercase;
@@ -1086,10 +1096,10 @@
 }
 
 .deck-chest .deck-bottom-label {
-  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-family: var(--font-retro), "Baloo 2", sans-serif;
   font-size: clamp(7.5px, 1.05vw, 9px);
   font-weight: 900;
-  color: #0284C7;
+  color: #0284c7;
   letter-spacing: 0.3px;
   line-height: 1;
   text-transform: uppercase;
@@ -1099,8 +1109,8 @@
 .deck-chest .deck-count-tag {
   font-size: clamp(6.5px, 0.9vw, 7.5px);
   font-weight: 800;
-  color: #FFFFFF;
-  background: #0284C7;
+  color: #ffffff;
+  background: #0284c7;
   padding: 1px 4px;
   border-radius: 4px;
   line-height: 1;
@@ -1339,7 +1349,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.85);
-  background: linear-gradient(135deg, rgba(27, 94, 32, 0.96), rgba(46, 125, 50, 0.98));
+  background: linear-gradient(
+    135deg,
+    rgba(27, 94, 32, 0.96),
+    rgba(46, 125, 50, 0.98)
+  );
   color: #ffffff;
   padding: 10px 22px;
   border-radius: 24px;
@@ -1408,8 +1422,8 @@
 .house-cube {
   width: 9px;
   height: 8px;
-  background: linear-gradient(180deg, #2ECC71 0%, #27AE60 60%, #1E8449 100%);
-  border: 1px solid #145A32;
+  background: linear-gradient(180deg, #2ecc71 0%, #27ae60 60%, #1e8449 100%);
+  border: 1px solid #145a32;
   border-radius: 1px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   display: inline-block;
@@ -1422,7 +1436,7 @@
 }
 
 .house-cube::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2.5px;
   left: 50%;
@@ -1431,7 +1445,7 @@
   height: 0;
   border-left: 4.5px solid transparent;
   border-right: 4.5px solid transparent;
-  border-bottom: 2.5px solid #145A32;
+  border-bottom: 2.5px solid #145a32;
 }
 
 /* Khách Sạn Đỏ 3D: Kích thước tinh chỉnh, xoay theo hướng dải ô */
@@ -1439,8 +1453,8 @@
   width: 18px;
   height: 9.5px;
   padding: 0 2px;
-  background: linear-gradient(180deg, #E74C3C 0%, #C0392B 60%, #922B21 100%);
-  border: 1px solid #641E16;
+  background: linear-gradient(180deg, #e74c3c 0%, #c0392b 60%, #922b21 100%);
+  border: 1px solid #641e16;
   border-radius: 1.5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   display: inline-flex;
@@ -1455,7 +1469,7 @@
 }
 
 .hotel-cube::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2.5px;
   left: 50%;
@@ -1464,14 +1478,14 @@
   height: 0;
   border-left: 9px solid transparent;
   border-right: 9px solid transparent;
-  border-bottom: 2.5px solid #641E16;
+  border-bottom: 2.5px solid #641e16;
 }
 
 .hotel-label {
   font-family: inherit;
   font-size: 7.5px;
   font-weight: 900;
-  color: #FFE066;
+  color: #ffe066;
   font-style: normal;
   line-height: 1;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);

@@ -3,8 +3,8 @@
  * Dùng chung giữa Client (Offline vs Máy) và Server (Bot thay thế khi mất kết nối)
  */
 
-import { SAIGON_BOARD_DATA } from './data/board-data.js';
-import { GameRules } from './rules.js';
+import { SAIGON_BOARD_DATA } from "./data/board-data.js";
+import { GameRules } from "./rules.js";
 
 export class BotAI {
   /**
@@ -16,7 +16,7 @@ export class BotAI {
    */
   static shouldBuyProperty(bot, tile, state) {
     if (!tile || bot.money < tile.price) {
-      return { shouldBuy: false, reason: 'Không đủ tiền mua đất' };
+      return { shouldBuy: false, reason: "Không đủ tiền mua đất" };
     }
 
     // 1. Quỹ an toàn tối thiểu theo tính cách Bot
@@ -24,23 +24,25 @@ export class BotAI {
     // - Đại gia (Cô Ba Bọt): liều lĩnh mua bạt mạng (chỉ cần dư 200.000đ)
     // - Cân bằng: 800.000đ
     let safetyReserve = 800_000;
-    if (bot.personality === 'cautious') safetyReserve = 3_000_000;
-    else if (bot.personality === 'tycoon') safetyReserve = 200_000;
+    if (bot.personality === "cautious") safetyReserve = 3_000_000;
+    else if (bot.personality === "tycoon") safetyReserve = 200_000;
 
     const moneyAfterBuy = bot.money - tile.price;
 
     // 2. Kiểm tra nếu mảnh đất giúp hoàn thành trọn bộ màu
-    if (tile.type === 'property' && tile.group) {
-      const groupTiles = SAIGON_BOARD_DATA.filter((t) => t.group === tile.group);
+    if (tile.type === "property" && tile.group) {
+      const groupTiles = SAIGON_BOARD_DATA.filter(
+        (t) => t.group === tile.group,
+      );
       const ownedInGroup = groupTiles.filter(
-        (t) => state.properties[t.id]?.owner === bot.id
+        (t) => state.properties[t.id]?.owner === bot.id,
       ).length;
 
       // Còn thiếu đúng 1 mảnh này để đủ bộ màu -> MUA BẰNG MỌI GIÁ (kể cả sát tiền)
       if (ownedInGroup === groupTiles.length - 1) {
         return {
           shouldBuy: true,
-          reason: 'Mảnh đất chiến lược hoàn thiện trọn bộ màu!'
+          reason: "Mảnh đất chiến lược hoàn thiện trọn bộ màu!",
         };
       }
 
@@ -48,13 +50,17 @@ export class BotAI {
       for (const opponent of state.players) {
         if (opponent.id !== bot.id && !opponent.isBankrupt) {
           const oppOwned = groupTiles.filter(
-            (t) => state.properties[t.id]?.owner === opponent.id
+            (t) => state.properties[t.id]?.owner === opponent.id,
           ).length;
-          const minBlockReserve = bot.personality === 'tycoon' ? 100_000 : 300_000;
-          if (oppOwned === groupTiles.length - 1 && moneyAfterBuy >= minBlockReserve) {
+          const minBlockReserve =
+            bot.personality === "tycoon" ? 100_000 : 300_000;
+          if (
+            oppOwned === groupTiles.length - 1 &&
+            moneyAfterBuy >= minBlockReserve
+          ) {
             return {
               shouldBuy: true,
-              reason: `Chặn ${opponent.name} gom trọn bộ màu!`
+              reason: `Chặn ${opponent.name} gom trọn bộ màu!`,
             };
           }
         }
@@ -62,20 +68,20 @@ export class BotAI {
     }
 
     // 3. Nếu là Bến xe hoặc Công ty tiện ích
-    if (tile.type === 'railroad' || tile.type === 'utility') {
+    if (tile.type === "railroad" || tile.type === "utility") {
       if (moneyAfterBuy >= safetyReserve) {
-        return { shouldBuy: true, reason: 'Đầu tư cơ sở hạ tầng sinh lời tốt' };
+        return { shouldBuy: true, reason: "Đầu tư cơ sở hạ tầng sinh lời tốt" };
       }
     }
 
     // 4. Mua đất thông thường nếu bảo toàn được quỹ an toàn
     if (moneyAfterBuy >= safetyReserve) {
-      return { shouldBuy: true, reason: 'Đầu tư gia tăng tài sản' };
+      return { shouldBuy: true, reason: "Đầu tư gia tăng tài sản" };
     }
 
     return {
       shouldBuy: false,
-      reason: 'Tiền mặt thấp, cần bảo toàn vốn dự phòng'
+      reason: "Tiền mặt thấp, cần bảo toàn vốn dự phòng",
     };
   }
 
@@ -91,27 +97,30 @@ export class BotAI {
 
     // Nếu Bot đang là người dẫn đầu, không cần đặt thêm
     if (highestBidder === bot.id) {
-      return { action: 'WAIT' };
+      return { action: "WAIT" };
     }
 
     // 1. Tính giá trần Bot sẵn sàng trả theo tính cách
     let priceMultiplier = 0.9;
-    if (bot.personality === 'cautious') priceMultiplier = 0.85; // Bác Xích Lô trả dè chừng
-    else if (bot.personality === 'tycoon') priceMultiplier = 1.6; // Cô Ba Bọt ép giá hăng hái
+    if (bot.personality === "cautious")
+      priceMultiplier = 0.85; // Bác Xích Lô trả dè chừng
+    else if (bot.personality === "tycoon") priceMultiplier = 1.6; // Cô Ba Bọt ép giá hăng hái
 
     let maxWillingToPay = Math.round(tile.price * priceMultiplier);
 
-    if (tile.type === 'property' && tile.group) {
-      const groupTiles = SAIGON_BOARD_DATA.filter((t) => t.group === tile.group);
+    if (tile.type === "property" && tile.group) {
+      const groupTiles = SAIGON_BOARD_DATA.filter(
+        (t) => t.group === tile.group,
+      );
       const ownedInGroup = groupTiles.filter(
-        (t) => state.properties[t.id]?.owner === bot.id
+        (t) => state.properties[t.id]?.owner === bot.id,
       ).length;
 
       // Nếu ô này hoàn tất bộ màu -> Đại gia sẵn sàng trả tới 250% giá gốc, Cẩn trọng 110%
       if (ownedInGroup === groupTiles.length - 1) {
-        if (bot.personality === 'tycoon') {
+        if (bot.personality === "tycoon") {
           maxWillingToPay = Math.round(tile.price * 2.5);
-        } else if (bot.personality === 'cautious') {
+        } else if (bot.personality === "cautious") {
           maxWillingToPay = Math.round(tile.price * 1.1);
         } else {
           maxWillingToPay = Math.round(tile.price * 1.35);
@@ -120,23 +129,28 @@ export class BotAI {
     }
 
     // Quỹ tối thiểu giữ lại khi đấu giá
-    const reserve = bot.personality === 'tycoon' ? 100_000 : (bot.personality === 'cautious' ? 2_000_000 : 300_000);
+    const reserve =
+      bot.personality === "tycoon"
+        ? 100_000
+        : bot.personality === "cautious"
+          ? 2_000_000
+          : 300_000;
     const absoluteCap = Math.max(0, bot.money - reserve);
     maxWillingToPay = Math.min(maxWillingToPay, absoluteCap);
 
     // 2. Mức giá đặt tiếp theo
     let step = 100_000;
-    if (bot.personality === 'tycoon') step = 300_000; // Tăng giá dồn dập
+    if (bot.personality === "tycoon") step = 300_000; // Tăng giá dồn dập
     let nextBid = currentBid + step;
 
     if (nextBid <= maxWillingToPay && bot.money >= nextBid) {
       return {
-        action: 'BID',
-        amount: nextBid
+        action: "BID",
+        amount: nextBid,
       };
     }
 
-    return { action: 'PASS' };
+    return { action: "PASS" };
   }
 
   /**
@@ -149,8 +163,9 @@ export class BotAI {
     const buildList = [];
     // Quỹ dự phòng xây nhà theo tính cách
     let minReserveMoney = 1_500_000;
-    if (bot.personality === 'cautious') minReserveMoney = 3_500_000; // Bác Xích Lô chỉ xây khi rất giàu
-    else if (bot.personality === 'tycoon') minReserveMoney = 300_000; // Cô Ba Bọt tất tay lên Khách Sạn
+    if (bot.personality === "cautious")
+      minReserveMoney = 3_500_000; // Bác Xích Lô chỉ xây khi rất giàu
+    else if (bot.personality === "tycoon") minReserveMoney = 300_000; // Cô Ba Bọt tất tay lên Khách Sạn
 
     let availableMoney = bot.money - minReserveMoney;
     if (availableMoney <= 0) return buildList;
@@ -158,7 +173,7 @@ export class BotAI {
     // Lọc tất cả ô đất Bot đang sở hữu
     const ownedTiles = SAIGON_BOARD_DATA.filter((t) => {
       const prop = state.properties[t.id];
-      return prop && prop.owner === bot.id && t.type === 'property';
+      return prop && prop.owner === bot.id && t.type === "property";
     });
 
     for (const tile of ownedTiles) {
@@ -190,8 +205,16 @@ export class BotAI {
 
     // Ưu tiên thế chấp ô đất lẻ loi trước, tránh ô trong trọn bộ màu
     ownedTiles.sort((a, b) => {
-      const aFull = GameRules.hasFullColorSet(a.group, bot.id, state.properties);
-      const bFull = GameRules.hasFullColorSet(b.group, bot.id, state.properties);
+      const aFull = GameRules.hasFullColorSet(
+        a.group,
+        bot.id,
+        state.properties,
+      );
+      const bFull = GameRules.hasFullColorSet(
+        b.group,
+        bot.id,
+        state.properties,
+      );
       if (aFull && !bFull) return 1;
       if (!aFull && bFull) return -1;
       return (a.price || 0) - (b.price || 0);

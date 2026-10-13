@@ -9,7 +9,7 @@
   background: rgba(255, 255, 255, 0.92);
   border-radius: 12px;
   padding: 8px 10px;
-  border: 2px solid #E2E8F0;
+  border: 2px solid #e2e8f0;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
 }
 
@@ -31,16 +31,16 @@
   border-radius: 8px;
   padding: 8px 6px;
   text-align: center;
-  color: #FFF;
+  color: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .special-deck-card.chance {
-  background: linear-gradient(135deg, #FF9F1C, #E65100);
+  background: linear-gradient(135deg, #ff9f1c, #e65100);
 }
 
 .special-deck-card.chest {
-  background: linear-gradient(135deg, #2471A3, #154360);
+  background: linear-gradient(135deg, #2471a3, #154360);
 }
 
 .s-deck-badge {
@@ -78,10 +78,10 @@
   width: 100%;
   max-width: 350px;
   max-height: 90vh;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 18px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
-  border: 3px solid #2C3E50;
+  border: 3px solid #2c3e50;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -91,7 +91,7 @@
 .deed-header {
   padding: 14px 16px;
   text-align: center;
-  color: #FFF;
+  color: #fff;
 }
 
 .deed-sub {
@@ -109,7 +109,7 @@
 
 .deed-body {
   padding: 12px 18px;
-  background: #FFFDF9;
+  background: #fffdf9;
   font-size: 0.82rem;
 }
 
@@ -121,17 +121,17 @@
   display: flex;
   justify-content: space-between;
   padding: 3px 0;
-  border-bottom: 1px dashed #E5D5C5;
+  border-bottom: 1px dashed #e5d5c5;
   font-weight: 700;
 }
 
 .rent-row.highlight {
-  color: #C0392B;
+  color: #c0392b;
   font-weight: 800;
 }
 
 .rent-row.active-level {
-  background: #FFF3CD;
+  background: #fff3cd;
   color: #856404;
   padding: 3px 6px;
   border-radius: 4px;
@@ -140,9 +140,9 @@
 .deed-costs {
   margin-top: 8px;
   padding-top: 6px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid #e2e8f0;
   font-size: 0.78rem;
-  color: #64748B;
+  color: #64748b;
   line-height: 1.5;
 }
 
@@ -154,22 +154,22 @@
 }
 
 .deed-owner-info.unowned {
-  background: #F1F5F9;
-  color: #64748B;
+  background: #f1f5f9;
+  color: #64748b;
   text-align: center;
 }
 
 .deed-owner-info.owned {
-  background: #F8FAFC;
-  color: #1E293B;
+  background: #f8fafc;
+  color: #1e293b;
 }
 
 .deed-actions {
   display: flex;
   gap: 10px;
   padding: 12px 18px 16px;
-  background: #FFF;
-  border-top: 1px solid #ECEFF1;
+  background: #fff;
+  border-top: 1px solid #eceff1;
 }
 
 .deed-actions.vertical {
@@ -190,8 +190,8 @@
 }
 
 .btn-buy-property {
-  background: linear-gradient(135deg, #27AE60, #2ECC71);
-  color: #FFF;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
   box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
@@ -201,22 +201,32 @@
 }
 
 .btn-decline-property {
-  background: #F1F5F9;
+  background: #f1f5f9;
   color: #475569;
 }
 
 .btn-decline-property:hover {
-  background: #E2E8F0;
+  background: #e2e8f0;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes popIn {
-  from { transform: scale(0.85); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 600px) {
@@ -238,7 +248,7 @@
   width: 290px;
   border-radius: 18px;
   padding: 24px 18px;
-  color: #FFF;
+  color: #fff;
   text-align: center;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
   border: 3px solid rgba(255, 255, 255, 0.6);
@@ -250,8 +260,14 @@
 }
 
 @keyframes cardFlipIn {
-  from { transform: rotateY(90deg) scale(0.8); opacity: 0; }
-  to { transform: rotateY(0deg) scale(1); opacity: 1; }
+  from {
+    transform: rotateY(90deg) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+  }
 }
 
 .card-badge {
@@ -261,13 +277,13 @@
   border-radius: 12px;
   letter-spacing: 1.5px;
   margin-bottom: 8px;
-  border: 1px solid rgba(255,255,255,0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .card-icon-big {
   font-size: 3.2rem;
   margin: 6px 0;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
 }
 
 .card-title {
@@ -275,14 +291,14 @@
   font-size: 1.25rem;
   font-weight: 900;
   margin-bottom: 8px;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .card-desc {
   font-size: 0.88rem;
   font-weight: 700;
   line-height: 1.35;
-  color: rgba(255,255,255,0.95);
+  color: rgba(255, 255, 255, 0.95);
   margin-bottom: 12px;
 }
 
@@ -292,7 +308,7 @@
   border-radius: 10px;
   font-size: 0.8rem;
   font-weight: 800;
-  color: #FFF;
+  color: #fff;
   margin-bottom: 14px;
   width: 100%;
 }
@@ -304,17 +320,17 @@
   font-family: var(--font-main);
   font-size: 0.92rem;
   font-weight: 900;
-  background: #FFF;
-  color: #2C3E50;
+  background: #fff;
+  color: #2c3e50;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.15s ease;
 }
 
 .btn-card-confirm:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* Action xây nhà trong TitleDeedModal */
@@ -382,9 +398,9 @@
 }
 
 .deed-mortgage-alert {
-  background: #FDEDEC;
-  color: #C0392B;
-  border: 1px dashed #E74C3C;
+  background: #fdedec;
+  color: #c0392b;
+  border: 1px dashed #e74c3c;
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 0.8rem;
@@ -393,7 +409,7 @@
 }
 
 .title-deed-card.card-mortgaged {
-  border: 2px solid #E74C3C;
+  border: 2px solid #e74c3c;
 }
 
 .btn-sell-house {
@@ -457,8 +473,8 @@
 }
 
 .auction-price-box {
-  background: linear-gradient(135deg, #FFFDF0, #FFF5CC);
-  border: 2px solid #F1C40F;
+  background: linear-gradient(135deg, #fffdf0, #fff5cc);
+  border: 2px solid #f1c40f;
   border-radius: 14px;
   padding: 12px;
   text-align: center;
@@ -468,24 +484,24 @@
 .price-title {
   font-size: 0.72rem;
   font-weight: 800;
-  color: #7D6608;
+  color: #7d6608;
   letter-spacing: 0.5px;
 }
 
 .price-value {
   font-size: 1.85rem;
   font-weight: 900;
-  color: #D35400;
+  color: #d35400;
   margin: 4px 0;
 }
 
 .price-leader {
   font-size: 0.82rem;
-  color: #2C3E50;
+  color: #2c3e50;
 }
 
 .auction-bidders-list {
-  background: #F8F9FA;
+  background: #f8f9fa;
   border-radius: 12px;
   padding: 10px;
   margin-bottom: 14px;
@@ -494,7 +510,7 @@
 .bidders-title {
   font-size: 0.75rem;
   font-weight: 800;
-  color: #7F8C8D;
+  color: #7f8c8d;
   margin-bottom: 6px;
 }
 
@@ -509,8 +525,8 @@
 }
 
 .bidder-item.current-bidder {
-  background: #FFF3E0;
-  border-left: 3px solid #FF9800;
+  background: #fff3e0;
+  border-left: 3px solid #ff9800;
   font-weight: 800;
 }
 
@@ -526,9 +542,18 @@
   border-radius: 6px;
 }
 
-.bid-status-pill.in { background: #E8F8F5; color: #16A085; }
-.bid-status-pill.out { background: #FDEDEC; color: #E74C3C; }
-.bid-status-pill.lead { background: #FEF9E7; color: #F39C12; }
+.bid-status-pill.in {
+  background: #e8f8f5;
+  color: #16a085;
+}
+.bid-status-pill.out {
+  background: #fdedec;
+  color: #e74c3c;
+}
+.bid-status-pill.lead {
+  background: #fef9e7;
+  color: #f39c12;
+}
 
 .auction-turn-banner {
   text-align: center;
@@ -555,13 +580,13 @@
 }
 
 .btn-raise {
-  background: #27AE60;
-  color: #FFF;
+  background: #27ae60;
+  color: #fff;
   font-size: 0.84rem;
 }
 
 .btn-raise:hover:not(:disabled) {
-  background: #2ECC71;
+  background: #2ecc71;
   transform: translateY(-2px);
 }
 
@@ -572,19 +597,19 @@
 
 .btn-pass {
   width: 100%;
-  background: #FDEDEC;
-  color: #C0392B;
-  border: 1px solid #E74C3C;
+  background: #fdedec;
+  color: #c0392b;
+  border: 1px solid #e74c3c;
   font-size: 0.82rem;
 }
 
 .btn-pass:hover {
-  background: #E74C3C;
-  color: #FFF;
+  background: #e74c3c;
+  color: #fff;
 }
 
 .auction-result-card {
-  background: #FFF;
+  background: #fff;
   border-radius: 20px;
   padding: 28px 24px;
   text-align: center;
@@ -607,7 +632,7 @@
 
 /* ================= 3. MODAL GIAO DỊCH (TRADE MODAL) ================= */
 .trade-modal-card {
-  background: #FFF;
+  background: #fff;
   border-radius: 20px;
   width: 95%;
   max-width: 650px;
@@ -621,8 +646,8 @@
 
 .trade-header {
   padding: 16px 20px;
-  background: linear-gradient(135deg, #2C3E50, #1A252F);
-  color: #FFF;
+  background: linear-gradient(135deg, #2c3e50, #1a252f);
+  color: #fff;
   text-align: center;
 }
 
@@ -640,20 +665,20 @@
 
 .trade-partner-select-bar {
   padding: 10px 20px;
-  background: #F8F9FA;
+  background: #f8f9fa;
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 0.85rem;
   font-weight: 800;
-  border-bottom: 1px solid #ECEFF1;
+  border-bottom: 1px solid #eceff1;
 }
 
 .trade-select {
   flex: 1;
   padding: 6px 10px;
   border-radius: 8px;
-  border: 1px solid #CBD5E1;
+  border: 1px solid #cbd5e1;
   font-family: inherit;
   font-weight: 800;
   font-size: 0.85rem;
@@ -669,10 +694,10 @@
 }
 
 .trade-column {
-  background: #F8FAFC;
+  background: #f8fafc;
   border-radius: 14px;
   padding: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
 }
 
 .col-header {
@@ -683,7 +708,7 @@
 }
 
 .user-badge {
-  color: #FFF;
+  color: #fff;
   font-size: 0.72rem;
   font-weight: 800;
   padding: 2px 8px;
@@ -703,7 +728,7 @@
 .trade-money-section label {
   font-size: 0.75rem;
   font-weight: 800;
-  color: #64748B;
+  color: #64748b;
   display: block;
   margin-bottom: 4px;
 }
@@ -718,7 +743,7 @@
   width: 100%;
   padding: 6px 8px;
   border-radius: 6px;
-  border: 1px solid #CBD5E1;
+  border: 1px solid #cbd5e1;
   font-family: inherit;
   font-weight: 800;
   font-size: 0.85rem;
@@ -727,13 +752,13 @@
 .currency-tag {
   font-size: 0.75rem;
   font-weight: 800;
-  color: #64748B;
+  color: #64748b;
 }
 
 .section-label {
   font-size: 0.75rem;
   font-weight: 800;
-  color: #64748B;
+  color: #64748b;
   margin-bottom: 6px;
 }
 
@@ -750,9 +775,9 @@
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  background: #FFF;
+  background: #fff;
   border-radius: 6px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
@@ -760,8 +785,8 @@
 }
 
 .trade-tile-item:hover:not(.disabled) {
-  border-color: #3B82F6;
-  background: #F0F9FF;
+  border-color: #3b82f6;
+  background: #f0f9ff;
 }
 
 .trade-tile-item.disabled {
@@ -780,12 +805,12 @@
   display: flex;
   gap: 10px;
   padding: 12px 20px;
-  background: #FFF;
-  border-top: 1px solid #ECEFF1;
+  background: #fff;
+  border-top: 1px solid #eceff1;
 }
 
 .trade-confirm-card {
-  background: #FFF;
+  background: #fff;
   border-radius: 20px;
   padding: 24px 20px;
   max-width: 440px;
@@ -806,8 +831,8 @@
 }
 
 .confirm-deal-box {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 12px;
   text-align: left;
@@ -824,12 +849,18 @@
   margin-bottom: 4px;
 }
 
-.deal-tag.receive { background: #E8F8F5; color: #16A085; }
-.deal-tag.give { background: #FDEDEC; color: #E74C3C; }
+.deal-tag.receive {
+  background: #e8f8f5;
+  color: #16a085;
+}
+.deal-tag.give {
+  background: #fdedec;
+  color: #e74c3c;
+}
 
 .deal-divider {
   height: 1px;
-  background: #E2E8F0;
+  background: #e2e8f0;
   margin: 8px 0;
 }
 
@@ -839,8 +870,8 @@
 }
 
 .btn-trade-shortcut {
-  background: linear-gradient(135deg, #8E44AD, #9B59B6);
-  color: #FFF;
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+  color: #fff;
   border: none;
   border-radius: 10px;
   padding: 8px 12px;
@@ -859,7 +890,7 @@
 
 /* ================= 4. MODAL KHỞI TẠO VÁN ĐẤU (SETUP MODAL) ================= */
 .setup-modal-card {
-  background: #FFF;
+  background: #fff;
   border-radius: 18px;
   width: 92%;
   max-width: 450px;
@@ -872,8 +903,8 @@
 }
 
 .setup-header {
-  background: linear-gradient(135deg, #1F6F8B, #165369);
-  color: #FFF;
+  background: linear-gradient(135deg, #1f6f8b, #165369);
+  color: #fff;
   padding: 8px 14px 6px;
   text-align: center;
 }
@@ -902,8 +933,8 @@
 
 /* Banner Tiếp Tục Ván Trước */
 .resume-game-banner {
-  background: linear-gradient(135deg, #FEF9E7, #FCF3CF);
-  border: 2px solid #F39C12;
+  background: linear-gradient(135deg, #fef9e7, #fcf3cf);
+  border: 2px solid #f39c12;
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 10px;
@@ -925,7 +956,7 @@
 .resume-title {
   font-size: 0.74rem;
   font-weight: 900;
-  color: #B9770E;
+  color: #b9770e;
   letter-spacing: 0.3px;
 }
 
@@ -935,12 +966,12 @@
   gap: 6px;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #7D6608;
+  color: #7d6608;
 }
 
 .btn-resume-game {
-  background: linear-gradient(135deg, #27AE60, #219653);
-  color: #FFF;
+  background: linear-gradient(135deg, #27ae60, #219653);
+  color: #fff;
   border: none;
   border-radius: 8px;
   padding: 8px 14px;
@@ -958,7 +989,7 @@
 .btn-resume-game:hover {
   transform: translateY(-1px);
   box-shadow: 0 5px 12px rgba(39, 174, 96, 0.45);
-  background: linear-gradient(135deg, #2ECC71, #27AE60);
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
 }
 
 .setup-section {
@@ -969,7 +1000,7 @@
   display: block;
   font-size: 0.7rem;
   font-weight: 900;
-  color: #64748B;
+  color: #64748b;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
@@ -981,24 +1012,24 @@
 }
 
 .mode-card {
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   padding: 5px 6px;
   text-align: center;
   cursor: pointer;
   transition: all 0.15s ease;
-  background: #F8FAFC;
+  background: #f8fafc;
 }
 
 .mode-card:hover {
-  border-color: #FF7A00;
-  background: #FFF8F0;
+  border-color: #ff7a00;
+  background: #fff8f0;
   transform: translateY(-1px);
 }
 
 .mode-card.selected {
-  border-color: #FF7A00;
-  background: #FFF4E6;
+  border-color: #ff7a00;
+  background: #fff4e6;
   box-shadow: 0 2px 10px rgba(255, 122, 0, 0.22);
 }
 
@@ -1010,12 +1041,12 @@
 .mode-name {
   font-size: 0.78rem;
   font-weight: 900;
-  color: #2C3E50;
+  color: #2c3e50;
 }
 
 .mode-desc {
   font-size: 0.65rem;
-  color: #64748B;
+  color: #64748b;
   margin-top: 1px;
 }
 
@@ -1023,16 +1054,16 @@
   width: 100%;
   padding: 6px 12px;
   border-radius: 8px;
-  border: 1.5px solid #CBD5E1;
+  border: 1.5px solid #cbd5e1;
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 800;
-  color: #2C3E50;
+  color: #2c3e50;
   transition: all 0.15s ease;
 }
 
 .setup-input-name:focus {
-  border-color: #FF7A00;
+  border-color: #ff7a00;
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.2);
 }
@@ -1044,7 +1075,7 @@
 }
 
 .token-choice-item {
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   padding: 4px 2px;
   text-align: center;
@@ -1053,13 +1084,13 @@
 }
 
 .token-choice-item:hover {
-  border-color: #FF7A00;
+  border-color: #ff7a00;
   transform: translateY(-1px);
 }
 
 .token-choice-item.selected {
-  border-color: #FF7A00;
-  background: #FFF4E6;
+  border-color: #ff7a00;
+  background: #fff4e6;
   box-shadow: 0 2px 8px rgba(255, 122, 0, 0.2);
 }
 
@@ -1071,8 +1102,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #FFF;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  border: 1.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .token-choice-icon svg {
@@ -1089,15 +1120,15 @@
 
 .setup-footer {
   padding: 6px 16px 10px;
-  background: #FFF;
+  background: #fff;
 }
 
 .btn-start-game {
   width: 100%;
   padding: 9px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #27AE60, #2ECC71);
-  color: #FFF;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
   border: none;
   font-family: inherit;
   font-size: 0.9rem;
@@ -1117,9 +1148,11 @@
   width: 100%;
   max-width: 640px;
   max-height: 88vh;
-  background: #FFFDF9;
+  background: #fffdf9;
   border-radius: 22px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0,0,0,0.06);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1128,16 +1161,16 @@
 
 .rulebook-header {
   padding: 20px 24px 14px;
-  background: linear-gradient(135deg, #1B3B2B, #0E2419);
-  color: #FFF;
+  background: linear-gradient(135deg, #1b3b2b, #0e2419);
+  color: #fff;
   position: relative;
   text-align: center;
 }
 
 .rulebook-badge {
   display: inline-block;
-  background: linear-gradient(135deg, #F39C12, #D35400);
-  color: #FFF;
+  background: linear-gradient(135deg, #f39c12, #d35400);
+  color: #fff;
   font-size: 0.68rem;
   font-weight: 900;
   padding: 3px 10px;
@@ -1150,14 +1183,14 @@
   font-family: var(--font-title);
   font-size: 1.35rem;
   font-weight: 900;
-  color: #F9E79F;
+  color: #f9e79f;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
 
 .rulebook-header p {
   font-size: 0.82rem;
-  color: #D5DBDB;
+  color: #d5dbdb;
   font-weight: 600;
 }
 
@@ -1167,7 +1200,7 @@
   right: 18px;
   background: rgba(255, 255, 255, 0.15);
   border: none;
-  color: #FFF;
+  color: #fff;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -1197,7 +1230,7 @@
   width: 6px;
 }
 .rulebook-body::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
@@ -1205,17 +1238,19 @@
   display: flex;
   gap: 14px;
   padding: 12px 14px;
-  background: #F8FAF9;
-  border: 1px solid #E2E8F0;
+  background: #f8faf9;
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .rule-card:hover {
   transform: translateX(3px);
-  background: #FFF;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  border-color: #CBD5E1;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
 }
 
 .rule-icon {
@@ -1226,15 +1261,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFF;
+  background: #fff;
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .rule-content h3 {
   font-size: 0.95rem;
   font-weight: 900;
-  color: #1E293B;
+  color: #1e293b;
   margin-bottom: 4px;
 }
 
@@ -1245,21 +1280,21 @@
 }
 
 .rule-content strong {
-  color: #B9770E;
+  color: #b9770e;
 }
 
 .rulebook-footer {
   padding: 12px 20px 16px;
-  background: #FFF;
-  border-top: 1px solid #E2E8F0;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
 }
 
 .btn-rulebook-confirm {
   width: 100%;
   padding: 12px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #E67E22, #D35400);
-  color: #FFF;
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  color: #fff;
   border: none;
   font-family: inherit;
   font-size: 0.95rem;
@@ -1294,16 +1329,16 @@
 }
 
 .floating-cash-badge.gain {
-  color: #2ECC71;
+  color: #2ecc71;
   background: rgba(18, 48, 28, 0.92);
-  border: 1.5px solid #2ECC71;
+  border: 1.5px solid #2ecc71;
   text-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
 }
 
 .floating-cash-badge.loss {
-  color: #FF4757;
+  color: #ff4757;
   background: rgba(50, 18, 24, 0.92);
-  border: 1.5px solid #FF4757;
+  border: 1.5px solid #ff4757;
   text-shadow: 0 0 10px rgba(255, 71, 87, 0.6);
 }
 
@@ -1332,14 +1367,17 @@
 /* ================= PORTFOLIO MODAL (DANH MỤC TÀI SẢN NGƯỜI CHƠI) ================= */
 .player-card {
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
   position: relative;
 }
 
 .player-card:hover {
   transform: translateY(-2px) scale(1.01);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  border-color: #C0392B;
+  border-color: #c0392b;
 }
 
 .player-card::after {
@@ -1349,10 +1387,12 @@
   right: 8px;
   font-size: 0.58rem;
   font-weight: 700;
-  color: #7F8C8D;
+  color: #7f8c8d;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
   pointer-events: none;
 }
 
@@ -1365,10 +1405,10 @@
   width: 100%;
   max-width: 580px;
   max-height: 88vh;
-  background: #FAF7F0;
+  background: #faf7f0;
   border-radius: 20px;
   box-shadow: 0 25px 65px rgba(0, 0, 0, 0.55);
-  border: 3px solid #2C3E50;
+  border: 3px solid #2c3e50;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1380,8 +1420,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: #FFFFFF;
-  border-bottom: 2px solid #E8DFCA;
+  background: #ffffff;
+  border-bottom: 2px solid #e8dfca;
 }
 
 .portfolio-player-info {
@@ -1394,8 +1434,8 @@
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  border: 3px solid #C0392B;
-  background: #FFF;
+  border: 3px solid #c0392b;
+  background: #fff;
   overflow: hidden;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   display: flex;
@@ -1425,7 +1465,7 @@
   margin: 0;
   font-size: 1.15rem;
   font-weight: 900;
-  color: #1E293B;
+  color: #1e293b;
   font-family: var(--font-ui);
 }
 
@@ -1438,13 +1478,13 @@
 }
 
 .player-type-pill.human-pill {
-  background: #E0F2FE;
-  color: #0369A1;
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .player-type-pill.bot-pill {
-  background: #FEF3C7;
-  color: #B45309;
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .player-status-tag {
@@ -1455,32 +1495,32 @@
 }
 
 .player-status-tag.badge-active {
-  background: #DCFCE7;
-  color: #15803D;
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .player-status-tag.badge-jail {
-  background: #FEE2E2;
-  color: #B91C1C;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .player-status-tag.badge-bankrupt {
-  background: #F1F5F9;
-  color: #64748B;
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 .player-token-row {
   font-size: 0.72rem;
-  color: #64748B;
+  color: #64748b;
 }
 
 .token-name-text {
-  color: #C0392B;
+  color: #c0392b;
 }
 
 .portfolio-close-btn {
-  background: #F1F5F9;
-  border: 1px solid #CBD5E1;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
   color: #475569;
   width: 32px;
   height: 32px;
@@ -1495,9 +1535,9 @@
 }
 
 .portfolio-close-btn:hover {
-  background: #EF4444;
-  color: #FFF;
-  border-color: #DC2626;
+  background: #ef4444;
+  color: #fff;
+  border-color: #dc2626;
 }
 
 /* Lưới 4 ô thẻ tài chính */
@@ -1506,15 +1546,15 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   padding: 14px 20px;
-  background: #F4EEDF;
-  border-bottom: 2px solid #E8DFCA;
+  background: #f4eedf;
+  border-bottom: 2px solid #e8dfca;
 }
 
 .metric-card {
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 12px;
   padding: 10px 12px;
-  border: 1px solid #E2D9C5;
+  border: 1px solid #e2d9c5;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
@@ -1523,7 +1563,7 @@
 .metric-label {
   font-size: 0.65rem;
   font-weight: 800;
-  color: #64748B;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin-bottom: 3px;
@@ -1532,19 +1572,19 @@
 .metric-value {
   font-size: 0.95rem;
   font-weight: 900;
-  color: #1E293B;
+  color: #1e293b;
   font-family: var(--font-ui);
   line-height: 1.2;
 }
 
 .metric-value.highlight {
-  color: #B91C1C;
+  color: #b91c1c;
   font-size: 1.05rem;
 }
 
 .metric-sub {
   font-size: 0.62rem;
-  color: #94A3B8;
+  color: #94a3b8;
   margin-top: 4px;
 }
 
@@ -1563,8 +1603,8 @@
 .mortgaged-alert-count {
   font-size: 0.68rem;
   font-weight: 800;
-  color: #DC2626;
-  background: #FEE2E2;
+  color: #dc2626;
+  background: #fee2e2;
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -1585,18 +1625,18 @@
 }
 
 .portfolio-holdings-scroll::-webkit-scrollbar-track {
-  background: #FAF7F0;
+  background: #faf7f0;
 }
 
 .portfolio-holdings-scroll::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 .portfolio-empty-state {
   text-align: center;
   padding: 36px 16px;
-  color: #64748B;
+  color: #64748b;
 }
 
 .empty-icon {
@@ -1607,7 +1647,7 @@
 .empty-title {
   font-size: 0.95rem;
   font-weight: 800;
-  color: #1E293B;
+  color: #1e293b;
   margin-bottom: 4px;
 }
 
@@ -1618,9 +1658,9 @@
 }
 
 .portfolio-group-box {
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 12px;
-  border: 1px solid #E2D9C5;
+  border: 1px solid #e2d9c5;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   flex-shrink: 0;
@@ -1631,8 +1671,8 @@
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  background: #F8F5EC;
-  border-bottom: 1px solid #EBE4D5;
+  background: #f8f5ec;
+  border-bottom: 1px solid #ebe4d5;
 }
 
 .group-color-pill {
@@ -1646,7 +1686,7 @@
 .group-title {
   font-size: 0.78rem;
   font-weight: 900;
-  color: #1E293B;
+  color: #1e293b;
   flex: 1;
 }
 
@@ -1654,15 +1694,15 @@
   font-size: 0.65rem;
   font-weight: 800;
   color: #475569;
-  background: #E2E8F0;
+  background: #e2e8f0;
   padding: 2px 7px;
   border-radius: 10px;
 }
 
 .group-badge.is-monopoly {
-  background: #FEF3C7;
-  color: #B45309;
-  border: 1px solid #FCD34D;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
   font-weight: 900;
 }
 
@@ -1675,7 +1715,7 @@
   display: flex;
   align-items: center;
   padding: 9px 12px;
-  border-bottom: 1px solid #F1ECE1;
+  border-bottom: 1px solid #f1ece1;
   cursor: pointer;
   transition: background-color 0.15s ease;
   position: relative;
@@ -1686,12 +1726,12 @@
 }
 
 .portfolio-tile-item:hover {
-  background-color: #FEF9EE;
+  background-color: #fef9ee;
 }
 
 .portfolio-tile-item.is-mortgaged {
   opacity: 0.75;
-  background-color: #FFF5F5;
+  background-color: #fff5f5;
 }
 
 .tile-color-indicator {
@@ -1718,14 +1758,14 @@
 .tile-name-title {
   font-size: 0.85rem;
   font-weight: 800;
-  color: #1E293B;
+  color: #1e293b;
 }
 
 .badge-mortgage-tag {
   font-size: 0.6rem;
   font-weight: 800;
-  color: #DC2626;
-  background: #FEE2E2;
+  color: #dc2626;
+  background: #fee2e2;
   padding: 1px 6px;
   border-radius: 8px;
 }
@@ -1735,7 +1775,7 @@
   align-items: center;
   gap: 6px;
   font-size: 0.7rem;
-  color: #64748B;
+  color: #64748b;
 }
 
 .tile-price-tag {
@@ -1743,16 +1783,16 @@
 }
 
 .tile-bullet {
-  color: #CBD5E1;
+  color: #cbd5e1;
 }
 
 .tile-rent-val {
   font-weight: 800;
-  color: #15803D;
+  color: #15803d;
 }
 
 .tile-rent-val.val-mortgaged {
-  color: #DC2626;
+  color: #dc2626;
 }
 
 .tile-action-col {
@@ -1770,25 +1810,25 @@
 }
 
 .prop-house-tag.tag-empty {
-  background: #F1F5F9;
-  color: #64748B;
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 .prop-house-tag.tag-houses {
-  background: #DCFCE7;
+  background: #dcfce7;
   color: #166534;
-  border: 1px solid #BBF7D0;
+  border: 1px solid #bbf7d0;
 }
 
 .prop-house-tag.tag-hotel {
-  background: #FEE2E2;
-  color: #991B1B;
-  border: 1px solid #FECACA;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
 
 .btn-inspect-deed {
-  background: #F8FAFC;
-  border: 1px solid #CBD5E1;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
   padding: 4px 6px;
   font-size: 0.8rem;
@@ -1797,8 +1837,8 @@
 }
 
 .btn-inspect-deed:hover {
-  background: #E2E8F0;
-  border-color: #94A3B8;
+  background: #e2e8f0;
+  border-color: #94a3b8;
   transform: scale(1.08);
 }
 
@@ -1807,19 +1847,19 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  background: #FFFFFF;
-  border-top: 2px solid #E8DFCA;
+  background: #ffffff;
+  border-top: 2px solid #e8dfca;
 }
 
 .footer-tip-text {
   font-size: 0.68rem;
-  color: #64748B;
+  color: #64748b;
   font-style: italic;
 }
 
 .btn-portfolio-confirm {
-  background: #C0392B;
-  color: #FFFFFF;
+  background: #c0392b;
+  color: #ffffff;
   border: none;
   border-radius: 10px;
   padding: 8px 20px;
@@ -1831,7 +1871,7 @@
 }
 
 .btn-portfolio-confirm:hover {
-  background: #A93226;
+  background: #a93226;
   transform: translateY(-1px);
   box-shadow: 0 5px 12px rgba(192, 57, 43, 0.45);
 }
@@ -1850,10 +1890,10 @@
   width: 100%;
   max-width: 620px;
   max-height: 88vh;
-  background: #FAF7F0;
+  background: #faf7f0;
   border-radius: 20px;
   box-shadow: 0 25px 65px rgba(0, 0, 0, 0.55);
-  border: 3px solid #2C3E50;
+  border: 3px solid #2c3e50;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1865,8 +1905,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
-  background: var(--deck-bg, #FFF4F0);
-  border-bottom: 2px solid #E8DFCA;
+  background: var(--deck-bg, #fff4f0);
+  border-bottom: 2px solid #e8dfca;
 }
 
 .deck-viewer-branding {
@@ -1881,17 +1921,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 12px;
-  border: 2px solid var(--deck-theme, #C0392B);
+  border: 2px solid var(--deck-theme, #c0392b);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .deck-modal-glyph {
-  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-family: var(--font-retro), "Baloo 2", sans-serif;
   font-size: 28px;
   font-weight: 900;
-  background: linear-gradient(180deg, #FF3366 0%, #C0392B 100%);
+  background: linear-gradient(180deg, #ff3366 0%, #c0392b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;
@@ -1910,19 +1950,19 @@
 
 .deck-brand-badge.badge-chance {
   background: rgba(192, 57, 43, 0.15);
-  color: #C0392B;
+  color: #c0392b;
 }
 
 .deck-brand-badge.badge-chest {
   background: rgba(2, 132, 199, 0.15);
-  color: #0284C7;
+  color: #0284c7;
 }
 
 .deck-brand-title {
-  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-family: var(--font-retro), "Baloo 2", sans-serif;
   font-size: 1.25rem;
   font-weight: 900;
-  color: #2C3E50;
+  color: #2c3e50;
   margin: 0;
   line-height: 1.2;
 }
@@ -1931,7 +1971,7 @@
   background: none;
   border: none;
   font-size: 1.8rem;
-  color: #7F8C8D;
+  color: #7f8c8d;
   cursor: pointer;
   line-height: 1;
   padding: 0 6px;
@@ -1940,7 +1980,7 @@
 }
 
 .deck-viewer-close-btn:hover {
-  color: #C0392B;
+  color: #c0392b;
   background: rgba(192, 57, 43, 0.1);
 }
 
@@ -1950,8 +1990,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 20px;
-  background: #FFFFFF;
-  border-bottom: 1.5px solid #E8DFCA;
+  background: #ffffff;
+  border-bottom: 1.5px solid #e8dfca;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -1970,15 +2010,15 @@
 
 .deck-stat-box .stat-value {
   font-weight: 800;
-  color: #1E293B;
+  color: #1e293b;
 }
 
 .deck-stat-box .stat-value.highlighted {
-  color: var(--deck-theme, #C0392B);
-  background: var(--deck-bg, #FFF4F0);
+  color: var(--deck-theme, #c0392b);
+  background: var(--deck-bg, #fff4f0);
   padding: 2px 8px;
   border-radius: 6px;
-  border: 1px solid var(--deck-theme, #C0392B);
+  border: 1px solid var(--deck-theme, #c0392b);
 }
 
 .deck-stat-switchers {
@@ -1991,27 +2031,27 @@
   border-radius: 8px;
   font-size: 0.72rem;
   font-weight: 800;
-  border: 1.5px solid #CBD5E1;
-  background: #F8FAFC;
-  color: #64748B;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .deck-type-btn.active {
-  background: var(--deck-theme, #C0392B);
-  color: #FFFFFF;
-  border-color: var(--deck-theme, #C0392B);
+  background: var(--deck-theme, #c0392b);
+  color: #ffffff;
+  border-color: var(--deck-theme, #c0392b);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Tabs */
 .deck-viewer-tabs {
   display: flex;
-  background: #ECE5D8;
+  background: #ece5d8;
   padding: 4px 16px 0;
   gap: 6px;
-  border-bottom: 2px solid #D5C9B5;
+  border-bottom: 2px solid #d5c9b5;
 }
 
 .deck-tab-btn {
@@ -2020,7 +2060,7 @@
   background: transparent;
   font-size: 0.8rem;
   font-weight: 800;
-  color: #64748B;
+  color: #64748b;
   cursor: pointer;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
@@ -2028,15 +2068,15 @@
 }
 
 .deck-tab-btn:hover {
-  color: #1E293B;
+  color: #1e293b;
   background: rgba(255, 255, 255, 0.5);
 }
 
 .deck-tab-btn.active {
-  background: #FAF7F0;
-  color: var(--deck-theme, #C0392B);
+  background: #faf7f0;
+  color: var(--deck-theme, #c0392b);
   box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
-  border: 1.5px solid #D5C9B5;
+  border: 1.5px solid #d5c9b5;
   border-bottom: none;
   margin-bottom: -2px;
 }
@@ -2054,7 +2094,7 @@
 .deck-empty-state {
   text-align: center;
   padding: 36px 16px;
-  color: #64748B;
+  color: #64748b;
 }
 
 .deck-empty-state .empty-icon {
@@ -2084,12 +2124,14 @@
 }
 
 .deck-history-item {
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 12px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid #e2e8f0;
   padding: 10px 14px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .deck-history-item:hover {
@@ -2098,11 +2140,11 @@
 }
 
 .deck-history-item.chance-item {
-  border-left: 4px solid #C0392B;
+  border-left: 4px solid #c0392b;
 }
 
 .deck-history-item.chest-item {
-  border-left: 4px solid #0284C7;
+  border-left: 4px solid #0284c7;
 }
 
 .history-item-header {
@@ -2111,7 +2153,7 @@
   justify-content: space-between;
   margin-bottom: 8px;
   padding-bottom: 6px;
-  border-bottom: 1px dashed #E2E8F0;
+  border-bottom: 1px dashed #e2e8f0;
 }
 
 .history-player-tag {
@@ -2125,7 +2167,7 @@
   height: 22px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1.5px solid #CBD5E1;
+  border: 1.5px solid #cbd5e1;
 }
 
 .history-avatar svg {
@@ -2137,12 +2179,12 @@
 .history-player-name {
   font-size: 0.78rem;
   font-weight: 800;
-  color: #1E293B;
+  color: #1e293b;
 }
 
 .history-time-tag {
   font-size: 0.68rem;
-  color: #64748B;
+  color: #64748b;
   font-weight: 600;
 }
 
@@ -2164,7 +2206,7 @@
 .history-card-title {
   font-size: 0.88rem;
   font-weight: 800;
-  color: #0F172A;
+  color: #0f172a;
   margin-bottom: 3px;
 }
 
@@ -2178,11 +2220,11 @@
 .history-card-result {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #0369A1;
-  background: #F0F9FF;
+  color: #0369a1;
+  background: #f0f9ff;
   padding: 3px 8px;
   border-radius: 6px;
-  border: 1px solid #BAE6FD;
+  border: 1px solid #bae6fd;
   display: inline-block;
 }
 
@@ -2194,8 +2236,8 @@
 }
 
 .deck-catalog-card {
-  background: #FFFFFF;
-  border: 1.5px solid #E2E8F0;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   padding: 10px 12px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
@@ -2203,7 +2245,7 @@
 }
 
 .deck-catalog-card.drawn {
-  background: #F8FAFC;
+  background: #f8fafc;
   opacity: 0.75;
   border-style: dashed;
 }
@@ -2234,21 +2276,21 @@
 }
 
 .catalog-status-badge.badge-available {
-  background: #DCFCE7;
-  color: #15803D;
-  border: 1px solid #BBF7D0;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 
 .catalog-status-badge.badge-drawn {
-  background: #F1F5F9;
-  color: #64748B;
-  border: 1px solid #CBD5E1;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
 }
 
 .catalog-card-title {
   font-size: 0.82rem;
   font-weight: 800;
-  color: #1E293B;
+  color: #1e293b;
   margin-bottom: 3px;
 }
 
@@ -2264,13 +2306,13 @@
   align-items: center;
   justify-content: flex-end;
   padding: 12px 20px;
-  background: #FFFFFF;
-  border-top: 2px solid #E8DFCA;
+  background: #ffffff;
+  border-top: 2px solid #e8dfca;
 }
 
 .btn-deck-confirm {
-  background: var(--deck-theme, #C0392B);
-  color: #FFFFFF;
+  background: var(--deck-theme, #c0392b);
+  color: #ffffff;
   border: none;
   border-radius: 10px;
   padding: 9px 24px;
@@ -2285,6 +2327,3 @@
   filter: brightness(1.1);
   transform: translateY(-1px);
 }
-
-
-

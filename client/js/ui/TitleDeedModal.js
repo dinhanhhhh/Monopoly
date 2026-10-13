@@ -1,10 +1,10 @@
-import { formatVND } from '../../../shared/constants.js';
+import { formatVND } from "../../../shared/constants.js";
 
 export class TitleDeedModal {
-  constructor(containerId = 'modal-container') {
+  constructor(containerId = "modal-container") {
     this.container = document.getElementById(containerId);
     if (!this.container) {
-      this.container = document.createElement('div');
+      this.container = document.createElement("div");
       this.container.id = containerId;
       document.body.appendChild(this.container);
     }
@@ -12,7 +12,7 @@ export class TitleDeedModal {
 
   show(firstArg, secondArg = {}) {
     const tile = firstArg?.id !== undefined ? firstArg : firstArg.tile;
-    const opts = firstArg?.id !== undefined ? (secondArg || {}) : firstArg;
+    const opts = firstArg?.id !== undefined ? secondArg || {} : firstArg;
 
     const {
       owner = null,
@@ -29,7 +29,7 @@ export class TitleDeedModal {
       onBuild = null,
       onSell = null,
       onMortgage = null,
-      onUnmortgage = null
+      onUnmortgage = null,
     } = opts;
 
     const isBuyMode = isBuyPrompt || buyable;
@@ -38,23 +38,38 @@ export class TitleDeedModal {
 
     const formatMoney = (amount) => formatVND(amount);
 
-    const tileColor = tile.colorHex || tile.color || (tile.type === 'railroad' ? '#4A3B32' : tile.type === 'utility' ? '#0284C7' : '#1F6F8B');
-    const isLightColor = ['#FFE066', '#FFD166', '#87CEEB', '#06D6A0', '#F5CB63'].includes(tileColor);
-    const headerTextColor = isLightColor ? '#1E293B' : '#FFFFFF';
-    const subTextColor = isLightColor ? 'rgba(30, 41, 59, 0.85)' : 'rgba(255, 255, 255, 0.9)';
+    const tileColor =
+      tile.colorHex ||
+      tile.color ||
+      (tile.type === "railroad"
+        ? "#4A3B32"
+        : tile.type === "utility"
+          ? "#0284C7"
+          : "#1F6F8B");
+    const isLightColor = [
+      "#FFE066",
+      "#FFD166",
+      "#87CEEB",
+      "#06D6A0",
+      "#F5CB63",
+    ].includes(tileColor);
+    const headerTextColor = isLightColor ? "#1E293B" : "#FFFFFF";
+    const subTextColor = isLightColor
+      ? "rgba(30, 41, 59, 0.85)"
+      : "rgba(255, 255, 255, 0.9)";
     const colorHeaderStyle = `background-color: ${tileColor} !important; color: ${headerTextColor} !important; border-bottom: 3px solid #2E241B;`;
 
-    let rentsHtml = '';
-    if (tile.type === 'property' && tile.rent) {
+    let rentsHtml = "";
+    if (tile.type === "property" && tile.rent) {
       rentsHtml = `
         <div class="deed-rents">
           <div class="rent-row"><span class="rent-label">Tiền thuê đất:</span> <span class="rent-val">${formatMoney(tile.rent[0])}</span></div>
           <div class="rent-row"><span class="rent-label">Với trọn bộ màu (x2):</span> <span class="rent-val">${formatMoney(tile.rent[0] * 2)}</span></div>
-          <div class="rent-row ${currentHouses === 1 ? 'active-level' : ''}"><span class="rent-label">Với 1 Nhà 🏠:</span> <span class="rent-val">${formatMoney(tile.rent[1])}</span></div>
-          <div class="rent-row ${currentHouses === 2 ? 'active-level' : ''}"><span class="rent-label">Với 2 Nhà 🏠🏠:</span> <span class="rent-val">${formatMoney(tile.rent[2])}</span></div>
-          <div class="rent-row ${currentHouses === 3 ? 'active-level' : ''}"><span class="rent-label">Với 3 Nhà 🏠🏠🏠:</span> <span class="rent-val">${formatMoney(tile.rent[3])}</span></div>
-          <div class="rent-row ${currentHouses === 4 ? 'active-level' : ''}"><span class="rent-label">Với 4 Nhà 🏠🏠🏠🏠:</span> <span class="rent-val">${formatMoney(tile.rent[4])}</span></div>
-          <div class="rent-row highlight ${currentHouses === 5 ? 'active-level' : ''}"><span class="rent-label">Với Khách Sạn 🏨:</span> <span class="rent-val">${formatMoney(tile.rent[5])}</span></div>
+          <div class="rent-row ${currentHouses === 1 ? "active-level" : ""}"><span class="rent-label">Với 1 Nhà 🏠:</span> <span class="rent-val">${formatMoney(tile.rent[1])}</span></div>
+          <div class="rent-row ${currentHouses === 2 ? "active-level" : ""}"><span class="rent-label">Với 2 Nhà 🏠🏠:</span> <span class="rent-val">${formatMoney(tile.rent[2])}</span></div>
+          <div class="rent-row ${currentHouses === 3 ? "active-level" : ""}"><span class="rent-label">Với 3 Nhà 🏠🏠🏠:</span> <span class="rent-val">${formatMoney(tile.rent[3])}</span></div>
+          <div class="rent-row ${currentHouses === 4 ? "active-level" : ""}"><span class="rent-label">Với 4 Nhà 🏠🏠🏠🏠:</span> <span class="rent-val">${formatMoney(tile.rent[4])}</span></div>
+          <div class="rent-row highlight ${currentHouses === 5 ? "active-level" : ""}"><span class="rent-label">Với Khách Sạn 🏨:</span> <span class="rent-val">${formatMoney(tile.rent[5])}</span></div>
         </div>
         <div class="deed-costs">
           <div>Giá mỗi Ngôi Nhà: <strong>${formatMoney(tile.houseCost)}</strong></div>
@@ -62,7 +77,7 @@ export class TitleDeedModal {
           <div>Giá Thế Chấp: <strong>${formatMoney(tile.mortgage || tile.price * 0.5)}</strong></div>
         </div>
       `;
-    } else if (tile.type === 'railroad') {
+    } else if (tile.type === "railroad") {
       rentsHtml = `
         <div class="deed-rents">
           <div class="rent-row"><span class="rent-label">Sở hữu 1 Bến Xe:</span> <span class="rent-val">250k</span></div>
@@ -74,7 +89,7 @@ export class TitleDeedModal {
           <div>Giá Thế Chấp: <strong>${formatMoney(tile.mortgage || tile.price * 0.5)}</strong></div>
         </div>
       `;
-    } else if (tile.type === 'utility') {
+    } else if (tile.type === "utility") {
       rentsHtml = `
         <div class="deed-rents">
           <div class="rent-row"><span class="rent-label">Sở hữu 1 Tiện ích:</span> <span class="rent-val">Điểm Xúc xắc × 400k</span></div>
@@ -86,12 +101,13 @@ export class TitleDeedModal {
       `;
     }
 
-    let ownerInfo = '<div class="deed-owner-info unowned">Chưa có chủ sở hữu (Thuộc Ngân Hàng)</div>';
+    let ownerInfo =
+      '<div class="deed-owner-info unowned">Chưa có chủ sở hữu (Thuộc Ngân Hàng)</div>';
     if (owner) {
       ownerInfo = `<div class="deed-owner-info owned" style="border-left: 4px solid ${tileColor}; background: #F8F9FA;">Chủ sở hữu: <strong>${owner.name}</strong></div>`;
     }
 
-    let mortgageAlert = '';
+    let mortgageAlert = "";
     if (isMortgaged) {
       mortgageAlert = `
         <div class="deed-mortgage-alert">
@@ -101,7 +117,7 @@ export class TitleDeedModal {
       `;
     }
 
-    let actionsHtml = '';
+    let actionsHtml = "";
     if (isBuyMode) {
       actionsHtml = `
         <div class="deed-actions">
@@ -115,9 +131,13 @@ export class TitleDeedModal {
       // Nút Xây nhà
       if (buildCheck) {
         const isHotel = buildCheck.isHotel;
-        const btnText = isHotel ? `🏨 NÂNG CẤP KHÁCH SẠN (${formatMoney(buildCheck.cost)})` : `🏠 XÂY NHÀ (${formatMoney(buildCheck.cost)})`;
-        const disabledAttr = buildCheck.canBuild ? '' : 'disabled';
-        const reasonTip = !buildCheck.canBuild ? `<div class="build-warning-tip">⚠️ ${buildCheck.reason}</div>` : '';
+        const btnText = isHotel
+          ? `🏨 NÂNG CẤP KHÁCH SẠN (${formatMoney(buildCheck.cost)})`
+          : `🏠 XÂY NHÀ (${formatMoney(buildCheck.cost)})`;
+        const disabledAttr = buildCheck.canBuild ? "" : "disabled";
+        const reasonTip = !buildCheck.canBuild
+          ? `<div class="build-warning-tip">⚠️ ${buildCheck.reason}</div>`
+          : "";
         actionButtons.push(`
           ${reasonTip}
           <button id="btn-build-house" class="btn-modal btn-build-house" ${disabledAttr}>${btnText}</button>
@@ -159,7 +179,7 @@ export class TitleDeedModal {
 
       actionsHtml = `
         <div class="deed-actions vertical">
-          ${actionButtons.join('')}
+          ${actionButtons.join("")}
           <button id="btn-close-deed" class="btn-modal btn-decline-property">ĐÓNG</button>
         </div>
       `;
@@ -167,7 +187,7 @@ export class TitleDeedModal {
 
     this.container.innerHTML = `
       <div class="modal-backdrop fade-in" id="deed-backdrop">
-        <div class="title-deed-card pop-in ${isMortgaged ? 'card-mortgaged' : ''}">
+        <div class="title-deed-card pop-in ${isMortgaged ? "card-mortgaged" : ""}">
           <div class="deed-header" style="${colorHeaderStyle}">
             <div class="deed-sub">GIẤY CHỨNG NHẬN QUYỀN SỞ HỮU</div>
             <div class="deed-title">${tile.name}</div>
@@ -183,13 +203,13 @@ export class TitleDeedModal {
     `;
 
     // Gán sự kiện cho các nút bấm
-    const btnBuy = document.getElementById('btn-buy-property');
-    const btnDecline = document.getElementById('btn-decline-property');
-    const btnClose = document.getElementById('btn-close-deed');
-    const btnBuild = document.getElementById('btn-build-house');
-    const btnSell = document.getElementById('btn-sell-house');
-    const btnMortgage = document.getElementById('btn-mortgage-property');
-    const btnUnmortgage = document.getElementById('btn-unmortgage-property');
+    const btnBuy = document.getElementById("btn-buy-property");
+    const btnDecline = document.getElementById("btn-decline-property");
+    const btnClose = document.getElementById("btn-close-deed");
+    const btnBuild = document.getElementById("btn-build-house");
+    const btnSell = document.getElementById("btn-sell-house");
+    const btnMortgage = document.getElementById("btn-mortgage-property");
+    const btnUnmortgage = document.getElementById("btn-unmortgage-property");
 
     if (btnBuy) {
       btnBuy.onclick = () => {
@@ -231,7 +251,7 @@ export class TitleDeedModal {
       };
     }
 
-    const backdrop = document.getElementById('deed-backdrop');
+    const backdrop = document.getElementById("deed-backdrop");
     if (backdrop && !isBuyMode) {
       backdrop.onclick = (e) => {
         if (e.target === backdrop) this.hide();
@@ -240,6 +260,6 @@ export class TitleDeedModal {
   }
 
   hide() {
-    this.container.innerHTML = '';
+    this.container.innerHTML = "";
   }
 }

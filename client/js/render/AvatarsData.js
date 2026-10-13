@@ -4,11 +4,11 @@
 
 export const PLAYER_AVATARS = {
   p1: {
-    id: 'p1',
-    name: 'Bạn',
-    title: 'Người chơi',
-    bgColor: '#E2F0D9',
-    borderColor: '#43A047',
+    id: "p1",
+    name: "Bạn",
+    title: "Người chơi",
+    bgColor: "#E2F0D9",
+    borderColor: "#43A047",
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="32" cy="32" r="30" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2.5"/>
       <!-- Cổ & Thân -->
@@ -25,14 +25,14 @@ export const PLAYER_AVATARS = {
       <!-- Má hồng -->
       <circle cx="24" cy="34" r="2.5" fill="#FF8A80" opacity="0.6"/>
       <circle cx="40" cy="34" r="2.5" fill="#FF8A80" opacity="0.6"/>
-    </svg>`
+    </svg>`,
   },
   p2: {
-    id: 'p2',
-    name: 'Cô Ba Bọt',
-    title: 'Thương gia',
-    bgColor: '#FBE9E7',
-    borderColor: '#D84315',
+    id: "p2",
+    name: "Cô Ba Bọt",
+    title: "Thương gia",
+    bgColor: "#FBE9E7",
+    borderColor: "#D84315",
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="32" cy="32" r="30" fill="#FFF3E0" stroke="#E65100" stroke-width="2.5"/>
       <!-- Áo bà ba cam -->
@@ -53,14 +53,14 @@ export const PLAYER_AVATARS = {
       <circle cx="43" cy="34" r="1.8" fill="#E53935"/>
       <circle cx="24" cy="35" r="2.5" fill="#FF80AB" opacity="0.6"/>
       <circle cx="40" cy="35" r="2.5" fill="#FF80AB" opacity="0.6"/>
-    </svg>`
+    </svg>`,
   },
   p3: {
-    id: 'p3',
-    name: 'Bác Xích Lô',
-    title: 'Tài xế phố',
-    bgColor: '#E1F5FE',
-    borderColor: '#0288D1',
+    id: "p3",
+    name: "Bác Xích Lô",
+    title: "Tài xế phố",
+    bgColor: "#E1F5FE",
+    borderColor: "#0288D1",
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="32" cy="32" r="30" fill="#E1F5FE" stroke="#0277BD" stroke-width="2.5"/>
       <!-- Áo xanh & Khăn rằn -->
@@ -76,14 +76,14 @@ export const PLAYER_AVATARS = {
       <circle cx="38" cy="30" r="1.8" fill="#2E241B"/>
       <path d="M26 35C29 33 35 33 38 35" stroke="#3E2723" stroke-width="2.5" stroke-linecap="round"/>
       <path d="M29 38C30.5 39.5 33.5 39.5 35 38" stroke="#BF360C" stroke-width="1.8" stroke-linecap="round"/>
-    </svg>`
+    </svg>`,
   },
   p4: {
-    id: 'p4',
-    name: 'Tiệm Bánh',
-    title: 'Chủ tiệm',
-    bgColor: '#FFF9C4',
-    borderColor: '#FBC02D',
+    id: "p4",
+    name: "Tiệm Bánh",
+    title: "Chủ tiệm",
+    bgColor: "#FFF9C4",
+    borderColor: "#FBC02D",
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="32" cy="32" r="30" fill="#FFFDE7" stroke="#F57F17" stroke-width="2.5"/>
       <!-- Áo đỏ viền vàng -->
@@ -101,8 +101,8 @@ export const PLAYER_AVATARS = {
       <path d="M29 36C30.5 38 33.5 38 35 36" stroke="#D81B60" stroke-width="2" stroke-linecap="round"/>
       <circle cx="23" cy="33" r="2.5" fill="#FF8A80" opacity="0.6"/>
       <circle cx="41" cy="33" r="2.5" fill="#FF8A80" opacity="0.6"/>
-    </svg>`
-  }
+    </svg>`,
+  },
 };
 
 export function getPlayerAvatar(playerId, playerIndex = 0) {

@@ -137,7 +137,7 @@ export class BoardRenderer {
       "Đường Hàm Nghi": "Hàm<br>Nghi",
       "Hàm Nghi": "Hàm<br>Nghi",
       "Cấp Nước Sawaco": "Cấp<br>Nước",
-      "Sawaco": "Cấp<br>Nước",
+      Sawaco: "Cấp<br>Nước",
       "Đường Đồng Khởi": "Đồng<br>Khởi",
       "Đồng Khởi": "Đồng<br>Khởi",
       "Nam Kỳ Khởi Nghĩa": "Nam Kỳ<br>K.Nghĩa",
@@ -175,7 +175,7 @@ export class BoardRenderer {
   render(boardData, onTileClick = null) {
     this.boardData = boardData;
     // Xóa sạch các ô cờ cũ nếu đã render trước đó để tránh trùng lặp
-    const existingTiles = this.board.querySelectorAll('.board-tile');
+    const existingTiles = this.board.querySelectorAll(".board-tile");
     existingTiles.forEach((el) => el.remove());
 
     boardData.forEach((tile) => {
@@ -233,7 +233,7 @@ export class BoardRenderer {
           tileEl.innerHTML = `
             <div class="corner-icon-box">${this.getCornerIconSvg(tile.id)}</div>
             <span class="corner-title">${displayName}</span>
-            ${tile.id === 20 ? `<div class="jackpot-pool-badge" id="jackpot-pool-amount" title="Quỹ Trúng Thưởng tích lũy">1tr</div>` : ''}
+            ${tile.id === 20 ? `<div class="jackpot-pool-badge" id="jackpot-pool-amount" title="Quỹ Trúng Thưởng tích lũy">1tr</div>` : ""}
           `;
         }
       } else {
@@ -315,7 +315,11 @@ export class BoardRenderer {
   hexToRgba(hex, alpha = 0.12) {
     if (!hex || typeof hex !== "string") return "";
     let c = hex.replace("#", "");
-    if (c.length === 3) c = c.split("").map((x) => x + x).join("");
+    if (c.length === 3)
+      c = c
+        .split("")
+        .map((x) => x + x)
+        .join("");
     const num = parseInt(c, 16);
     if (isNaN(num)) return "";
     const r = (num >> 16) & 255;
@@ -338,10 +342,14 @@ export class BoardRenderer {
       const tileEl = document.getElementById(`tile-${tileId}`);
       if (!tileEl) return;
 
-      const oldBadge = tileEl.querySelector(".tile-owner-badge") || tileEl.querySelector(".tile-owner-token-badge");
+      const oldBadge =
+        tileEl.querySelector(".tile-owner-badge") ||
+        tileEl.querySelector(".tile-owner-token-badge");
       if (oldBadge) oldBadge.remove();
 
-      const oldBar = tileEl.querySelector(".tile-owner-outer-bar") || tileEl.querySelector(".tile-owner-bottom-bar");
+      const oldBar =
+        tileEl.querySelector(".tile-owner-outer-bar") ||
+        tileEl.querySelector(".tile-owner-bottom-bar");
       if (oldBar) oldBar.remove();
 
       tileEl.style.boxShadow = "";
@@ -363,7 +371,9 @@ export class BoardRenderer {
         if (tileContent) tileContent.style.backgroundColor = "";
         tileEl.style.backgroundColor = "";
       } else if (prop.owner) {
-        const owner = (players || this.players).find((p) => p.id === prop.owner);
+        const owner = (players || this.players).find(
+          (p) => p.id === prop.owner,
+        );
         if (owner) {
           const ownerColor = owner.token?.color || "#7B4BD8";
 
@@ -410,7 +420,7 @@ export class BoardRenderer {
    * Cập nhật mô hình Nhà & Khách Sạn trên ô cờ (theo màu đại diện của nhân vật)
    */
   updateBuildings(propertiesState, players = null) {
-    const playerList = (players && players.length) ? players : (this.players || []);
+    const playerList = players && players.length ? players : this.players || [];
 
     Object.entries(propertiesState).forEach(([tileId, prop]) => {
       const tileEl = document.getElementById(`tile-${tileId}`);
@@ -478,15 +488,15 @@ export class BoardRenderer {
    */
   updateTilePrices(propertiesState, players = null) {
     if (!this.boardData || !this.boardData.length) return;
-    const playerList = (players && players.length) ? players : (this.players || []);
+    const playerList = players && players.length ? players : this.players || [];
 
     this.boardData.forEach((tile) => {
-      if (!['property', 'railroad', 'utility'].includes(tile.type)) return;
+      if (!["property", "railroad", "utility"].includes(tile.type)) return;
 
       const tileEl = document.getElementById(`tile-${tile.id}`);
       if (!tileEl) return;
 
-      const priceEl = tileEl.querySelector('.tile-price');
+      const priceEl = tileEl.querySelector(".tile-price");
       if (!priceEl) return;
 
       const prop = propertiesState[tile.id];
@@ -495,7 +505,7 @@ export class BoardRenderer {
       if (!prop || !prop.owner) {
         priceEl.textContent = this.formatMoney(tile.price);
         priceEl.title = `Giá mua đất: ${formatVND(tile.price)}`;
-        priceEl.classList.remove('tile-rent-active', 'tile-rent-hotel');
+        priceEl.classList.remove("tile-rent-active", "tile-rent-hotel");
         return;
       }
 
@@ -503,7 +513,7 @@ export class BoardRenderer {
       if (prop.isMortgaged) {
         priceEl.textContent = "0đ";
         priceEl.title = "Đang thế chấp (Tiền thuê: 0đ)";
-        priceEl.classList.remove('tile-rent-active', 'tile-rent-hotel');
+        priceEl.classList.remove("tile-rent-active", "tile-rent-hotel");
         return;
       }
 
@@ -512,10 +522,10 @@ export class BoardRenderer {
 
       // Riêng Tiện Ích (Điện/Nước): Khi đã có chủ thì KHÔNG hiện giá tiền cố định trên ô cờ.
       // Chỉ khi nào có ai dẫm vào ô thì mới tính tiền theo số nút xúc xắc của người đó.
-      if (tile.type === 'utility') {
+      if (tile.type === "utility") {
         priceEl.textContent = "";
         priceEl.title = `Chủ sở hữu: ${owner?.name || "Người chơi"}. Tiền thuê tính theo số nút xúc xắc khi dẫm vào.`;
-        priceEl.classList.remove('tile-rent-active', 'tile-rent-hotel');
+        priceEl.classList.remove("tile-rent-active", "tile-rent-hotel");
         return;
       }
 
@@ -524,12 +534,12 @@ export class BoardRenderer {
 
       priceEl.innerHTML = `<span class="rent-label">Thuê</span><span class="rent-val">${this.formatMoney(rent)}</span>`;
       priceEl.title = `Tiền thuê thực tế: ${formatVND(rent)}`;
-      priceEl.classList.add('tile-rent-active');
+      priceEl.classList.add("tile-rent-active");
 
       if (houses === 5) {
-        priceEl.classList.add('tile-rent-hotel');
+        priceEl.classList.add("tile-rent-hotel");
       } else {
-        priceEl.classList.remove('tile-rent-hotel');
+        priceEl.classList.remove("tile-rent-hotel");
       }
     });
 

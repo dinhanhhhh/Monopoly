@@ -2,29 +2,29 @@
 
 ## 1. Tổng Quan Dự Án
 
-| Trường | Giá trị |
-|---|---|
-| **Tên game** | **Cờ Tỷ Phú Sài Gòn** (Saigon Tycoon) — Tránh nhãn hiệu Monopoly của Hasbro |
-| **Theme / Bối cảnh** | Đường phố, địa danh và văn hóa TP. Hồ Chí Minh |
-| **Loại ứng dụng** | Web game responsive (Desktop + Mobile) |
-| **Chế độ chơi** | 🌐 Online Multiplayer · 🤖 Đấu với AI Bot · 🔴 Offline Hot-seat (1 máy chuyền tay) |
-| **Mức độ hoàn thiện** | Đầy đủ cơ chế chuẩn quốc tế, bản địa hóa Việt Nam |
-| **Số người chơi** | 2 – 4 người |
-| **Đơn vị tiền tệ** | **VNĐ (K / M)** — Vốn ban đầu 15.000.000đ (15M), qua Khởi Hành nhận 2.000.000đ (2M) |
+| Trường                | Giá trị                                                                             |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| **Tên game**          | **Cờ Tỷ Phú Sài Gòn** (Saigon Tycoon) — Tránh nhãn hiệu Monopoly của Hasbro         |
+| **Theme / Bối cảnh**  | Đường phố, địa danh và văn hóa TP. Hồ Chí Minh                                      |
+| **Loại ứng dụng**     | Web game responsive (Desktop + Mobile)                                              |
+| **Chế độ chơi**       | 🌐 Online Multiplayer · 🤖 Đấu với AI Bot · 🔴 Offline Hot-seat (1 máy chuyền tay)  |
+| **Mức độ hoàn thiện** | Đầy đủ cơ chế chuẩn quốc tế, bản địa hóa Việt Nam                                   |
+| **Số người chơi**     | 2 – 4 người                                                                         |
+| **Đơn vị tiền tệ**    | **VNĐ (K / M)** — Vốn ban đầu 15.000.000đ (15M), qua Khởi Hành nhận 2.000.000đ (2M) |
 
 ---
 
 ## 2. Tech Stack & Kiến Trúc Đề Xuất
 
-| Thành phần | Công nghệ | Lý do & Ưu điểm |
-|---|---|---|
-| **Core Architecture** | **Shared Engine (Pure JS / ES Modules)** | Tách riêng logic game không đụng DOM; dùng chung 100% giữa Client (offline) và Server (online), test dễ dàng |
-| **Bàn cờ & Render** | **CSS Grid + DOM + SVG** | Bản chất bàn cờ là lưới 11x11. CSS Grid siêu nhẹ, text sắc nét, bắt click/hover chuẩn xác, responsive canvas-free |
-| **Animation quân cờ** | **CSS Transform + Transitions** | Di chuyển quân cờ mượt mà theo tọa độ ô, hỗ trợ GPU acceleration, không giật lag trên mobile |
-| **UI & Controls** | **HTML5 + CSS thuần** | Menu, popup Title Deed, modal giao dịch, HUD tài sản — tốc độ tải tức thì |
-| **Quân cờ (Tokens)** | **Custom SVG Icons** | Xe máy, Nón lá, Bánh mì, Xích lô... Hiển thị đồng nhất mọi hệ điều hành (không bị lệch emoji) |
-| **Multiplayer Server** | **Node.js + WebSocket (ws / Socket.IO)** | Server Authoritative: server tung xúc xắc và chạy engine, client chỉ gửi action và render state |
-| **Deploy** | **Frontend:** Vercel / Netlify / Cloudflare Pages<br>**Backend:** Railway / Render / Fly.io | Vercel là serverless không giữ được WebSocket lâu dài; backend WebSocket bắt buộc chạy trên persistent server |
+| Thành phần             | Công nghệ                                                                                   | Lý do & Ưu điểm                                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Core Architecture**  | **Shared Engine (Pure JS / ES Modules)**                                                    | Tách riêng logic game không đụng DOM; dùng chung 100% giữa Client (offline) và Server (online), test dễ dàng      |
+| **Bàn cờ & Render**    | **CSS Grid + DOM + SVG**                                                                    | Bản chất bàn cờ là lưới 11x11. CSS Grid siêu nhẹ, text sắc nét, bắt click/hover chuẩn xác, responsive canvas-free |
+| **Animation quân cờ**  | **CSS Transform + Transitions**                                                             | Di chuyển quân cờ mượt mà theo tọa độ ô, hỗ trợ GPU acceleration, không giật lag trên mobile                      |
+| **UI & Controls**      | **HTML5 + CSS thuần**                                                                       | Menu, popup Title Deed, modal giao dịch, HUD tài sản — tốc độ tải tức thì                                         |
+| **Quân cờ (Tokens)**   | **Custom SVG Icons**                                                                        | Xe máy, Nón lá, Bánh mì, Xích lô... Hiển thị đồng nhất mọi hệ điều hành (không bị lệch emoji)                     |
+| **Multiplayer Server** | **Node.js + WebSocket (ws / Socket.IO)**                                                    | Server Authoritative: server tung xúc xắc và chạy engine, client chỉ gửi action và render state                   |
+| **Deploy**             | **Frontend:** Vercel / Netlify / Cloudflare Pages<br>**Backend:** Railway / Render / Fly.io | Vercel là serverless không giữ được WebSocket lâu dài; backend WebSocket bắt buộc chạy trên persistent server     |
 
 ---
 
@@ -77,21 +77,23 @@ Monopoly/
 ## 4. Chi Tiết Thành Phần Game (Theme Sài Gòn)
 
 ### 4.1 Bàn Cờ 40 Ô Chuẩn (Sài Gòn Edition)
+
 Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo thành lưới 11x11:
+
 - 🏠 **22 ô Đất Đường Phố (8 nhóm màu):**
-  - *Nâu (2 ô bình dân):* Đường Bến Vân Đồn, Đường Hoàng Sa
-  - *Xanh da trời (3 ô):* Đường Cách Mạng Tháng 8, Đường Hai Bà Trưng, Đường Nam Kỳ Khởi Nghĩa
-  - *Hồng (3 ô):* Đường Pasteur, Đường Điện Biên Phủ, Đường Võ Thị Sáu
-  - *Cam (3 ô):* Khu phố Tây Bùi Viện, Đường Phạm Ngũ Lão, Đường Đề Thám
-  - *Đỏ (3 ô sầm uất):* Đường Nguyễn Thị Minh Khai, Đường Lê Duẩn, Đường Tôn Đức Thắng
-  - *Vàng (3 ô trung tâm):* Đường Lê Lợi, Đường Hàm Nghi, Đường Đồng Khởi
-  - *Xanh lá (3 ô thương mại):* Chợ Bến Thành, Đường Nguyễn Trãi, Đường Huỳnh Thúc Kháng
-  - *Xanh dương đậm (2 ô đắt đỏ nhất):* Phố đi bộ Nguyễn Huệ, Khu đô thị Thủ Thiêm
+  - _Nâu (2 ô bình dân):_ Đường Bến Vân Đồn, Đường Hoàng Sa
+  - _Xanh da trời (3 ô):_ Đường Cách Mạng Tháng 8, Đường Hai Bà Trưng, Đường Nam Kỳ Khởi Nghĩa
+  - _Hồng (3 ô):_ Đường Pasteur, Đường Điện Biên Phủ, Đường Võ Thị Sáu
+  - _Cam (3 ô):_ Khu phố Tây Bùi Viện, Đường Phạm Ngũ Lão, Đường Đề Thám
+  - _Đỏ (3 ô sầm uất):_ Đường Nguyễn Thị Minh Khai, Đường Lê Duẩn, Đường Tôn Đức Thắng
+  - _Vàng (3 ô trung tâm):_ Đường Lê Lợi, Đường Hàm Nghi, Đường Đồng Khởi
+  - _Xanh lá (3 ô thương mại):_ Chợ Bến Thành, Đường Nguyễn Trãi, Đường Huỳnh Thúc Kháng
+  - _Xanh dương đậm (2 ô đắt đỏ nhất):_ Phố đi bộ Nguyễn Huệ, Khu đô thị Thủ Thiêm
 - 🚂 **4 ô Bến Xe / Đầu Mối Giao Thông:** Bến xe Miền Đông, Bến xe Miền Tây, Ga Sài Gòn, Cảng Sài Gòn.
-  - *Tiền thuê tăng lũy tiến:* Sở hữu 1 bến = 250K; 2 bến = 500K; 3 bến = 1.000K; 4 bến = 2.000K.
+  - _Tiền thuê tăng lũy tiến:_ Sở hữu 1 bến = 250K; 2 bến = 500K; 3 bến = 1.000K; 4 bến = 2.000K.
 - 💡 **2 ô Công Ty Dịch Vụ Công Ích:**
   - Tổng công ty Điện lực TP.HCM (EVNHCMC) & Tổng công ty Cấp nước Sài Gòn (Sawaco).
-  - *Tiền thuê:* Sở hữu 1 công ty = 4x điểm xúc xắc; sở hữu cả 2 = 10x điểm xúc xắc.
+  - _Tiền thuê:_ Sở hữu 1 công ty = 4x điểm xúc xắc; sở hữu cả 2 = 10x điểm xúc xắc.
 - ❓ **3 ô Cơ Hội & 🎴 3 ô Khí Vận:** Rút thẻ định mệnh ngẫu nhiên.
 - 💰 **2 ô Nộp Thuế:** Thuế Thu Nhập (nộp 2.000K) & Thuế Tiêu Thụ Đặc Biệt (nộp 1.000K).
 - 🚔 **4 Ô Góc Đặc Biệt:**
@@ -101,6 +103,7 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
   - **Vào Tù (Go to Jail):** Bị áp giải thẳng vào buồng giam ngay lập tức.
 
 ### 4.2 Quân Cờ Văn Hóa Sài Gòn (Tokens)
+
 - Render bằng **vector SVG chất lượng cao** (không dùng emoji tránh lỗi vỡ icon giữa các máy).
 - 6 biểu tượng đặc trưng:
   1. 🛵 **Xe máy Vespa / Wave** (Phương tiện quốc dân)
@@ -111,16 +114,19 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
   6. ⛵ **Thuyền buồm Bến Bạch Đằng** (Giao thương sông nước)
 
 ### 4.3 Xúc Xắc (Dice & Random Authority)
+
 - 2 viên xúc xắc 6 mặt (giá trị 1 đến 6).
 - **Offline / Bot:** Client tự tính random xúc xắc kèm animation xoay 3D CSS.
 - **Online:** **BẮT BUỘC Server random kết quả trước**, sau đó trả kết quả về để client chạy animation, triệt tiêu nguy cơ người chơi hack client sửa điểm xúc xắc.
 
 ### 4.4 Ngân Hàng & Tài Chính (Bank)
+
 - Mỗi người chơi bắt đầu game với **15.000.000 VNĐ** (15M).
 - Không mô phỏng các tờ tiền lẻ giấy vụn; toàn bộ giao dịch hiển thị số dư tài khoản trực quan (ví dụ: `15.000.000đ` hoặc `15M`).
 - Ngân hàng là máy chủ tài chính: vô hạn tiền, tự động trừ tiền nộp phạt, cộng tiền qua GO, giữ kho sổ đỏ chưa bán.
 
 ### 4.5 Thẻ Bằng Khoán Sổ Đỏ (Title Deed)
+
 - 28 tấm thẻ chứng nhận quyền sở hữu bất động sản.
 - Click bất kỳ ô nào trên bàn cờ sẽ bật popup Title Deed hiển thị:
   - Giá mua ô đất.
@@ -130,12 +136,14 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
   - Giá trị thế chấp cầm cố (50% giá mua ban đầu).
 
 ### 4.6 Nhà & Khách Sạn (Giới Hạn Khan Hiếm)
+
 - **Toàn game chỉ có 32 Nhà Xanh và 12 Khách Sạn Đỏ** trong kho Ngân hàng.
 - **Luật xây đều:** Chỉ được xây nhà khi gom đủ toàn bộ đất trong cùng 1 nhóm màu. Xây đều tay từng nhà (chênh lệch giữa các ô trong nhóm không quá 1 căn).
 - **Khan hiếm nhà (Housing Shortage):** Nếu kho Bank hết nhà xanh, người chơi dù có tiền cũng không được phép xây tiếp hoặc nhảy cóc lên khách sạn. Muốn lên khách sạn phải gom đủ 4 nhà xanh trước rồi mới đổi lấy 1 khách sạn.
 - **Bán nhà:** Được bán lại cho Bank bất kỳ lúc nào với giá bằng 50% chi phí xây.
 
 ### 4.7 Luật Chơi Cốt Lõi (Chi Tiết & Chuẩn Xác)
+
 1. **Lượt đi:** Tung 2 xúc xắc, di chuyển theo chiều kim đồng hồ.
 2. **Tung đôi:** Được thêm lượt đi tiếp. Tung đôi 3 lần liên tiếp trong cùng 1 lượt → Bị bắt vào tù ngay lập tức.
 3. **Đất trống:** Người dừng chân có quyền mua theo giá niêm yết. Nếu từ chối mua → **Ngân hàng lập tức mở phiên Đấu Giá (Auction)** cho tất cả người chơi tham gia đấu giá từ 100K.
@@ -165,6 +173,7 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 ## 5. Lộ Trình Phát Triển Chi Tiết (6 Phases)
 
 ### 📌 Phase 1: Nền Tảng Giao Diện & Bàn Cờ Sài Gòn (1–2 tuần)
+
 > Mục tiêu: Vẽ xong bàn cờ responsive CSS Grid, hiển thị 40 ô Sài Gòn, di chuyển quân cờ mượt mà
 
 - [x] Tạo cấu trúc thư mục dự án (`shared/`, `client/`, `server/`)
@@ -177,10 +186,11 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 - [x] Cơ chế responsive tự co giãn bàn cờ theo màn hình điện thoại / máy tính
 
 ### 📌 Phase 2: State Machine & Luật Cốt Lõi Offline (1–2 tuần)
+
 > Mục tiêu: Hoàn thiện engine dùng chung, chơi được mượt mà 2 người trên cùng 1 máy (Hot-seat)
 
 - [x] Viết `shared/engine.js` theo mô hình **State Machine**:
-  `WAIT_ROLL` ➔ `ROLLING` ➔ `MOVING` ➔ `LAND_EVAL` ➔ `ACTION_REQUIRED` ➔ `END_TURN`
+      `WAIT_ROLL` ➔ `ROLLING` ➔ `MOVING` ➔ `LAND_EVAL` ➔ `ACTION_REQUIRED` ➔ `END_TURN`
 - [x] Quản lý tài chính: Khởi đầu 15M/người, cộng 2M khi qua Khởi Hành (GO)
 - [x] Mua đất khi dừng ở ô trống, đánh dấu chủ sở hữu
 - [x] Popup xem chi tiết Bằng khoán (Title Deed Modal) khi bấm vào ô đất
@@ -191,6 +201,7 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 - [x] Kiểm tra điều kiện phá sản và thông báo người chiến thắng
 
 ### 📌 Phase 3: Tính Năng Nâng Cao & Thẻ Định Mệnh (1–2 tuần)
+
 > Mục tiêu: Đầy đủ 100% cơ chế tương tác phức tạp của game
 
 - [x] Cơ chế xây dựng: Kiểm tra đủ bộ màu, luật xây đều, giới hạn 32 nhà / 12 khách sạn
@@ -204,6 +215,7 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 - [x] Cơ chế xử lý phá sản 2 nhánh: Chuyển tài sản cho chủ nợ vs Bàn giao cho Bank đấu giá
 
 ### 📌 Phase 4: Trí Tuệ Nhân Tạo AI Bot (1 tuần)
+
 > Mục tiêu: Chơi offline 1 mình đấu với 1 – 3 máy
 
 - [x] Xây dựng mô đun `shared/BotAI.js` tiếp nhận state và trả về action hợp lệ
@@ -213,6 +225,7 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 - [x] Tích hợp chọn số lượng Bot trong màn hình tạo ván đấu Offline (1v1, 1v2, 1v3, 4 người)
 
 ### 📌 Phase 5: Online Multiplayer Authoritative (2–3 tuần)
+
 > Mục tiêu: Chơi online mượt mà cùng bạn bè qua liên kết phòng
 
 - [ ] Cài đặt WebSocket Server trên Node.js (`server/AuthoritativeServer.js`)
@@ -226,6 +239,7 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 - [ ] Khung chat chữ (Chatbox) và hiệu ứng thả biểu cảm cảm xúc (emotes) trong phòng
 
 ### 📌 Phase 6: Hoàn Thiện Âm Thanh, Tutorial & Deploy (1–2 tuần)
+
 > Mục tiêu: Trải nghiệm người dùng mượt mà, phát hành sản phẩm
 
 - [x] Thêm hiệu ứng âm thanh: Xúc xắc lắc, tiền leng keng, còi xe máy, nhạc kèn Sài Gòn xưa
@@ -247,7 +261,7 @@ stateDiagram-v2
     WAIT_ROLL --> ROLLING : Bấm tung xúc xắc
     ROLLING --> MOVING : Nhận điểm xúc xắc
     MOVING --> LAND_EVAL : Quân cờ đến ô mục tiêu
-    
+
     state LAND_EVAL {
         [*] --> CheckSquare
         CheckSquare --> PayRent : Đất người khác
@@ -260,7 +274,7 @@ stateDiagram-v2
 
     UnownedAction --> BuyProperty : Chọn mua
     UnownedAction --> StartAuction : Không mua (Đấu giá)
-    
+
     PayRent --> ACTION_REQUIRED
     BuyProperty --> ACTION_REQUIRED
     StartAuction --> ACTION_REQUIRED

@@ -5,26 +5,26 @@
 
 :root {
   /* Font chữ chính toàn bộ dự án: Baloo 2 (Font của ô Khởi Hành) */
-  --font-ui: 'Baloo 2', cursive, sans-serif;
-  --font-retro: 'Baloo 2', cursive, sans-serif;
+  --font-ui: "Baloo 2", cursive, sans-serif;
+  --font-retro: "Baloo 2", cursive, sans-serif;
   --font-main: var(--font-ui);
   --font-title: var(--font-retro);
 
   /* Bảng màu chuẩn Thiết Kế (Design System) */
-  --color-page-bg: #F4EBDD;       /* Kem ấm nền trang */
-  --color-tile-bg: #FFFCF6;       /* Trắng ngà nền ô & thẻ */
-  --color-border: #2E241B;        /* Nâu đậm viền cổ điển 2px */
-  --color-teal: #176B78;          /* Teal màu chủ đạo (active player, biển hiệu, nút ván mới) */
-  --color-teal-dark: #104C55;
-  --color-teal-light: #2A8F9E;
-  --color-orange: #F08A24;        /* Cam rực rỡ nút Tung xúc xắc & thẻ Cơ Hội */
-  --color-orange-dark: #D35400;
-  --color-yellow: #F5CB63;        /* Vàng thẻ Khí Vận */
-  --color-gold: #F1C40F;
+  --color-page-bg: #f4ebdd; /* Kem ấm nền trang */
+  --color-tile-bg: #fffcf6; /* Trắng ngà nền ô & thẻ */
+  --color-border: #2e241b; /* Nâu đậm viền cổ điển 2px */
+  --color-teal: #176b78; /* Teal màu chủ đạo (active player, biển hiệu, nút ván mới) */
+  --color-teal-dark: #104c55;
+  --color-teal-light: #2a8f9e;
+  --color-orange: #f08a24; /* Cam rực rỡ nút Tung xúc xắc & thẻ Cơ Hội */
+  --color-orange-dark: #d35400;
+  --color-yellow: #f5cb63; /* Vàng thẻ Khí Vận */
+  --color-gold: #f1c40f;
 
-  --text-main: #2E241B;
-  --text-muted: #6B5B4D;
-  --text-light: #8C7B6C;
+  --text-main: #2e241b;
+  --text-muted: #6b5b4d;
+  --text-light: #8c7b6c;
 }
 
 * {
@@ -34,7 +34,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
 }
 
@@ -112,7 +115,7 @@ body {
   font-family: var(--font-retro);
   font-size: 0.95rem;
   font-weight: 900;
-  color: #FFF;
+  color: #fff;
   letter-spacing: 0.5px;
   line-height: 1.1;
 }
@@ -147,7 +150,7 @@ body {
 }
 
 .stat-pill {
-  background: #FFFDF8;
+  background: #fffdf8;
   border: 1.5px solid var(--color-border);
   padding: 3px 12px;
   border-radius: 20px;
@@ -176,12 +179,12 @@ body {
 }
 
 .stat-pill.gold-pill {
-  background: #FFF9E6;
-  border-color: #D4AC0D;
+  background: #fff9e6;
+  border-color: #d4ac0d;
 }
 
 .stat-pill.gold-pill .pill-val {
-  color: #B7950B;
+  color: #b7950b;
 }
 
 /* Cụm Nút Phải */
@@ -208,7 +211,7 @@ body {
 }
 
 .btn-tool:hover {
-  background: #FFF;
+  background: #fff;
   transform: translateY(-1px);
 }
 
@@ -219,26 +222,26 @@ body {
 
 .btn-restart-teal {
   background: var(--color-teal);
-  color: #FFF;
+  color: #fff;
   border-color: var(--color-border);
   box-shadow: 0 2px 6px rgba(23, 107, 120, 0.3);
 }
 
 .btn-restart-teal:hover {
   background: var(--color-teal-dark);
-  color: #FFF;
+  color: #fff;
 }
 
 .btn-test-amber {
-  background: #E67E22;
-  color: #FFF;
-  border-color: #B95C0E;
+  background: #e67e22;
+  color: #fff;
+  border-color: #b95c0e;
   box-shadow: 0 2px 6px rgba(230, 126, 34, 0.35);
 }
 
 .btn-test-amber:hover {
-  background: #D35400;
-  color: #FFF;
+  background: #d35400;
+  color: #fff;
 }
 
 /* ================= 2. BỐ CỤC 3 CỘT (Arena Grid) ================= */
@@ -287,7 +290,7 @@ body {
 /* THẺ ĐANG ĐẾN LƯỢT (Active Player): Nền Teal sang trọng theo mockup */
 .player-card.active-player {
   background: var(--color-teal);
-  color: #FFFFFF;
+  color: #ffffff;
   border: 2px solid var(--color-border);
   box-shadow: 0 6px 16px rgba(23, 107, 120, 0.35);
   transform: scale(1.02);
@@ -303,7 +306,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFF;
+  background: #fff;
 }
 
 .player-avatar-box svg {
@@ -338,7 +341,7 @@ body {
 }
 
 .player-card.active-player .player-display-name {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .player-badge {
@@ -355,28 +358,28 @@ body {
 
 .badge-playing {
   background: rgba(255, 255, 255, 0.3);
-  color: #FFF;
+  color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .badge-jail {
-  background: #EF4444;
-  color: #FFF;
+  background: #ef4444;
+  color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .badge-bankrupt {
-  background: #78281F;
-  color: #FFF;
+  background: #78281f;
+  color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .player-card.is-bankrupt {
   opacity: 0.55;
   filter: grayscale(0.8);
-  border-color: #78281F !important;
-  background: #FADBD8 !important;
+  border-color: #78281f !important;
+  background: #fadbd8 !important;
 }
 
 .player-cash-amount {
@@ -390,7 +393,7 @@ body {
 }
 
 .player-card.active-player .player-cash-amount {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .player-networth-row {
@@ -431,14 +434,14 @@ body {
   padding: 1px 5px;
   font-size: 0.65rem;
   font-weight: 800;
-  color: #4A3E3D;
+  color: #4a3e3d;
   line-height: 1;
 }
 
 .player-card.active-player .player-color-chip {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.35);
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .chip-color-dot {
@@ -458,7 +461,7 @@ body {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #FFF;
+  background: #fff;
   border: 1.5px solid var(--color-border);
   display: flex;
   align-items: center;
@@ -486,9 +489,9 @@ body {
 .board-table-mat {
   position: relative;
   padding: 3px;
-  background: linear-gradient(145deg, #E2D3B8, #C8B28E);
+  background: linear-gradient(145deg, #e2d3b8, #c8b28e);
   border-radius: 12px;
-  box-shadow: 
+  box-shadow:
     0 16px 36px rgba(46, 36, 27, 0.25),
     0 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -571,8 +574,14 @@ body {
 }
 
 @keyframes fadeInLog {
-  from { opacity: 0; transform: translateY(-3px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .log-avatar-thumb {
@@ -582,7 +591,7 @@ body {
   overflow: hidden;
   flex-shrink: 0;
   border: 1.5px solid var(--color-border);
-  background: #FFF;
+  background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -625,7 +634,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #FFFDF8;
+  background: #fffdf8;
   border: 1.5px solid var(--color-border);
   border-radius: 10px;
   padding: 4px 8px;
@@ -682,8 +691,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, #F08A24 0%, #E65100 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #f08a24 0%, #e65100 100%);
+  color: #ffffff;
   border: 2px solid var(--color-border);
   padding: 8px 14px;
   border-radius: 10px;
@@ -692,7 +701,7 @@ body {
   font-weight: 900;
   letter-spacing: 0.5px;
   cursor: pointer;
-  box-shadow: 
+  box-shadow:
     0 4px 10px rgba(230, 81, 0, 0.35),
     inset 0 1px 2px rgba(255, 255, 255, 0.4);
   transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -732,7 +741,7 @@ body {
   padding: 6px 4px;
   border-radius: 8px;
   border: 1.5px solid var(--color-border);
-  background: #FFF;
+  background: #fff;
   color: var(--text-main);
   font-family: var(--font-ui);
   font-size: 0.75rem;
@@ -744,14 +753,14 @@ body {
 }
 
 .btn-dock-action:hover:not(:disabled) {
-  background: #F6F1E6;
+  background: #f6f1e6;
   transform: translateY(-1px);
 }
 
 .btn-dock-action:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  background: #EDE8DC;
+  background: #ede8dc;
   border-color: rgba(46, 36, 27, 0.4);
 }
 

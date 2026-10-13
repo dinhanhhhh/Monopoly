@@ -4,19 +4,19 @@
 
 export const GAME_CONSTANTS = {
   // Tiền tệ VNĐ
-  CURRENCY_UNIT: 'đ',
-  STARTING_MONEY: 15_000_000,    // 15 triệu
-  GO_REWARD: 2_000_000,          // 2 triệu khi qua hoặc dừng ở GO
-  JAIL_FINE: 500_000,            // 500k tiền phạt bảo lãnh ra tù
-  INCOME_TAX: 2_000_000,         // 2 triệu thuế thu nhập
-  LUXURY_TAX: 1_000_000,         // 1 triệu thuế xa xỉ / tiêu thụ đặc biệt
-  MORTGAGE_INTEREST_RATE: 0.1,   // 10% phí chuộc lại đất thế chấp
+  CURRENCY_UNIT: "đ",
+  STARTING_MONEY: 15_000_000, // 15 triệu
+  GO_REWARD: 2_000_000, // 2 triệu khi qua hoặc dừng ở GO
+  JAIL_FINE: 500_000, // 500k tiền phạt bảo lãnh ra tù
+  INCOME_TAX: 2_000_000, // 2 triệu thuế thu nhập
+  LUXURY_TAX: 1_000_000, // 1 triệu thuế xa xỉ / tiêu thụ đặc biệt
+  MORTGAGE_INTEREST_RATE: 0.1, // 10% phí chuộc lại đất thế chấp
 
   // Giới hạn vật phẩm
-  TOTAL_HOUSES: 32,              // Tối đa 32 nhà xanh trên toàn ván
-  TOTAL_HOTELS: 12,              // Tối đa 12 khách sạn đỏ
-  MAX_HOUSES_PER_PROPERTY: 4,    // 4 nhà trước khi lên khách sạn
-  MAX_JAIL_TURNS: 3,             // Tối đa 3 lượt thử tung đôi ở tù
+  TOTAL_HOUSES: 32, // Tối đa 32 nhà xanh trên toàn ván
+  TOTAL_HOTELS: 12, // Tối đa 12 khách sạn đỏ
+  MAX_HOUSES_PER_PROPERTY: 4, // 4 nhà trước khi lên khách sạn
+  MAX_JAIL_TURNS: 3, // Tối đa 3 lượt thử tung đôi ở tù
 
   // Bến xe (Railroads) tiền thuê theo số lượng sở hữu: 1, 2, 3, 4
   RAILROAD_RENTS: [250_000, 500_000, 1_000_000, 2_000_000],
@@ -26,15 +26,25 @@ export const GAME_CONSTANTS = {
 
   // 8 Nhóm màu đất
   COLOR_GROUPS: {
-    BROWN: { id: 'brown', name: 'Nâu', hex: '#8B4513', count: 2 },
-    LIGHT_BLUE: { id: 'light_blue', name: 'Xanh da trời', hex: '#87CEEB', count: 3 },
-    PINK: { id: 'pink', name: 'Hồng', hex: '#FF69B4', count: 3 },
-    ORANGE: { id: 'orange', name: 'Cam', hex: '#FFA500', count: 3 },
-    RED: { id: 'red', name: 'Đỏ', hex: '#E63946', count: 3 },
-    YELLOW: { id: 'yellow', name: 'Vàng', hex: '#FFD166', count: 3 },
-    GREEN: { id: 'green', name: 'Xanh lá', hex: '#06D6A0', count: 3 },
-    DARK_BLUE: { id: 'dark_blue', name: 'Xanh dương đậm', hex: '#118AB2', count: 2 },
-  }
+    BROWN: { id: "brown", name: "Nâu", hex: "#8B4513", count: 2 },
+    LIGHT_BLUE: {
+      id: "light_blue",
+      name: "Xanh da trời",
+      hex: "#87CEEB",
+      count: 3,
+    },
+    PINK: { id: "pink", name: "Hồng", hex: "#FF69B4", count: 3 },
+    ORANGE: { id: "orange", name: "Cam", hex: "#FFA500", count: 3 },
+    RED: { id: "red", name: "Đỏ", hex: "#E63946", count: 3 },
+    YELLOW: { id: "yellow", name: "Vàng", hex: "#FFD166", count: 3 },
+    GREEN: { id: "green", name: "Xanh lá", hex: "#06D6A0", count: 3 },
+    DARK_BLUE: {
+      id: "dark_blue",
+      name: "Xanh dương đậm",
+      hex: "#118AB2",
+      count: 2,
+    },
+  },
 };
 
 /**
@@ -45,15 +55,19 @@ export const GAME_CONSTANTS = {
  * @param {boolean|object} withSignOrOptions - Có dấu '+' khi dương hoặc object cấu hình { withSign, full }
  * @param {boolean} fullParam - Có hiển thị dạng đầy đủ "14.000.000đ" không
  */
-export function formatVND(amount, withSignOrOptions = false, fullParam = false) {
-  if (amount === undefined || amount === null) return '';
+export function formatVND(
+  amount,
+  withSignOrOptions = false,
+  fullParam = false,
+) {
+  if (amount === undefined || amount === null) return "";
   const num = Number(amount);
-  if (isNaN(num)) return '';
+  if (isNaN(num)) return "";
 
   let withSign = false;
   let isFull = false;
 
-  if (typeof withSignOrOptions === 'object' && withSignOrOptions !== null) {
+  if (typeof withSignOrOptions === "object" && withSignOrOptions !== null) {
     withSign = !!withSignOrOptions.withSign;
     isFull = !!withSignOrOptions.full;
   } else {
@@ -61,20 +75,20 @@ export function formatVND(amount, withSignOrOptions = false, fullParam = false) 
     isFull = !!fullParam;
   }
 
-  const sign = num > 0 && withSign ? '+' : (num < 0 ? '-' : '');
+  const sign = num > 0 && withSign ? "+" : num < 0 ? "-" : "";
   const abs = Math.abs(num);
 
   if (isFull) {
-    return `${sign}${abs.toLocaleString('vi-VN')}đ`;
+    return `${sign}${abs.toLocaleString("vi-VN")}đ`;
   }
 
-  let valStr = '';
+  let valStr = "";
   if (abs >= 1_000_000) {
     const tr = abs / 1_000_000;
     // Bỏ số 0 thừa sau dấu phẩy (ví dụ 1.0 -> 1, 1.50 -> 1,5)
     const formattedTr = Number.isInteger(tr)
       ? `${tr}`
-      : `${parseFloat(tr.toFixed(2)).toString().replace('.', ',')}`;
+      : `${parseFloat(tr.toFixed(2)).toString().replace(".", ",")}`;
     valStr = `${formattedTr}tr`;
   } else if (abs >= 1_000) {
     valStr = `${Math.round(abs / 1_000)}k`;

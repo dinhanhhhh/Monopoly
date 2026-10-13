@@ -1,4 +1,4 @@
-import { formatVND } from '../../../shared/constants.js';
+import { formatVND } from "../../../shared/constants.js";
 
 /**
  * JailModal.js - Bảng lựa chọn Ra Tù (Lắc Đôi hoặc Nộp Phạt 500K)
@@ -10,12 +10,12 @@ export class JailModal {
   }
 
   init() {
-    let overlay = document.getElementById('jail-choice-modal');
+    let overlay = document.getElementById("jail-choice-modal");
     if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.id = 'jail-choice-modal';
-      overlay.className = 'modal-backdrop';
-      overlay.style.display = 'none';
+      overlay = document.createElement("div");
+      overlay.id = "jail-choice-modal";
+      overlay.className = "modal-backdrop";
+      overlay.style.display = "none";
       document.body.appendChild(overlay);
     }
     this.overlay = overlay;
@@ -86,31 +86,33 @@ export class JailModal {
           </button>
 
           <!-- Nút 2: Nộp phạt 500K -->
-          <button id="btn-jail-pay" ${!canAffordFine ? 'disabled' : ''} style="
+          <button id="btn-jail-pay" ${!canAffordFine ? "disabled" : ""} style="
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 10px 12px;
-            background: ${canAffordFine ? '#FFFDF0' : '#EDE8DC'};
-            border: 2px solid ${canAffordFine ? '#F08A24' : '#CBD5E1'};
+            background: ${canAffordFine ? "#FFFDF0" : "#EDE8DC"};
+            border: 2px solid ${canAffordFine ? "#F08A24" : "#CBD5E1"};
             border-radius: 12px;
-            cursor: ${canAffordFine ? 'pointer' : 'not-allowed'};
+            cursor: ${canAffordFine ? "pointer" : "not-allowed"};
             text-align: left;
             transition: all 0.15s ease;
             box-shadow: 0 2px 6px rgba(240, 138, 36, 0.15);
-            opacity: ${canAffordFine ? '1' : '0.6'};
+            opacity: ${canAffordFine ? "1" : "0.6"};
           ">
             <span style="font-size: 1.6rem; flex-shrink: 0;">💸</span>
             <div style="flex: 1;">
               <div style="font-family: var(--font-retro, sans-serif); font-size: 0.95rem; font-weight: 900; color: #D97706;">NỘP PHẠT 500.000đ</div>
               <small style="font-size: 0.7rem; color: #64748B; line-height: 1.2; display: block;">
-                ${canAffordFine ? 'Bảo lãnh ra tù ngay lập tức và được tung xúc xắc đi tiếp.' : 'Không đủ tiền mặt để nộp phạt.'}
+                ${canAffordFine ? "Bảo lãnh ra tù ngay lập tức và được tung xúc xắc đi tiếp." : "Không đủ tiền mặt để nộp phạt."}
               </small>
             </div>
           </button>
 
           <!-- Nút 3: Dùng thẻ ra tù (nếu có) -->
-          ${hasCard ? `
+          ${
+            hasCard
+              ? `
           <button id="btn-jail-card" style="
             display: flex;
             align-items: center;
@@ -130,49 +132,51 @@ export class JailModal {
               <small style="font-size: 0.7rem; color: #64748B; line-height: 1.2; display: block;">Sử dụng Thẻ Ra Tù may mắn bạn đang sở hữu.</small>
             </div>
           </button>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
       </div>
     `;
 
-    this.overlay.style.display = 'flex';
-    this.overlay.classList.add('active');
+    this.overlay.style.display = "flex";
+    this.overlay.classList.add("active");
 
-    const btnRoll = document.getElementById('btn-jail-roll');
+    const btnRoll = document.getElementById("btn-jail-roll");
     if (btnRoll) {
       btnRoll.onclick = () => {
         this.close();
         if (onRollDoubles) onRollDoubles();
       };
-      btnRoll.onmouseenter = () => btnRoll.style.background = '#F0F9FF';
-      btnRoll.onmouseleave = () => btnRoll.style.background = '#FFF';
+      btnRoll.onmouseenter = () => (btnRoll.style.background = "#F0F9FF");
+      btnRoll.onmouseleave = () => (btnRoll.style.background = "#FFF");
     }
 
-    const btnPay = document.getElementById('btn-jail-pay');
+    const btnPay = document.getElementById("btn-jail-pay");
     if (btnPay && canAffordFine) {
       btnPay.onclick = () => {
         this.close();
         if (onPayFine) onPayFine();
       };
-      btnPay.onmouseenter = () => btnPay.style.background = '#FEF3C7';
-      btnPay.onmouseleave = () => btnPay.style.background = '#FFFDF0';
+      btnPay.onmouseenter = () => (btnPay.style.background = "#FEF3C7");
+      btnPay.onmouseleave = () => (btnPay.style.background = "#FFFDF0");
     }
 
-    const btnCard = document.getElementById('btn-jail-card');
+    const btnCard = document.getElementById("btn-jail-card");
     if (btnCard) {
       btnCard.onclick = () => {
         this.close();
         if (onUseCard) onUseCard();
       };
-      btnCard.onmouseenter = () => btnCard.style.background = '#DCFCE7';
-      btnCard.onmouseleave = () => btnCard.style.background = '#F0FDF4';
+      btnCard.onmouseenter = () => (btnCard.style.background = "#DCFCE7");
+      btnCard.onmouseleave = () => (btnCard.style.background = "#F0FDF4");
     }
   }
 
   close() {
     if (this.overlay) {
-      this.overlay.style.display = 'none';
-      this.overlay.classList.remove('active');
+      this.overlay.style.display = "none";
+      this.overlay.classList.remove("active");
     }
   }
 }

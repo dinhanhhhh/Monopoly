@@ -2,14 +2,18 @@
  * HUD.js - Quản lý hiển thị danh sách 4 thẻ người chơi ở Cột Trái theo chuẩn thiết kế hoài cổ
  */
 
-import { SAIGON_BOARD_DATA } from '../../../shared/data/board-data.js';
-import { GameRules } from '../../../shared/rules.js';
-import { GAME_CONSTANTS, formatVND, formatVNDFull } from '../../../shared/constants.js';
-import { getPlayerAvatar } from '../render/AvatarsData.js';
+import { SAIGON_BOARD_DATA } from "../../../shared/data/board-data.js";
+import { GameRules } from "../../../shared/rules.js";
+import {
+  GAME_CONSTANTS,
+  formatVND,
+  formatVNDFull,
+} from "../../../shared/constants.js";
+import { getPlayerAvatar } from "../render/AvatarsData.js";
 
 export class HUD {
   constructor(container = null) {
-    this.container = container || document.getElementById('sidebar-left');
+    this.container = container || document.getElementById("sidebar-left");
     this.lastState = null;
   }
 
@@ -17,7 +21,9 @@ export class HUD {
     const { currentTurnIndex, properties } = state;
     const isActive = idx === currentTurnIndex;
     const netWorth = GameRules.calculateNetWorth(p, properties);
-    const ownedTiles = SAIGON_BOARD_DATA.filter((tile) => properties[tile.id]?.owner === p.id);
+    const ownedTiles = SAIGON_BOARD_DATA.filter(
+      (tile) => properties[tile.id]?.owner === p.id,
+    );
     const avatarInfo = getPlayerAvatar(p.id, idx);
 
     // Hàng chip nhỏ theo màu nhóm đất người đó đang sở hữu (mỗi chip kèm số ô)
@@ -27,15 +33,18 @@ export class HUD {
       let gColor = tile.colorHex;
       let gName = tile.name;
 
-      if (tile.type === 'railroad') {
-        gKey = 'railroad';
-        gColor = '#4A3B32';
-        gName = 'Bến xe';
-      } else if (tile.type === 'utility') {
-        gKey = 'utility';
-        gColor = '#0284C7';
-        gName = 'Tiện ích';
-      } else if (tile.group && GAME_CONSTANTS.COLOR_GROUPS[tile.group.toUpperCase()]) {
+      if (tile.type === "railroad") {
+        gKey = "railroad";
+        gColor = "#4A3B32";
+        gName = "Bến xe";
+      } else if (tile.type === "utility") {
+        gKey = "utility";
+        gColor = "#0284C7";
+        gName = "Tiện ích";
+      } else if (
+        tile.group &&
+        GAME_CONSTANTS.COLOR_GROUPS[tile.group.toUpperCase()]
+      ) {
         gColor = GAME_CONSTANTS.COLOR_GROUPS[tile.group.toUpperCase()].hex;
         gName = GAME_CONSTANTS.COLOR_GROUPS[tile.group.toUpperCase()].name;
       }
@@ -53,12 +62,12 @@ export class HUD {
           <span class="chip-color-dot" style="background-color: ${g.color};"></span>
           <span class="chip-count-num">${g.count}</span>
         </span>
-      `
+      `,
       )
-      .join('');
+      .join("");
 
     // Nhãn trạng thái ở góc thẻ
-    let statusBadge = '';
+    let statusBadge = "";
     if (p.isBankrupt) {
       statusBadge = '<span class="player-badge badge-bankrupt">Phá sản</span>';
     } else if (p.inJail) {
@@ -68,7 +77,7 @@ export class HUD {
     }
 
     return `
-      <div id="hud-player-${p.id}" class="player-card ${p.isBankrupt ? 'is-bankrupt' : ''} ${isActive ? 'active-player' : ''} ${p.isBot ? 'is-bot' : ''}" data-player-id="${p.id}">
+      <div id="hud-player-${p.id}" class="player-card ${p.isBankrupt ? "is-bankrupt" : ""} ${isActive ? "active-player" : ""} ${p.isBot ? "is-bot" : ""}" data-player-id="${p.id}">
         ${statusBadge}
 
         <!-- Avatar tròn minh họa phong cách Sài Gòn -->
@@ -95,8 +104,8 @@ export class HUD {
         </div>
 
         <!-- Icon quân cờ nhỏ của người chơi bên phải -->
-        <div class="player-token-badge" title="${p.token?.name || 'Quân cờ'}">
-          ${p.token?.svg || ''}
+        <div class="player-token-badge" title="${p.token?.name || "Quân cờ"}">
+          ${p.token?.svg || ""}
         </div>
       </div>
     `;
@@ -105,30 +114,31 @@ export class HUD {
   highlightPlayerProperties(playerId, playerColor) {
     if (!this.lastState) return;
     const { properties = {} } = this.lastState;
-    const allTiles = document.querySelectorAll('.board-tile');
+    const allTiles = document.querySelectorAll(".board-tile");
     allTiles.forEach((tileEl) => {
       const tileId = tileEl.dataset.id;
       if (properties[tileId]?.owner === playerId) {
-        tileEl.classList.add('tile-highlight-owner');
-        tileEl.classList.remove('tile-dimmed');
-        tileEl.style.setProperty('--glow-color', playerColor);
+        tileEl.classList.add("tile-highlight-owner");
+        tileEl.classList.remove("tile-dimmed");
+        tileEl.style.setProperty("--glow-color", playerColor);
       } else {
-        tileEl.classList.add('tile-dimmed');
-        tileEl.classList.remove('tile-highlight-owner');
+        tileEl.classList.add("tile-dimmed");
+        tileEl.classList.remove("tile-highlight-owner");
       }
     });
   }
 
   clearHighlightProperties() {
-    const allTiles = document.querySelectorAll('.board-tile');
+    const allTiles = document.querySelectorAll(".board-tile");
     allTiles.forEach((tileEl) => {
-      tileEl.classList.remove('tile-highlight-owner', 'tile-dimmed');
-      tileEl.style.removeProperty('--glow-color');
+      tileEl.classList.remove("tile-highlight-owner", "tile-dimmed");
+      tileEl.style.removeProperty("--glow-color");
     });
   }
 
   update(state, onPlayerClick = null) {
-    if (!this.container) this.container = document.getElementById('sidebar-left');
+    if (!this.container)
+      this.container = document.getElementById("sidebar-left");
     if (!this.container) return;
 
     this.lastState = state;
@@ -140,7 +150,7 @@ export class HUD {
     const { players } = state;
     this.container.innerHTML = players
       .map((p, idx) => this.renderPlayerCard(p, idx, state))
-      .join('');
+      .join("");
 
     // Gắn sự kiện click mở danh mục tài sản và hover phát sáng các ô đất
     players.forEach((p) => {
@@ -149,19 +159,22 @@ export class HUD {
 
       if (this.onPlayerClick) {
         cardEl.title = `Bấm để xem danh mục tài sản của ${p.name}`;
-        cardEl.addEventListener('click', () => {
+        cardEl.addEventListener("click", () => {
           this.onPlayerClick(p);
         });
       }
 
-      const pColor = p.token?.color || '#7B4BD8';
-      const activateHighlight = () => this.highlightPlayerProperties(p.id, pColor);
+      const pColor = p.token?.color || "#7B4BD8";
+      const activateHighlight = () =>
+        this.highlightPlayerProperties(p.id, pColor);
       const clearHighlight = () => this.clearHighlightProperties();
 
-      cardEl.addEventListener('mouseenter', activateHighlight);
-      cardEl.addEventListener('mouseleave', clearHighlight);
-      cardEl.addEventListener('touchstart', activateHighlight, { passive: true });
-      cardEl.addEventListener('touchend', clearHighlight, { passive: true });
+      cardEl.addEventListener("mouseenter", activateHighlight);
+      cardEl.addEventListener("mouseleave", clearHighlight);
+      cardEl.addEventListener("touchstart", activateHighlight, {
+        passive: true,
+      });
+      cardEl.addEventListener("touchend", clearHighlight, { passive: true });
     });
   }
 }
