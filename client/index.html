@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cờ Tỷ Phú Sài Gòn - Saigon Tycoon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/board.css">
+  <link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+  <div class="game-wrapper layout-two-column">
+    <!-- Cột Trái: Danh Sách 4 Người Chơi & Cụm Công Cụ (Chuẩn hình mẫu Online Monopoly) -->
+    <aside class="arena-sidebar arena-sidebar-full" id="sidebar-left">
+      <!-- 4 người chơi được render bởi HUD.js vào đây -->
+      <div id="players-list-wrapper" class="sidebar-players-list"></div>
+
+      <!-- Cụm công cụ & Thao tác nhanh -->
+      <div class="sidebar-action-tools">
+        <button id="btn-action-trade" class="sidebar-btn-tool btn-trade" title="Mở menu trao đổi">
+          <span>🤝</span> Giao Dịch
+        </button>
+        <button id="btn-open-rulebook" class="sidebar-btn-tool" title="Xem sổ tay luật">
+          <span>📖</span> Luật Chơi
+        </button>
+        <button id="btn-toggle-sound" class="sidebar-btn-tool" title="Bật/Tắt âm thanh">
+          <span>🔊</span> Âm Thanh
+        </button>
+        <button id="btn-restart-game" class="sidebar-btn-tool btn-restart" title="Tạo ván cờ mới">
+          <span>⚙️</span> Ván Mới
+        </button>
+      </div>
+    </aside>
+
+    <!-- Cột Phải: BÀN CỜ SIÊU TO TOÀN MÀN HÌNH -->
+    <main class="arena-center">
+      <div class="board-table-mat">
+        <div id="monopoly-board" class="monopoly-board">
+          <!-- 40 ô cờ sẽ được BoardRenderer.js tự động render vào đây -->
+
+          <!-- Khu vực TRUNG TÂM BÀN CỜ: Chứa Xúc xắc, Thông số vòng chơi, Banner ô đứng & Nhật ký trận đấu -->
+          <div class="board-center">
+            <div class="center-cockpit-panel">
+              <!-- Hàng trên: Vòng đấu & Xúc xắc 3D -->
+              <div class="center-top-bar">
+                <div class="center-stat-pill">
+                  ⏱️ <span id="game-timer">00:00</span>
+                  <span class="stat-sep">•</span>
+                  VÒNG <strong id="game-turn-count">1</strong>
+                </div>
+
+                <div class="center-dice-group">
+                  <div class="dice-pair">
+                    <div id="die-1" class="die show-1">
+                      <div class="die-face face-1"><span class="dot dot-center dot-red"></span></div>
+                      <div class="die-face face-2"><span class="dot dot-top-left"></span><span class="dot dot-bottom-right"></span></div>
+                      <div class="die-face face-3"><span class="dot dot-top-left"></span><span class="dot dot-center"></span><span class="dot dot-bottom-right"></span></div>
+                      <div class="die-face face-4"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                      <div class="die-face face-5"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-center"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                      <div class="die-face face-6"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-middle-left"></span><span class="dot dot-middle-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                    </div>
+                    <div id="die-2" class="die show-1">
+                      <div class="die-face face-1"><span class="dot dot-center dot-red"></span></div>
+                      <div class="die-face face-2"><span class="dot dot-top-left"></span><span class="dot dot-bottom-right"></span></div>
+                      <div class="die-face face-3"><span class="dot dot-top-left"></span><span class="dot dot-center"></span><span class="dot dot-bottom-right"></span></div>
+                      <div class="die-face face-4"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                      <div class="die-face face-5"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-center"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                      <div class="die-face face-6"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-middle-left"></span><span class="dot dot-middle-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                    </div>
+                  </div>
+                  <div class="dice-sum-info">
+                    <span class="sum-text" id="dice-sum-text">Điểm: ?</span>
+                    <small id="dice-sub-text">Sẵn sàng</small>
+                  </div>
+                  <button id="btn-roll" class="btn-dock-roll">
+                    <span class="roll-icon">🎲</span>
+                    <span class="roll-label">TUNG XÚC XẮC</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Hàng giữa: Banner ô đang đứng & Cụm nút hành động Mua / Xây / Bỏ lượt -->
+              <div class="center-action-row">
+                <div class="standing-tile-banner" id="standing-tile-banner">
+                  <span class="standing-badge" id="standing-badge">📍 Ô ĐANG ĐỨNG</span>
+                  <span class="standing-name" id="standing-tile-name">Khởi Hành (GO)</span>
+                  <span class="standing-price" id="standing-tile-price">+2.000.000đ</span>
+                  <span class="standing-status" id="standing-tile-status">Nhận tiền thưởng mỗi khi đi qua</span>
+                </div>
+
+                <div class="center-action-buttons">
+                  <button id="btn-action-buy" class="btn-center-action btn-buy" disabled>
+                    <span class="act-icon">🏠</span> <span class="act-title">Mua Đất</span>
+                  </button>
+                  <button id="btn-action-build" class="btn-center-action btn-build" disabled>
+                    <span class="act-icon">🏗️</span> <span class="act-title">Xây Nhà</span>
+                  </button>
+                  <button id="btn-action-pass" class="btn-center-action btn-pass" disabled>
+                    <span class="act-icon">⏭️</span> <span class="act-title">Bỏ Lượt</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Hàng dưới: Hộp Nhật Ký Trận Đấu (Trò chuyện / Lịch sử) -->
+              <div class="center-log-box">
+                <div class="center-log-title">
+                  <span>📜 NHẬT KÝ VÁN ĐẤU</span>
+                </div>
+                <div class="center-log-messages" id="game-log-messages">
+                  <div class="log-item">Ván cờ bắt đầu! Sẵn sàng tung xúc xắc.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Sidebar Right ẩn đi để dành toàn bộ chỗ cho bàn cờ -->
+    <div id="sidebar-right" style="display: none;"></div>
+  </div>
+
+  <!-- Script Modules -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
