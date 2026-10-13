@@ -530,6 +530,7 @@
   line-height: 1;
   background: linear-gradient(180deg, #ff4b72 0%, #d81b60 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
   filter: drop-shadow(0 1px 1px rgba(216, 27, 96, 0.25));

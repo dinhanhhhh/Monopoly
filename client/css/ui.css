@@ -1933,6 +1933,7 @@
   font-weight: 900;
   background: linear-gradient(180deg, #ff3366 0%, #c0392b 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;
 }
