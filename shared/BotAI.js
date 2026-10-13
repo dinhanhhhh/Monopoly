@@ -19,8 +19,14 @@ export class BotAI {
       return { shouldBuy: false, reason: 'Không đủ tiền mua đất' };
     }
 
-    // 1. Quỹ an toàn tối thiểu sau khi mua đất
-    const safetyReserve = 800_000;
+    // 1. Quỹ an toàn tối thiểu theo tính cách Bot
+    // - Cẩn trọng (Bác Xích Lô): giữ nhiều tiền mặt (3.000.000đ)
+    // - Đại gia (Cô Ba Bọt): liều lĩnh mua bạt mạng (chỉ cần dư 200.000đ)
+    // - Cân bằng: 800.000đ
+    let safetyReserve = 800_000;
+    if (bot.personality === 'cautious') safetyReserve = 3_000_000;
+    else if (bot.personality === 'tycoon') safetyReserve = 200_000;
+
     const moneyAfterBuy = bot.money - tile.price;
 
     // 2. Kiểm tra nếu mảnh đất giúp hoàn thành trọn bộ màu
@@ -44,7 +50,8 @@ export class BotAI {
           const oppOwned = groupTiles.filter(
             (t) => state.properties[t.id]?.owner === opponent.id
           ).length;
-          if (oppOwned === groupTiles.length - 1 && moneyAfterBuy >= 300_000) {
+          const minBlockReserve = bot.personality === 'tycoon' ? 100_000 : 300_000;
+          if (oppOwned === groupTiles.length - 1 && moneyAfterBuy >= minBlockReserve) {
             return {
               shouldBuy: true,
               reason: `Chặn ${opponent.name} gom trọn bộ màu!`
@@ -87,8 +94,12 @@ export class BotAI {
       return { action: 'WAIT' };
     }
 
-    // 1. Tính giá trần Bot sẵn sàng trả
-    let maxWillingToPay = Math.round(tile.price * 0.9);
+    // 1. Tính giá trần Bot sẵn sàng trả theo tính cách
+    let priceMultiplier = 0.9;
+    if (bot.personality === 'cautious') priceMultiplier = 0.85; // Bác Xích Lô trả dè chừng
+    else if (bot.personality === 'tycoon') priceMultiplier = 1.6; // Cô Ba Bọt ép giá hăng hái
+
+    let maxWillingToPay = Math.round(tile.price * priceMultiplier);
 
     if (tile.type === 'property' && tile.group) {
       const groupTiles = SAIGON_BOARD_DATA.filter((t) => t.group === tile.group);
@@ -96,21 +107,27 @@ export class BotAI {
         (t) => state.properties[t.id]?.owner === bot.id
       ).length;
 
-      // Nếu ô này hoàn tất bộ màu -> Sẵn sàng trả tới 125% giá gốc
+      // Nếu ô này hoàn tất bộ màu -> Đại gia sẵn sàng trả tới 250% giá gốc, Cẩn trọng 110%
       if (ownedInGroup === groupTiles.length - 1) {
-        maxWillingToPay = Math.round(tile.price * 1.25);
+        if (bot.personality === 'tycoon') {
+          maxWillingToPay = Math.round(tile.price * 2.5);
+        } else if (bot.personality === 'cautious') {
+          maxWillingToPay = Math.round(tile.price * 1.1);
+        } else {
+          maxWillingToPay = Math.round(tile.price * 1.35);
+        }
       }
     }
 
-    // Giá trần không được vượt quá tiền mặt trừ đi 300K dự phòng
-    const absoluteCap = Math.max(0, bot.money - 300_000);
+    // Quỹ tối thiểu giữ lại khi đấu giá
+    const reserve = bot.personality === 'tycoon' ? 100_000 : (bot.personality === 'cautious' ? 2_000_000 : 300_000);
+    const absoluteCap = Math.max(0, bot.money - reserve);
     maxWillingToPay = Math.min(maxWillingToPay, absoluteCap);
 
     // 2. Mức giá đặt tiếp theo
-    let nextBid = currentBid + 100_000;
-    if (currentBid + 500_000 <= maxWillingToPay && Math.random() > 0.5) {
-      nextBid = currentBid + 500_000; // Tăng giá dứt khoát
-    }
+    let step = 100_000;
+    if (bot.personality === 'tycoon') step = 300_000; // Tăng giá dồn dập
+    let nextBid = currentBid + step;
 
     if (nextBid <= maxWillingToPay && bot.money >= nextBid) {
       return {
@@ -130,7 +147,10 @@ export class BotAI {
    */
   static getBuildDecisions(bot, state) {
     const buildList = [];
-    const minReserveMoney = 1_500_000; // Quỹ bảo đảm dự phòng rủi ro
+    // Quỹ dự phòng xây nhà theo tính cách
+    let minReserveMoney = 1_500_000;
+    if (bot.personality === 'cautious') minReserveMoney = 3_500_000; // Bác Xích Lô chỉ xây khi rất giàu
+    else if (bot.personality === 'tycoon') minReserveMoney = 300_000; // Cô Ba Bọt tất tay lên Khách Sạn
 
     let availableMoney = bot.money - minReserveMoney;
     if (availableMoney <= 0) return buildList;

@@ -5,6 +5,7 @@
 import { SAIGON_BOARD_DATA } from '../../shared/data/board-data.js';
 import { GameEngine } from '../../shared/engine.js';
 import { GameRules } from '../../shared/rules.js';
+import { formatVND } from '../../shared/constants.js';
 import { BotAI } from '../../shared/BotAI.js';
 import { BoardRenderer } from './render/BoardRenderer.js';
 import { GAME_TOKENS } from './render/TokensData.js';
@@ -17,7 +18,11 @@ import { AuctionModal } from './ui/AuctionModal.js';
 import { TradeModal } from './ui/TradeModal.js';
 import { GameSetupModal } from './ui/GameSetupModal.js';
 import { RulebookModal } from './ui/RulebookModal.js';
+import { JailModal } from './ui/JailModal.js';
+import { PortfolioModal } from './ui/PortfolioModal.js';
+import { CardDeckModal } from './ui/CardDeckModal.js';
 import { sound } from './audio/SoundEffects.js';
+import { getPlayerAvatar } from './render/AvatarsData.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const boardElement = document.getElementById('monopoly-board');
@@ -34,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const tradeModal = new TradeModal();
   const gameSetupModal = new GameSetupModal();
   const rulebookModal = new RulebookModal();
+  const jailModal = new JailModal();
+  const portfolioModal = new PortfolioModal();
+  const cardDeckModal = new CardDeckModal();
 
   // Khởi tạo HUD 2 cánh
   const hud = new HUD(
@@ -42,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
   );
 
   let engine = null;
-  let boardRenderer = null;
+  let boardRenderer = new BoardRenderer(boardElement);
+  boardRenderer.render(SAIGON_BOARD_DATA);
   let tokenRenderer = null;
   let diceRenderer = null;
 
@@ -60,51 +69,160 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Game log
   const logContainer = document.getElementById('game-log-messages');
+  let savedLogs = [];
 
   // Timer
   let secondsElapsed = 0;
   let timerInterval = null;
   let turnCount = 1;
 
-  function formatMoney(amount) {
-    if (!amount) return '0đ';
-    if (amount >= 1_000_000) {
-      const m = amount / 1_000_000;
-      return Number.isInteger(m) ? `${m}.0M` : `${m.toFixed(1)}M`;
-    }
-    return `${Math.round(amount / 1_000)}K`;
+  function formatMoney(amount, withSign = false) {
+    return formatVND(amount, withSign);
   }
 
-  function addGameLog(message) {
-    if (!logContainer) return;
+  let lastGameLogMsg = '';
+  function addGameLog(message, player = null, record = true) {
+    if (!logContainer || !message) return;
+    const cleanMsg = message.trim();
+    if (cleanMsg === lastGameLogMsg) return; // Loại bỏ dòng trùng lặp
+    lastGameLogMsg = cleanMsg;
+
+    const curPlayer = player || (engine ? engine.getCurrentPlayer() : null);
+    const pIdx = curPlayer && engine ? engine.state.players.indexOf(curPlayer) : 0;
+    const avatarInfo = curPlayer ? getPlayerAvatar(curPlayer.id, pIdx >= 0 ? pIdx : 0) : getPlayerAvatar('p1', 0);
+
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    if (record) {
+      savedLogs.push({ message: cleanMsg, playerId: curPlayer?.id || 'p1', pIdx: pIdx >= 0 ? pIdx : 0, timeStr });
+      if (savedLogs.length > 35) savedLogs.shift();
+    }
+
     const item = document.createElement('div');
-    item.className = 'log-item';
-    item.textContent = message;
+    item.className = 'log-entry-row';
+    item.innerHTML = `
+      <div class="log-avatar-thumb">
+        ${avatarInfo.svg}
+      </div>
+      <div class="log-entry-content">
+        <div class="log-entry-text">${cleanMsg}</div>
+        <div class="log-entry-time">${timeStr}</div>
+      </div>
+    `;
+
     logContainer.prepend(item);
-    while (logContainer.children.length > 5) {
+    while (logContainer.children.length > 35) {
       logContainer.removeChild(logContainer.lastChild);
     }
   }
 
-  function startTimer() {
+  function startTimer(initialSeconds = 0) {
     if (timerInterval) clearInterval(timerInterval);
-    secondsElapsed = 0;
+    secondsElapsed = initialSeconds;
     const timerEl = document.getElementById('game-timer');
-    timerInterval = setInterval(() => {
-      secondsElapsed++;
+    const updateDisplay = () => {
       const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
       const secs = String(secondsElapsed % 60).padStart(2, '0');
       if (timerEl) timerEl.textContent = `${mins}:${secs}`;
+    };
+    updateDisplay();
+    timerInterval = setInterval(() => {
+      secondsElapsed++;
+      updateDisplay();
     }, 1000);
+  }
+
+  /**
+   * Tự động lưu trạng thái ván cờ vào LocalStorage
+   */
+  function autoSaveGame() {
+    if (!engine || !engine.state) return;
+    const activePlayers = (engine.state.players || []).filter((p) => !p.isBankrupt);
+    if (activePlayers.length <= 1) {
+      try {
+        localStorage.removeItem('monopoly_saigon_save');
+      } catch (e) {}
+      return;
+    }
+    const cleanState = JSON.parse(JSON.stringify(engine.state));
+    // Nếu lưu lúc xúc xắc đang lăn hoặc đang di chuyển, đặt lại thành chờ lắc xúc xắc
+    if (cleanState.turnState === 'ROLLING' || cleanState.turnState === 'MOVING') {
+      cleanState.turnState = 'WAIT_ROLL';
+    }
+    const saveData = {
+      state: cleanState,
+      turnCount,
+      secondsElapsed,
+      savedLogs,
+      savedAt: Date.now()
+    };
+    try {
+      localStorage.setItem('monopoly_saigon_save', JSON.stringify(saveData));
+    } catch (err) {
+      console.warn('Lỗi khi lưu ván chơi vào LocalStorage:', err);
+    }
+  }
+
+  /**
+   * Hiệu ứng tiền bay nổi (Floating Cash Badge)
+   */
+  function showFloatingCash(playerId, amount) {
+    if (!amount || amount === 0) return;
+    const isGain = amount > 0;
+    const sign = isGain ? '+' : '-';
+    const absVal = Math.abs(amount);
+    const text = `${sign}${formatMoney(absVal)}`;
+
+    // 1. Bay lên từ thẻ người chơi ở Cột Trái (HUD)
+    const hudCard = document.getElementById(`hud-player-${playerId}`);
+    if (hudCard) {
+      const rect = hudCard.getBoundingClientRect();
+      const badge = document.createElement('div');
+      badge.className = `floating-cash-badge ${isGain ? 'gain' : 'loss'}`;
+      badge.textContent = text;
+      badge.style.left = `${rect.left + rect.width / 2 - 40}px`;
+      badge.style.top = `${rect.top + 8}px`;
+      document.body.appendChild(badge);
+      setTimeout(() => badge.remove(), 1600);
+    }
+
+    // 2. Bay lên từ quân cờ trên bàn cờ
+    const tokenEl = tokenRenderer?.tokenElements?.[playerId];
+    if (tokenEl) {
+      const tRect = tokenEl.getBoundingClientRect();
+      const tBadge = document.createElement('div');
+      tBadge.className = `floating-cash-badge ${isGain ? 'gain' : 'loss'}`;
+      tBadge.textContent = text;
+      tBadge.style.left = `${tRect.left + tRect.width / 2 - 40}px`;
+      tBadge.style.top = `${tRect.top - 12}px`;
+      document.body.appendChild(tBadge);
+      setTimeout(() => tBadge.remove(), 1600);
+    }
   }
 
   function updateStandingBanner(tile, statusText = '') {
     if (!tile) return;
     if (standingNameEl) standingNameEl.textContent = tile.name;
     if (standingPriceEl) {
-      standingPriceEl.textContent = tile.price ? formatMoney(tile.price) : '';
+      if (tile.id === 20) {
+        standingPriceEl.textContent = `Hũ: ${formatMoney(engine?.state?.jackpotPot || 1_000_000)}`;
+      } else {
+        standingPriceEl.textContent = tile.price ? formatMoney(tile.price) : '';
+      }
     }
     if (standingStatusEl) standingStatusEl.textContent = statusText;
+  }
+
+  function updateDeckCounts() {
+    const chanceCountEl = document.getElementById('chance-deck-count');
+    const chestCountEl = document.getElementById('chest-deck-count');
+    if (chanceCountEl && engine?.state?.chanceDeck) {
+      chanceCountEl.textContent = `${engine.state.chanceDeck.length} thẻ`;
+    }
+    if (chestCountEl && engine?.state?.chestDeck) {
+      chestCountEl.textContent = `${engine.state.chestDeck.length} thẻ`;
+    }
   }
 
   function resetDockActions() {
@@ -120,79 +238,99 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * Bắt đầu một ván chơi mới
+   * Xem chi tiết Bằng Khoán & thực hiện các hành động Xây nhà / Thế chấp
    */
-  function startNewGame(playersConfig) {
-    engine = new GameEngine(playersConfig);
-    hud.update(engine.state);
-    turnCount = 1;
-    const turnCountEl = document.getElementById('game-turn-count');
-    if (turnCountEl) turnCountEl.textContent = turnCount;
+  function inspectTileDeed(tile, targetPlayer = null) {
+    if (!['property', 'railroad', 'utility'].includes(tile.type)) return;
+    const currentPlayer = targetPlayer || engine.getCurrentPlayer();
+    const owner = engine.getOwner(tile.id);
+    const propState = engine.state.properties[tile.id] || {};
+    const isOwner = owner && owner.id === currentPlayer.id;
 
-    startTimer();
-    addGameLog('Ván cờ bắt đầu! Chúc các cơ thủ may mắn!');
+    const buildCheck = isOwner ? GameRules.canBuildHouse(tile, currentPlayer, engine.state.properties) : null;
+    const sellCheck = isOwner ? GameRules.canSellHouse(tile, currentPlayer, engine.state.properties) : null;
+    const mortgageCheck = isOwner ? GameRules.canMortgage(tile, currentPlayer, engine.state.properties) : null;
+    const unmortgageCheck = isOwner ? GameRules.canUnmortgage(tile, currentPlayer, engine.state.properties) : null;
 
-    // 1. Render bàn cờ
+    titleDeedModal.show(tile, {
+      isBuyPrompt: false,
+      player: currentPlayer,
+      owner,
+      propState,
+      buildCheck,
+      sellCheck,
+      mortgageCheck,
+      unmortgageCheck,
+      onBuild: () => {
+        const res = engine.applyAction({ type: 'BUILD_HOUSE', tileId: tile.id });
+        if (res.success) {
+          boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+          hud.update(engine.state, handleShowPortfolio);
+          sound.playBuildHouse();
+          showFloatingCash(currentPlayer.id, -tile.houseCost);
+          addGameLog(res.message);
+          showToast(res.message);
+          autoSaveGame();
+        }
+      },
+      onSell: () => {
+        const res = engine.applyAction({ type: 'SELL_HOUSE', tileId: tile.id });
+        if (res.success) {
+          boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+          hud.update(engine.state, handleShowPortfolio);
+          showFloatingCash(currentPlayer.id, Math.floor(tile.houseCost / 2));
+          addGameLog(res.message);
+          showToast(res.message);
+          autoSaveGame();
+        }
+      },
+      onMortgage: () => {
+        const res = engine.applyAction({ type: 'MORTGAGE_PROPERTY', tileId: tile.id });
+        if (res.success) {
+          boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+          hud.update(engine.state, handleShowPortfolio);
+          addGameLog(res.message);
+          showToast(res.message);
+          autoSaveGame();
+        }
+      },
+      onUnmortgage: () => {
+        const res = engine.applyAction({ type: 'UNMORTGAGE_PROPERTY', tileId: tile.id });
+        if (res.success) {
+          boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+          hud.update(engine.state, handleShowPortfolio);
+          addGameLog(res.message);
+          showToast(res.message);
+          autoSaveGame();
+        }
+      }
+    });
+  }
+
+  /**
+   * Bật modal Danh mục tài sản khi bấm vào thẻ người chơi ở Cột Trái
+   */
+  function handleShowPortfolio(player) {
+    if (!player || !engine) return;
+    portfolioModal.show(player, engine.state, (tile) => {
+      inspectTileDeed(tile, player);
+    });
+  }
+
+  /**
+   * Khởi tạo giao diện bàn cờ, xúc xắc và các sự kiện điều khiển
+   */
+  function initGameInfrastructure() {
+    // 1. Render bàn cờ & sự kiện click vào ô
     boardRenderer = new BoardRenderer(boardElement);
     boardRenderer.render(SAIGON_BOARD_DATA, (tile) => {
       if (['property', 'railroad', 'utility'].includes(tile.type)) {
+        inspectTileDeed(tile);
+      } else if (tile.id === 10) {
         const currentPlayer = engine.getCurrentPlayer();
-        const owner = engine.getOwner(tile.id);
-        const propState = engine.state.properties[tile.id] || {};
-        const isOwner = owner && owner.id === currentPlayer.id;
-
-        const buildCheck = isOwner ? GameRules.canBuildHouse(tile, currentPlayer, engine.state.properties) : null;
-        const sellCheck = isOwner ? GameRules.canSellHouse(tile, currentPlayer, engine.state.properties) : null;
-        const mortgageCheck = isOwner ? GameRules.canMortgage(tile, currentPlayer, engine.state.properties) : null;
-        const unmortgageCheck = isOwner ? GameRules.canUnmortgage(tile, currentPlayer, engine.state.properties) : null;
-
-        titleDeedModal.show(tile, {
-          isBuyPrompt: false,
-          player: currentPlayer,
-          owner,
-          propState,
-          buildCheck,
-          sellCheck,
-          mortgageCheck,
-          unmortgageCheck,
-          onBuild: () => {
-            const res = engine.applyAction({ type: 'BUILD_HOUSE', tileId: tile.id });
-            if (res.success) {
-              boardRenderer.updateBuildings(engine.state.properties);
-              hud.update(engine.state);
-              sound.playBuildHouse();
-              addGameLog(res.message);
-              showToast(res.message);
-            }
-          },
-          onSell: () => {
-            const res = engine.applyAction({ type: 'SELL_HOUSE', tileId: tile.id });
-            if (res.success) {
-              boardRenderer.updateBuildings(engine.state.properties);
-              hud.update(engine.state);
-              addGameLog(res.message);
-              showToast(res.message);
-            }
-          },
-          onMortgage: () => {
-            const res = engine.applyAction({ type: 'MORTGAGE_PROPERTY', tileId: tile.id });
-            if (res.success) {
-              boardRenderer.updateOwners(engine.state.properties, engine.state.players);
-              hud.update(engine.state);
-              addGameLog(res.message);
-              showToast(res.message);
-            }
-          },
-          onUnmortgage: () => {
-            const res = engine.applyAction({ type: 'UNMORTGAGE_PROPERTY', tileId: tile.id });
-            if (res.success) {
-              boardRenderer.updateOwners(engine.state.properties, engine.state.players);
-              hud.update(engine.state);
-              addGameLog(res.message);
-              showToast(res.message);
-            }
-          }
-        });
+        if (currentPlayer.inJail && !currentPlayer.isBot) {
+          showJailOptions(currentPlayer);
+        }
       }
     });
 
@@ -214,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hud.update(engine.state);
             addGameLog(tradeRes.message);
             showToast(tradeRes.message);
+            autoSaveGame();
           }
         });
       };
@@ -240,24 +379,155 @@ document.addEventListener('DOMContentLoaded', () => {
     // Nút Tạo Ván Mới trên Header
     const btnRestart = document.getElementById('btn-restart-game');
     if (btnRestart) {
-      btnRestart.onclick = () => gameSetupModal.show(startNewGame);
+      btnRestart.onclick = () => gameSetupModal.show(startNewGame, resumeGame);
     }
 
-    updateStandingBanner(SAIGON_BOARD_DATA[0], 'Vị trí xuất phát');
+    // Click khay thẻ CƠ HỘI & KHÍ VẬN ở trung tâm bàn cờ -> Mở Bảng tra cứu & Lịch sử
+    const slotChance = document.getElementById('slot-chance');
+    if (slotChance) {
+      slotChance.onclick = () => {
+        sound.playCardDraw();
+        cardDeckModal.show('chance', engine.state);
+      };
+    }
 
-    // Click khay thẻ Cơ Hội / Khí Vận ở sidebar phải để xem thẻ bài
+    const slotChest = document.getElementById('slot-chest');
+    if (slotChest) {
+      slotChest.onclick = () => {
+        sound.playCardDraw();
+        cardDeckModal.show('chest', engine.state);
+      };
+    }
+
+    // Click khay thẻ Cơ Hội / Khí Vận ở sidebar phải để xem bảng thẻ bài
     document.querySelectorAll('.special-deck-card').forEach((deckEl) => {
       deckEl.style.cursor = 'pointer';
-      deckEl.title = 'Nhấn để xem thẻ bài Sài Gòn';
+      deckEl.title = 'Nhấn để xem chi tiết & lịch sử thẻ';
       deckEl.onclick = () => {
         const isChance = deckEl.classList.contains('chance');
         const type = isChance ? 'chance' : 'chest';
-        const card = engine.drawCard(type);
         sound.playCardDraw();
-        cardModal.show(type, card, { message: 'Bộ sưu tập thẻ Sài Gòn đặc biệt' });
+        cardDeckModal.show(type, engine.state);
       };
     });
 
+    updateDeckCounts();
+
+    // Nạp module công cụ Dev & Test nếu file tồn tại ở Local (Được .gitignore bảo vệ, không bao giờ lên GitHub)
+    import('./dev/dev-tools.js')
+      .then((devModule) => {
+        devModule.setupDevTools({
+          getEngine: () => engine,
+          hud,
+          boardRenderer,
+          tokenRenderer,
+          sound,
+          showToast,
+          addGameLog,
+          autoSaveGame,
+          resolveLanding,
+          showJailOptions,
+          showGameOverModal,
+          auctionModal
+        });
+      })
+      .catch(() => {
+        // Môi trường Production / GitHub: Không có thư mục dev/, bỏ qua an toàn tuyệt đối
+      });
+  }
+
+  /**
+   * Bắt đầu một ván chơi mới
+   */
+  function startNewGame(playersConfig, options = {}) {
+    engine = new GameEngine(playersConfig, options);
+    window.engine = engine;
+    window.hud = hud;
+    hud.update(engine.state, handleShowPortfolio);
+    turnCount = 1;
+    const turnCountEl = document.getElementById('game-turn-count');
+    if (turnCountEl) turnCountEl.textContent = turnCount;
+
+    startTimer(0);
+    savedLogs = [];
+    if (logContainer) logContainer.innerHTML = '';
+
+    if (options.fastMode) {
+      addGameLog('⚡ Chế độ Chơi Nhanh kích hoạt: Đã phát ngẫu nhiên 3 BĐS cho mỗi người chơi!');
+      showToast('⚡ Chế độ Chơi Nhanh: Đã phát sẵn đất để chiến nhau ngay!');
+    } else {
+      addGameLog('Ván cờ bắt đầu! Chúc các cơ thủ may mắn!');
+    }
+
+    initGameInfrastructure();
+
+    boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+    boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+    tokenRenderer.render(engine.state.players);
+    boardRenderer.updateJackpot(engine.state.jackpotPot);
+
+    updateStandingBanner(SAIGON_BOARD_DATA[0], 'Vị trí xuất phát');
+
+    autoSaveGame();
+    checkBotTurn();
+  }
+
+  /**
+   * Tiếp tục ván chơi từ LocalStorage
+   */
+  function resumeGame(savedData) {
+    engine = new GameEngine();
+    engine.state = savedData.state;
+    // Đảm bảo turnState không bị kẹt ở trạng thái chuyển động
+    if (engine.state.turnState === 'ROLLING' || engine.state.turnState === 'MOVING') {
+      engine.state.turnState = 'WAIT_ROLL';
+    }
+    window.engine = engine;
+    window.hud = hud;
+    hud.update(engine.state, handleShowPortfolio);
+
+    turnCount = savedData.turnCount || 1;
+    const turnCountEl = document.getElementById('game-turn-count');
+    if (turnCountEl) turnCountEl.textContent = turnCount;
+
+    startTimer(savedData.secondsElapsed || 0);
+
+    initGameInfrastructure();
+
+    // Khôi phục quyền sở hữu và công trình nhà/khách sạn trên bàn cờ
+    boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+    boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+    tokenRenderer.render(engine.state.players);
+    boardRenderer.updateJackpot(engine.state.jackpotPot);
+
+    const curP = engine.getCurrentPlayer();
+    const curPos = curP ? curP.position : 0;
+    const curTile = SAIGON_BOARD_DATA[curPos] || SAIGON_BOARD_DATA[0];
+    updateStandingBanner(curTile, curP && curP.inJail ? 'Đang ở buồng giam' : 'Vị trí hiện tại');
+
+    // Khôi phục toàn bộ lịch sử đấu từ ván trước
+    if (logContainer && savedData.savedLogs && savedData.savedLogs.length) {
+      savedLogs = [...savedData.savedLogs];
+      logContainer.innerHTML = '';
+      savedLogs.forEach((item) => {
+        const avatarInfo = getPlayerAvatar(item.playerId || 'p1', item.pIdx || 0);
+        const div = document.createElement('div');
+        div.className = 'log-entry-row';
+        div.innerHTML = `
+          <div class="log-avatar-thumb">${avatarInfo.svg}</div>
+          <div class="log-entry-content">
+            <div class="log-entry-text">${item.message}</div>
+            <div class="log-entry-time">${item.timeStr || ''}</div>
+          </div>
+        `;
+        logContainer.prepend(div);
+      });
+    }
+
+    addGameLog(`📂 Tiếp tục ván chơi trước (Lượt ${turnCount})!`);
+    showToast(`📂 Đã tiếp tục ván đấu thành công!`);
+
+    autoSaveGame();
     checkBotTurn();
   }
 
@@ -295,143 +565,210 @@ document.addEventListener('DOMContentLoaded', () => {
         p.money += 2_000_000;
         hud.update(engine.state);
         sound.playCoin();
-        addGameLog(`🎉 ${p.name} qua Khởi Hành: +2.0M!`);
-        showToast(`🎉 ${p.name} qua Khởi Hành: +2.000.000đ!`);
+        showFloatingCash(p.id, 2_000_000);
+        sound.speakSaigon('Lãnh lương hai triệu nha!');
+        addGameLog(`🎉 ${p.name} qua Khởi Hành: ${formatVND(2_000_000, true)}!`);
+        showToast(`🎉 ${p.name} qua Khởi Hành: ${formatVND(2_000_000, true)}!`);
       },
       onComplete: async (p, landingPos) => {
-        const landResult = engine.applyAction({ type: 'COMPLETE_MOVEMENT', position: landingPos });
+        await resolveLanding(p, landingPos, isDoubles);
+      }
+    });
+  }
+
+  /**
+   * Xử lý giải quyết hiệu ứng ô khi người chơi hạ cánh (dùng chung cho mọi kiểu di chuyển)
+   */
+  async function resolveLanding(p, landingPos, isDoubles = false) {
+    p.position = landingPos;
+    tokenRenderer.render(engine.state.players);
+    const landResult = engine.applyAction({ type: 'COMPLETE_MOVEMENT', position: landingPos });
+    hud.update(engine.state);
+
+    const currentTile = SAIGON_BOARD_DATA[landingPos];
+
+    // A. Ô Cơ Hội / Khí Vận
+    if (landResult.event === 'CARD_DRAWN') {
+      sound.playCardDraw();
+      updateDeckCounts();
+      updateStandingBanner(currentTile, `Rút thẻ ${landResult.cardType === 'chance' ? 'Cơ Hội' : 'Khí Vận'}`);
+
+      const onCardClosed = async () => {
+        engine.applyAction({ type: 'CLOSE_CARD' });
+        tokenRenderer.render(engine.state.players);
         hud.update(engine.state);
-
-        const currentTile = SAIGON_BOARD_DATA[landingPos];
-
-        // A. Ô Cơ Hội / Khí Vận
-        if (landResult.event === 'CARD_DRAWN') {
-          sound.playCardDraw();
-          updateStandingBanner(currentTile, `Rút thẻ ${landResult.cardType === 'chance' ? 'Cơ Hội' : 'Khí Vận'}`);
-          if (p.isBot) {
-            cardModal.show(landResult.cardType, landResult.card, landResult.result);
-            setTimeout(() => {
-              cardModal.hide();
-              engine.applyAction({ type: 'CLOSE_CARD' });
-              tokenRenderer.render(engine.state.players);
-              hud.update(engine.state);
-              addGameLog(landResult.result.message);
-              finishTurn(isDoubles);
-            }, 1800);
-          } else {
-            cardModal.show(landResult.cardType, landResult.card, landResult.result, () => {
-              engine.applyAction({ type: 'CLOSE_CARD' });
-              tokenRenderer.render(engine.state.players);
-              hud.update(engine.state);
-              addGameLog(landResult.result.message);
-              showToast(landResult.result.message);
-              finishTurn(isDoubles);
-            });
-          }
+        if (landResult.result?.message) {
+          addGameLog(landResult.result.message);
+          showToast(landResult.result.message);
         }
-        // B. Ô Đất Trống -> Mua đất hoặc Đấu giá
-        else if (landResult.event === 'BUY_PROMPT') {
-          updateStandingBanner(currentTile, 'Đất trống - Có thể mua!');
 
-          if (p.isBot) {
-            // Bot tự đánh giá
-            const decision = BotAI.shouldBuyProperty(p, landResult.tile, engine.state);
-            if (decision.shouldBuy) {
-              const buyRes = engine.applyAction({ type: 'BUY_PROPERTY' });
+        // Nếu thẻ di chuyển người chơi sang ô mới (tiến/lùi/ô gần nhất/vào tù)
+        if (landResult.result && landResult.result.moveTarget !== undefined) {
+          const newPos = landResult.result.moveTarget;
+          tokenRenderer.render(engine.state.players);
+          await resolveLanding(p, newPos, isDoubles);
+        } else if (p.inJail) {
+          finishTurn(false);
+        } else {
+          finishTurn(isDoubles);
+        }
+      };
+
+      if (p.isBot) {
+        cardModal.show(landResult.cardType, landResult.card, landResult.result);
+        setTimeout(async () => {
+          cardModal.hide();
+          await onCardClosed();
+        }, 1800);
+      } else {
+        cardModal.show(landResult.cardType, landResult.card, landResult.result, async () => {
+          await onCardClosed();
+        });
+      }
+    }
+    // B. Ô Đất Trống -> Mua đất hoặc Đấu giá
+    else if (landResult.event === 'BUY_PROMPT') {
+      updateStandingBanner(currentTile, 'Đất trống - Có thể mua!');
+
+      if (p.isBot) {
+        // Bot tự đánh giá
+        const decision = BotAI.shouldBuyProperty(p, landResult.tile, engine.state);
+        if (decision.shouldBuy) {
+          const buyRes = engine.applyAction({ type: 'BUY_PROPERTY' });
+          boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+          hud.update(engine.state);
+          sound.playSuccess();
+          showFloatingCash(p.id, -landResult.tile.price);
+          addGameLog(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
+          showToast(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
+          setTimeout(() => finishTurn(isDoubles), 1000);
+        } else {
+          addGameLog(`🤖 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
+          startAuctionFlow(landResult.tile, isDoubles);
+        }
+      } else {
+        // Kích hoạt nút Mua Đất & Bỏ Qua ngay trên thanh Dock!
+        if (btnBuy) {
+          btnBuy.disabled = false;
+          btnBuy.querySelector('.act-title').textContent = `Mua (${formatMoney(currentTile.price)})`;
+          btnBuy.onclick = () => {
+            const buyRes = engine.applyAction({ type: 'BUY_PROPERTY' });
+            resetDockActions();
+            if (buyRes.success) {
               boardRenderer.updateOwners(engine.state.properties, engine.state.players);
               hud.update(engine.state);
               sound.playSuccess();
-              addGameLog(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
-              showToast(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
-              setTimeout(() => finishTurn(isDoubles), 1000);
-            } else {
-              addGameLog(`🤖 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
-              startAuctionFlow(landResult.tile, isDoubles);
+              showFloatingCash(p.id, -currentTile.price);
+              addGameLog(buyRes.message);
+              showToast(buyRes.message);
             }
-          } else {
-            // Kích hoạt nút Mua Đất & Bỏ Qua ngay trên thanh Dock!
-            if (btnBuy) {
-              btnBuy.disabled = false;
-              btnBuy.querySelector('.act-title').textContent = `Mua (${formatMoney(currentTile.price)})`;
-              btnBuy.onclick = () => {
-                const buyRes = engine.applyAction({ type: 'BUY_PROPERTY' });
-                resetDockActions();
-                if (buyRes.success) {
-                  boardRenderer.updateOwners(engine.state.properties, engine.state.players);
-                  hud.update(engine.state);
-                  sound.playSuccess();
-                  addGameLog(buyRes.message);
-                  showToast(buyRes.message);
-                }
-                finishTurn(isDoubles);
-              };
-            }
-            if (btnPass) {
-              btnPass.disabled = false;
-              btnPass.querySelector('.act-title').textContent = 'Đấu Giá';
-              btnPass.onclick = () => {
-                resetDockActions();
-                addGameLog(`🔨 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
-                startAuctionFlow(landResult.tile, isDoubles);
-              };
-            }
+            finishTurn(isDoubles);
+          };
+        }
+        if (btnPass) {
+          btnPass.disabled = false;
+          btnPass.querySelector('.act-title').textContent = 'Đấu Giá';
+          btnPass.onclick = () => {
+            resetDockActions();
+            addGameLog(`🔨 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
+            startAuctionFlow(landResult.tile, isDoubles);
+          };
+        }
 
-            // Đồng thời bật TitleDeedModal nếu muốn xem chi tiết
-            titleDeedModal.show(landResult.tile, {
-              isBuyPrompt: true,
-              player: p,
-              onBuy: () => {
-                resetDockActions();
-                const buyRes = engine.applyAction({ type: 'BUY_PROPERTY' });
-                if (buyRes.success) {
-                  boardRenderer.updateOwners(engine.state.properties, engine.state.players);
-                  hud.update(engine.state);
-                  sound.playSuccess();
-                  addGameLog(buyRes.message);
-                  showToast(buyRes.message);
-                }
-                finishTurn(isDoubles);
-              },
-              onDecline: () => {
-                resetDockActions();
-                addGameLog(`🔨 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
-                startAuctionFlow(landResult.tile, isDoubles);
-              }
-            });
+        // Đồng thời bật TitleDeedModal nếu muốn xem chi tiết
+        titleDeedModal.show(landResult.tile, {
+          isBuyPrompt: true,
+          player: p,
+          onBuy: () => {
+            resetDockActions();
+            const buyRes = engine.applyAction({ type: 'BUY_PROPERTY' });
+            if (buyRes.success) {
+              boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+              hud.update(engine.state);
+              sound.playSuccess();
+              showFloatingCash(p.id, -landResult.tile.price);
+              addGameLog(buyRes.message);
+              showToast(buyRes.message);
+            }
+            finishTurn(isDoubles);
+          },
+          onDecline: () => {
+            resetDockActions();
+            addGameLog(`🔨 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
+            startAuctionFlow(landResult.tile, isDoubles);
           }
-        }
-        // C. Tiền thuê đất
-        else if (landResult.event === 'RENT_PAID') {
-          updateStandingBanner(currentTile, `Đã trả ${formatMoney(landResult.rent)} tiền thuê`);
-          sound.playCoin();
-          addGameLog(landResult.message);
-          showToast(landResult.message);
-          setTimeout(() => finishTurn(isDoubles), 1400);
-        }
-        // D. Ô Thuế
-        else if (landResult.event === 'TAX_PAID') {
-          updateStandingBanner(currentTile, 'Nộp thuế cho thành phố');
-          sound.playCoin();
-          addGameLog(landResult.message);
-          showToast(landResult.message);
-          setTimeout(() => finishTurn(isDoubles), 1400);
-        }
-        // E. Vào tù
-        else if (landResult.event === 'GO_TO_JAIL') {
-          updateStandingBanner(currentTile, '🚨 Bị bắt vào buồng giam');
-          sound.playJail();
-          tokenRenderer.render(engine.state.players);
-          addGameLog(landResult.message);
-          showToast(landResult.message);
-          setTimeout(() => finishTurn(false), 1400);
-        }
-        // F. Ô an toàn
-        else {
-          updateStandingBanner(currentTile, 'Nghỉ chân an toàn');
-          setTimeout(() => finishTurn(isDoubles), 1000);
-        }
+        });
       }
-    });
+    }
+    // C. Tiền thuê đất
+    else if (landResult.event === 'RENT_PAID') {
+      updateStandingBanner(currentTile, `Đã trả ${formatMoney(landResult.rent)} tiền thuê`);
+      sound.playCoin();
+      showFloatingCash(p.id, -landResult.rent);
+      if (landResult.owner) {
+        showFloatingCash(landResult.owner.id, landResult.rent);
+      }
+      if (landResult.rent >= 3_000_000) {
+        sound.speakSaigon('Trả tiền mệt xỉu luôn nghen!');
+      }
+      addGameLog(landResult.message);
+      showToast(landResult.message);
+      setTimeout(() => finishTurn(isDoubles), 1400);
+    }
+    // D. Nổ Hũ Quỹ Trúng Thưởng (Jackpot)
+    else if (landResult.event === 'JACKPOT_WON') {
+      updateStandingBanner(currentTile, `🎰 NỔ HŨ: +${formatMoney(landResult.amount)}!`);
+      boardRenderer.updateJackpot(engine.state.jackpotPot);
+      sound.playSuccess();
+      sound.playCoin();
+      showFloatingCash(p.id, landResult.amount);
+      sound.speakSaigon('Lụm trọn hũ vàng rồi nghen!');
+      addGameLog(landResult.message);
+      showToast(landResult.message);
+      setTimeout(() => finishTurn(isDoubles), 1600);
+    }
+    // E. Ô Thuế
+    else if (landResult.event === 'TAX_PAID') {
+      updateStandingBanner(currentTile, 'Nộp thuế vào Quỹ Trúng Thưởng');
+      boardRenderer.updateJackpot(engine.state.jackpotPot);
+      sound.playCoin();
+      const taxAmt = landResult.taxAmount || currentTile.amount || 1_000_000;
+      showFloatingCash(p.id, -taxAmt);
+      addGameLog(landResult.message);
+      showToast(landResult.message);
+      setTimeout(() => finishTurn(isDoubles), 1400);
+    }
+    // F. Vào tù
+    else if (landResult.event === 'GO_TO_JAIL') {
+      updateStandingBanner(currentTile, '🚨 Bị bắt vào buồng giam');
+      sound.playJail();
+      sound.speakSaigon('Vô bốt ngồi nghen!');
+      tokenRenderer.render(engine.state.players);
+      addGameLog(landResult.message);
+      showToast(landResult.message);
+      setTimeout(() => finishTurn(false), 1400);
+    }
+    // G. Phá sản
+    else if (landResult.event === 'BANKRUPTCY') {
+      updateStandingBanner(currentTile, `💀 ${landResult.bankruptPlayer.name} đã Phá Sản!`);
+      boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+      tokenRenderer.render(engine.state.players);
+      hud.update(engine.state);
+      sound.playJail();
+      sound.speakSaigon('Cháy túi rồi bà con ơi!');
+      addGameLog(landResult.message);
+      showToast(landResult.message);
+      if (landResult.winner) {
+        showGameOverModal(landResult.winner);
+      } else {
+        setTimeout(() => finishTurn(false), 1400);
+      }
+    }
+    // H. Ô an toàn
+    else {
+      updateStandingBanner(currentTile, 'Nghỉ chân an toàn');
+      setTimeout(() => finishTurn(isDoubles), 1000);
+    }
   }
 
   /**
@@ -515,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
       for (const tileId of buildDecisions) {
         const buildRes = engine.applyAction({ type: 'BUILD_HOUSE', tileId });
         if (buildRes.success) {
-          boardRenderer.updateBuildings(engine.state.properties);
+          boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
           sound.playBuildHouse();
           addGameLog(`🏗️ ${justPlayed.name} nâng cấp nhà tại ${buildRes.tile.name}!`);
         }
@@ -531,11 +868,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (turnCountEl) turnCountEl.textContent = turnCount;
     }
 
+    autoSaveGame();
     checkBotTurn();
   }
 
   /**
-   * Kiểm tra nếu là lượt của Bot
+   * Kiểm tra nếu là lượt của Bot hoặc người chơi đang ở trong tù
    */
   function checkBotTurn() {
     const curPlayer = engine.getCurrentPlayer();
@@ -546,16 +884,85 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRoll.querySelector('.roll-label').textContent = 'BOT ĐANG ĐI...';
       }
       setTimeout(() => {
+        if (curPlayer.inJail) {
+          if (curPlayer.hasJailCard) {
+            const cardRes = engine.applyAction({ type: 'USE_JAIL_CARD' });
+            tokenRenderer.render(engine.state.players);
+            hud.update(engine.state);
+            addGameLog(cardRes.message);
+            showToast(cardRes.message);
+          } else if (curPlayer.money > 3_000_000 && curPlayer.jailTurns > 0) {
+            const payRes = engine.applyAction({ type: 'PAY_JAIL_FINE' });
+            if (payRes.success) {
+              sound.playCoin();
+              tokenRenderer.render(engine.state.players);
+              hud.update(engine.state);
+              addGameLog(payRes.message);
+              showToast(payRes.message);
+            }
+          }
+        }
         if (diceRenderer && !diceRenderer.isRolling) {
           diceRenderer.roll();
         }
       }, 1000);
     } else {
-      if (btnRoll) {
-        btnRoll.disabled = false;
-        btnRoll.querySelector('.roll-label').textContent = 'TUNG XÚC XẮC';
+      if (curPlayer.inJail) {
+        if (btnRoll) {
+          btnRoll.disabled = false;
+          btnRoll.querySelector('.roll-label').textContent = '🎲 LẮC ĐÔI RA TÙ';
+        }
+        showJailOptions(curPlayer);
+      } else {
+        if (btnRoll) {
+          btnRoll.disabled = false;
+          btnRoll.querySelector('.roll-label').textContent = 'TUNG XÚC XẮC';
+        }
       }
     }
+  }
+
+  /**
+   * Hiển thị bảng chọn cách ra tù cho người chơi
+   */
+  function showJailOptions(player) {
+    jailModal.show(player, {
+      onRollDoubles: () => {
+        if (diceRenderer && !diceRenderer.isRolling) {
+          diceRenderer.roll();
+        }
+      },
+      onPayFine: () => {
+        const payRes = engine.applyAction({ type: 'PAY_JAIL_FINE' });
+        if (payRes.success) {
+          sound.playCoin();
+          showFloatingCash(player.id, -500_000);
+          tokenRenderer.render(engine.state.players);
+          hud.update(engine.state);
+          boardRenderer.updateJackpot(engine.state.jackpotPot);
+          addGameLog(payRes.message);
+          showToast(payRes.message);
+          autoSaveGame();
+          if (btnRoll) {
+            btnRoll.disabled = false;
+            btnRoll.querySelector('.roll-label').textContent = 'TUNG XÚC XẮC';
+          }
+        }
+      },
+      onUseCard: () => {
+        const cardRes = engine.applyAction({ type: 'USE_JAIL_CARD' });
+        if (cardRes.success) {
+          tokenRenderer.render(engine.state.players);
+          hud.update(engine.state);
+          addGameLog(cardRes.message);
+          showToast(cardRes.message);
+          if (btnRoll) {
+            btnRoll.disabled = false;
+            btnRoll.querySelector('.roll-label').textContent = 'TUNG XÚC XẮC';
+          }
+        }
+      }
+    });
   }
 
   function showToast(message) {
@@ -564,13 +971,74 @@ document.addEventListener('DOMContentLoaded', () => {
       toast = document.createElement('div');
       toast.id = 'game-toast';
       toast.className = 'game-toast';
-      document.body.appendChild(toast);
+      const board = document.getElementById('monopoly-board');
+      if (board) {
+        board.appendChild(toast);
+      } else {
+        document.body.appendChild(toast);
+      }
     }
     toast.textContent = message;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2800);
+    if (toast._timer) clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2800);
   }
 
-  // Khởi động GameSetupModal ngay khi vào trang
-  gameSetupModal.show(startNewGame);
+  function showGameOverModal(winner) {
+    try {
+      localStorage.removeItem('monopoly_saigon_save');
+    } catch (e) {}
+
+    let overlay = document.getElementById('game-over-modal');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'game-over-modal';
+      overlay.className = 'modal-backdrop';
+      document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = `
+      <div style="
+        width: 100%;
+        max-width: 440px;
+        background: #FFFDF8;
+        border-radius: 24px;
+        border: 4px solid #F39C12;
+        box-shadow: 0 30px 80px rgba(243, 156, 18, 0.4);
+        padding: 28px 24px;
+        text-align: center;
+        animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-family: var(--font-ui, sans-serif);
+      ">
+        <div style="font-size: 3.5rem; margin-bottom: 8px;">👑</div>
+        <div style="font-size: 0.85rem; font-weight: 800; color: #D35400; letter-spacing: 2px;">KẾT THÚC VÁN ĐẤU</div>
+        <h2 style="font-family: var(--font-retro, sans-serif); font-size: 1.8rem; font-weight: 900; color: #176B78; margin: 6px 0 12px;">ĐẠI GIA SÀI GÒN</h2>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #2C3E50; margin-bottom: 16px;">
+          🎉 Chúc mừng <span style="color: #C0392B;">${winner.name}</span> đã chiến thắng vẻ vang!
+        </div>
+        <p style="font-size: 0.85rem; color: #7F8C8D; margin-bottom: 24px;">
+          Tất cả các đối thủ khác đều đã phá sản. Bạn chính là ông trùm bất động sản duy nhất trụ lại thành phố!
+        </p>
+        <button id="btn-gameover-restart" style="
+          background: linear-gradient(135deg, #176B78, #0E4852);
+          color: #FFF;
+          border: none;
+          padding: 12px 28px;
+          border-radius: 12px;
+          font-weight: 800;
+          font-size: 1rem;
+          cursor: pointer;
+          box-shadow: 0 6px 16px rgba(23, 107, 120, 0.35);
+        ">🔄 BẮT ĐẦU VÁN MỚI</button>
+      </div>
+    `;
+    overlay.style.display = 'flex';
+    overlay.classList.add('active');
+    document.getElementById('btn-gameover-restart').onclick = () => {
+      overlay.style.display = 'none';
+      gameSetupModal.show(startNewGame, resumeGame);
+    };
+  }
+
+  // Khởi động GameSetupModal ngay khi vào trang (hỗ trợ Tiếp Tục hoặc Ván Mới)
+  gameSetupModal.show(startNewGame, resumeGame);
 });

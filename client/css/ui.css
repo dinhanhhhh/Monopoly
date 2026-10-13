@@ -2,176 +2,7 @@
    UI.CSS - HUD Người Chơi, Thẻ Bằng Khoán (Title Deed) & Modals
    ========================================================================== */
 
-/* ================= BẢNG HUD NGƯỜI CHƠI (COCKPIT DASHBOARD CARD) ================= */
-.player-cockpit-card {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  padding: 8px 10px;
-  border: 2px solid #E2E8F0;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.player-cockpit-card.active-turn {
-  border-color: #FF7A00;
-  background: #FFFFFF;
-  box-shadow: 0 4px 16px rgba(255, 122, 0, 0.22);
-  transform: translateY(-2px);
-}
-
-.player-card-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.player-card-identity {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.cockpit-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.cockpit-avatar .token-svg {
-  width: 70%;
-  height: 70%;
-}
-
-.cockpit-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.cockpit-name {
-  font-size: 0.8rem;
-  font-weight: 900;
-  color: #1E293B;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cockpit-title {
-  font-size: 0.62rem;
-  color: #64748B;
-  font-weight: 700;
-}
-
-.cockpit-turn-tag {
-  font-size: 0.6rem;
-  font-weight: 900;
-  padding: 2px 5px;
-  border-radius: 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.cockpit-turn-tag.turn-active {
-  background: #FFF7ED;
-  color: #EA580C;
-  border: 1px solid #FDBA74;
-}
-
-.cockpit-turn-tag.turn-waiting {
-  background: #F1F5F9;
-  color: #94A3B8;
-}
-
-.cockpit-turn-tag.turn-danger {
-  background: #FEF2F2;
-  color: #EF4444;
-  border: 1px solid #FCA5A5;
-}
-
-.cockpit-financial-box {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  background: #F8FAFC;
-  border-radius: 6px;
-  padding: 3px 6px;
-  border: 1px solid #F1F5F9;
-}
-
-.financial-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.fin-label {
-  font-size: 0.58rem;
-  font-weight: 800;
-  color: #64748B;
-  letter-spacing: 0.3px;
-}
-
-.fin-value {
-  font-size: 0.78rem;
-  font-weight: 900;
-  color: #0F172A;
-}
-
-.fin-value.cash {
-  color: #16A34A;
-}
-
-.cockpit-properties-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  align-items: center;
-  min-height: 16px;
-}
-
-.prop-chip {
-  font-size: 0.6rem;
-  font-weight: 800;
-  padding: 1px 4px;
-  border-radius: 4px;
-  color: #FFF;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.prop-chip-more {
-  font-size: 0.6rem;
-  font-weight: 800;
-  background: #E2E8F0;
-  color: #475569;
-  padding: 1px 3px;
-  border-radius: 4px;
-}
-
-.cockpit-position-row {
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: #64748B;
-  display: flex;
-  justify-content: space-between;
-}
+/* HUD người chơi được định nghĩa chuẩn xác trong main.css */
 
 /* Hộp thẻ bài đặc biệt cột phải */
 .special-decks-box {
@@ -224,24 +55,7 @@
   margin-top: 2px;
 }
 
-/* ================= HUY HIỆU CHỦ SỞ HỮU TRÊN Ô CỜ ================= */
-.tile-owner-badge {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  color: #FFF;
-  font-size: 8px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-  border: 1px solid #FFF;
-  z-index: 4;
-}
+/* ================= HUY HIỆU CHỦ SỞ HỮU ĐƯỢC ĐỊNH NGHĨA TRONG BOARD.CSS ================= */
 
 /* ================= MODAL THẺ BẰNG KHOÁN (TITLE DEED) & BACKDROP CHUNG ================= */
 .modal-backdrop {
@@ -1058,7 +872,7 @@
 }
 
 .setup-header {
-  background: linear-gradient(135deg, #FF7A00, #E65100);
+  background: linear-gradient(135deg, #1F6F8B, #165369);
   color: #FFF;
   padding: 8px 14px 6px;
   text-align: center;
@@ -1084,6 +898,67 @@
 
 .setup-body {
   padding: 8px 16px;
+}
+
+/* Banner Tiếp Tục Ván Trước */
+.resume-game-banner {
+  background: linear-gradient(135deg, #FEF9E7, #FCF3CF);
+  border: 2px solid #F39C12;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.22);
+  animation: popIn 0.3s ease;
+}
+
+.resume-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.resume-title {
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #B9770E;
+  letter-spacing: 0.3px;
+}
+
+.resume-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #7D6608;
+}
+
+.btn-resume-game {
+  background: linear-gradient(135deg, #27AE60, #219653);
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(39, 174, 96, 0.35);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-resume-game:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(39, 174, 96, 0.45);
+  background: linear-gradient(135deg, #2ECC71, #27AE60);
 }
 
 .setup-section {
@@ -1399,5 +1274,1017 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(211, 84, 0, 0.5);
 }
+
+/* Hiệu ứng Tiền Bay Nổi (Floating Cash Numbers) */
+.floating-cash-badge {
+  position: absolute;
+  pointer-events: none;
+  z-index: 99999;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-retro);
+  font-weight: 900;
+  font-size: 1.05rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  animation: floatCashUp 1.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+.floating-cash-badge.gain {
+  color: #2ECC71;
+  background: rgba(18, 48, 28, 0.92);
+  border: 1.5px solid #2ECC71;
+  text-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+}
+
+.floating-cash-badge.loss {
+  color: #FF4757;
+  background: rgba(50, 18, 24, 0.92);
+  border: 1.5px solid #FF4757;
+  text-shadow: 0 0 10px rgba(255, 71, 87, 0.6);
+}
+
+@keyframes floatCashUp {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.65);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1.15);
+  }
+  40% {
+    transform: translateY(-8px) scale(1);
+  }
+  80% {
+    opacity: 0.95;
+    transform: translateY(-34px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-56px) scale(0.85);
+  }
+}
+
+/* ================= PORTFOLIO MODAL (DANH MỤC TÀI SẢN NGƯỜI CHƠI) ================= */
+.player-card {
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  position: relative;
+}
+
+.player-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  border-color: #C0392B;
+}
+
+.player-card::after {
+  content: "🔍 Bấm xem tài sản";
+  position: absolute;
+  bottom: 2px;
+  right: 8px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: #7F8C8D;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+}
+
+.player-card:hover::after {
+  opacity: 0.9;
+  transform: translateY(0);
+}
+
+.portfolio-modal-card {
+  width: 100%;
+  max-width: 580px;
+  max-height: 88vh;
+  background: #FAF7F0;
+  border-radius: 20px;
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.55);
+  border: 3px solid #2C3E50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.portfolio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #FFFFFF;
+  border-bottom: 2px solid #E8DFCA;
+}
+
+.portfolio-player-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.portfolio-avatar-wrap {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 3px solid #C0392B;
+  background: #FFF;
+  overflow: hidden;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portfolio-avatar-wrap svg {
+  width: 100%;
+  height: 100%;
+}
+
+.portfolio-player-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.player-name-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.player-name-heading h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #1E293B;
+  font-family: var(--font-ui);
+}
+
+.player-type-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 12px;
+  line-height: 1.2;
+}
+
+.player-type-pill.human-pill {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+.player-type-pill.bot-pill {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.player-status-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.player-status-tag.badge-active {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.player-status-tag.badge-jail {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.player-status-tag.badge-bankrupt {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.player-token-row {
+  font-size: 0.72rem;
+  color: #64748B;
+}
+
+.token-name-text {
+  color: #C0392B;
+}
+
+.portfolio-close-btn {
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.portfolio-close-btn:hover {
+  background: #EF4444;
+  color: #FFF;
+  border-color: #DC2626;
+}
+
+/* Lưới 4 ô thẻ tài chính */
+.portfolio-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 14px 20px;
+  background: #F4EEDF;
+  border-bottom: 2px solid #E8DFCA;
+}
+
+.metric-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid #E2D9C5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 3px;
+}
+
+.metric-value {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #1E293B;
+  font-family: var(--font-ui);
+  line-height: 1.2;
+}
+
+.metric-value.highlight {
+  color: #B91C1C;
+  font-size: 1.05rem;
+}
+
+.metric-sub {
+  font-size: 0.62rem;
+  color: #94A3B8;
+  margin-top: 4px;
+}
+
+.portfolio-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px 6px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mortgaged-alert-count {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #DC2626;
+  background: #FEE2E2;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Vùng cuộn danh sách BĐS */
+.portfolio-holdings-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.portfolio-holdings-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.portfolio-holdings-scroll::-webkit-scrollbar-track {
+  background: #FAF7F0;
+}
+
+.portfolio-holdings-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+.portfolio-empty-state {
+  text-align: center;
+  padding: 36px 16px;
+  color: #64748B;
+}
+
+.empty-icon {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+}
+
+.empty-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin-bottom: 4px;
+}
+
+.empty-desc {
+  font-size: 0.78rem;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.portfolio-group-box {
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2D9C5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #F8F5EC;
+  border-bottom: 1px solid #EBE4D5;
+}
+
+.group-color-pill {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.group-title {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #1E293B;
+  flex: 1;
+}
+
+.group-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #475569;
+  background: #E2E8F0;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.group-badge.is-monopoly {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FCD34D;
+  font-weight: 900;
+}
+
+.group-tiles-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.portfolio-tile-item {
+  display: flex;
+  align-items: center;
+  padding: 9px 12px;
+  border-bottom: 1px solid #F1ECE1;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.portfolio-tile-item:last-child {
+  border-bottom: none;
+}
+
+.portfolio-tile-item:hover {
+  background-color: #FEF9EE;
+}
+
+.portfolio-tile-item.is-mortgaged {
+  opacity: 0.75;
+  background-color: #FFF5F5;
+}
+
+.tile-color-indicator {
+  width: 6px;
+  height: 32px;
+  border-radius: 3px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.tile-info-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tile-name-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #1E293B;
+}
+
+.badge-mortgage-tag {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #DC2626;
+  background: #FEE2E2;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.tile-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: #64748B;
+}
+
+.tile-price-tag {
+  color: #475569;
+}
+
+.tile-bullet {
+  color: #CBD5E1;
+}
+
+.tile-rent-val {
+  font-weight: 800;
+  color: #15803D;
+}
+
+.tile-rent-val.val-mortgaged {
+  color: #DC2626;
+}
+
+.tile-action-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prop-house-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.prop-house-tag.tag-empty {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.prop-house-tag.tag-houses {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+
+.prop-house-tag.tag-hotel {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.btn-inspect-deed {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-inspect-deed:hover {
+  background: #E2E8F0;
+  border-color: #94A3B8;
+  transform: scale(1.08);
+}
+
+.portfolio-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #FFFFFF;
+  border-top: 2px solid #E8DFCA;
+}
+
+.footer-tip-text {
+  font-size: 0.68rem;
+  color: #64748B;
+  font-style: italic;
+}
+
+.btn-portfolio-confirm {
+  background: #C0392B;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 20px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(192, 57, 43, 0.35);
+  transition: all 0.15s ease;
+}
+
+.btn-portfolio-confirm:hover {
+  background: #A93226;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(192, 57, 43, 0.45);
+}
+
+@media (max-width: 600px) {
+  .portfolio-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+   CARD DECK VIEWER MODAL - Bảng Tra Cứu Thẻ Bài Cơ Hội & Khí Vận
+   ========================================================================== */
+
+.deck-viewer-container {
+  width: 100%;
+  max-width: 620px;
+  max-height: 88vh;
+  background: #FAF7F0;
+  border-radius: 20px;
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.55);
+  border: 3px solid #2C3E50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.deck-viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--deck-bg, #FFF4F0);
+  border-bottom: 2px solid #E8DFCA;
+}
+
+.deck-viewer-branding {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.deck-brand-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 2px solid var(--deck-theme, #C0392B);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.deck-modal-glyph {
+  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(180deg, #FF3366 0%, #C0392B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+.deck-brand-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.deck-brand-badge.badge-chance {
+  background: rgba(192, 57, 43, 0.15);
+  color: #C0392B;
+}
+
+.deck-brand-badge.badge-chest {
+  background: rgba(2, 132, 199, 0.15);
+  color: #0284C7;
+}
+
+.deck-brand-title {
+  font-family: var(--font-retro), 'Baloo 2', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #2C3E50;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.deck-viewer-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #7F8C8D;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 6px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.deck-viewer-close-btn:hover {
+  color: #C0392B;
+  background: rgba(192, 57, 43, 0.1);
+}
+
+/* Thống Kê & Chuyển Đổi */
+.deck-viewer-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #FFFFFF;
+  border-bottom: 1.5px solid #E8DFCA;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.deck-stat-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.deck-stat-box .stat-label {
+  font-weight: 600;
+}
+
+.deck-stat-box .stat-value {
+  font-weight: 800;
+  color: #1E293B;
+}
+
+.deck-stat-box .stat-value.highlighted {
+  color: var(--deck-theme, #C0392B);
+  background: var(--deck-bg, #FFF4F0);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--deck-theme, #C0392B);
+}
+
+.deck-stat-switchers {
+  display: flex;
+  gap: 6px;
+}
+
+.deck-type-btn {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 1.5px solid #CBD5E1;
+  background: #F8FAFC;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.deck-type-btn.active {
+  background: var(--deck-theme, #C0392B);
+  color: #FFFFFF;
+  border-color: var(--deck-theme, #C0392B);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Tabs */
+.deck-viewer-tabs {
+  display: flex;
+  background: #ECE5D8;
+  padding: 4px 16px 0;
+  gap: 6px;
+  border-bottom: 2px solid #D5C9B5;
+}
+
+.deck-tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #64748B;
+  cursor: pointer;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  transition: all 0.15s ease;
+}
+
+.deck-tab-btn:hover {
+  color: #1E293B;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.deck-tab-btn.active {
+  background: #FAF7F0;
+  color: var(--deck-theme, #C0392B);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
+  border: 1.5px solid #D5C9B5;
+  border-bottom: none;
+  margin-bottom: -2px;
+}
+
+/* Body */
+.deck-viewer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  min-height: 240px;
+  max-height: 52vh;
+}
+
+/* Empty State */
+.deck-empty-state {
+  text-align: center;
+  padding: 36px 16px;
+  color: #64748B;
+}
+
+.deck-empty-state .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.deck-empty-state h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #334155;
+  margin: 0 0 6px;
+}
+
+.deck-empty-state p {
+  font-size: 0.82rem;
+  max-width: 380px;
+  margin: 0 auto;
+  line-height: 1.4;
+}
+
+/* Lịch Sử Rút Thẻ */
+.deck-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.deck-history-item {
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1.5px solid #E2E8F0;
+  padding: 10px 14px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.deck-history-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.deck-history-item.chance-item {
+  border-left: 4px solid #C0392B;
+}
+
+.deck-history-item.chest-item {
+  border-left: 4px solid #0284C7;
+}
+
+.history-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #E2E8F0;
+}
+
+.history-player-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid #CBD5E1;
+}
+
+.history-avatar svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.history-player-name {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1E293B;
+}
+
+.history-time-tag {
+  font-size: 0.68rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.history-card-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.history-card-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.history-card-details {
+  flex: 1;
+}
+
+.history-card-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 3px;
+}
+
+.history-card-desc {
+  font-size: 0.76rem;
+  color: #475569;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.history-card-result {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0369A1;
+  background: #F0F9FF;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #BAE6FD;
+  display: inline-block;
+}
+
+/* Danh Mục Toàn Bộ Thẻ (Catalog Grid) */
+.deck-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.deck-catalog-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease;
+}
+
+.deck-catalog-card.drawn {
+  background: #F8FAFC;
+  opacity: 0.75;
+  border-style: dashed;
+}
+
+.deck-catalog-card:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.09);
+}
+
+.catalog-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.catalog-card-icon {
+  font-size: 1.4rem;
+}
+
+.catalog-status-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.catalog-status-badge.badge-available {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+}
+
+.catalog-status-badge.badge-drawn {
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #CBD5E1;
+}
+
+.catalog-card-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin-bottom: 3px;
+}
+
+.catalog-card-desc {
+  font-size: 0.72rem;
+  color: #475569;
+  line-height: 1.35;
+}
+
+/* Footer */
+.deck-viewer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  background: #FFFFFF;
+  border-top: 2px solid #E8DFCA;
+}
+
+.btn-deck-confirm {
+  background: var(--deck-theme, #C0392B);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 24px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s ease;
+}
+
+.btn-deck-confirm:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
 
 

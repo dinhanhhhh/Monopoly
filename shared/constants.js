@@ -36,3 +36,55 @@ export const GAME_CONSTANTS = {
     DARK_BLUE: { id: 'dark_blue', name: 'Xanh dương đậm', hex: '#118AB2', count: 2 },
   }
 };
+
+/**
+ * Định dạng tiền tệ thống nhất toàn bộ ứng dụng:
+ * - Chế độ rút gọn (mặc định): "15tr", "1tr", "600k", "0đ", "+2tr"
+ * - Chế độ đầy đủ (full): "14.000.000đ", "15.000.000đ"
+ * @param {number} amount - Số tiền
+ * @param {boolean|object} withSignOrOptions - Có dấu '+' khi dương hoặc object cấu hình { withSign, full }
+ * @param {boolean} fullParam - Có hiển thị dạng đầy đủ "14.000.000đ" không
+ */
+export function formatVND(amount, withSignOrOptions = false, fullParam = false) {
+  if (amount === undefined || amount === null) return '';
+  const num = Number(amount);
+  if (isNaN(num)) return '';
+
+  let withSign = false;
+  let isFull = false;
+
+  if (typeof withSignOrOptions === 'object' && withSignOrOptions !== null) {
+    withSign = !!withSignOrOptions.withSign;
+    isFull = !!withSignOrOptions.full;
+  } else {
+    withSign = !!withSignOrOptions;
+    isFull = !!fullParam;
+  }
+
+  const sign = num > 0 && withSign ? '+' : (num < 0 ? '-' : '');
+  const abs = Math.abs(num);
+
+  if (isFull) {
+    return `${sign}${abs.toLocaleString('vi-VN')}đ`;
+  }
+
+  let valStr = '';
+  if (abs >= 1_000_000) {
+    const tr = abs / 1_000_000;
+    // Bỏ số 0 thừa sau dấu phẩy (ví dụ 1.0 -> 1, 1.50 -> 1,5)
+    const formattedTr = Number.isInteger(tr)
+      ? `${tr}`
+      : `${parseFloat(tr.toFixed(2)).toString().replace('.', ',')}`;
+    valStr = `${formattedTr}tr`;
+  } else if (abs >= 1_000) {
+    valStr = `${Math.round(abs / 1_000)}k`;
+  } else {
+    valStr = `${abs}đ`;
+  }
+
+  return `${sign}${valStr}`;
+}
+
+export function formatVNDFull(amount, withSign = false) {
+  return formatVND(amount, withSign, true);
+}

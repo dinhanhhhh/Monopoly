@@ -48,12 +48,12 @@ export class DiceRenderer {
       if (this.die2El) this.die2El.className = `die show-${val2}`;
 
       if (this.sumTextEl) {
-        this.sumTextEl.innerHTML = `Điểm: <strong>${val1} + ${val2} = ${total}</strong>`;
+        this.sumTextEl.textContent = `${val1} + ${val2} = ${total}`;
       }
       if (this.subTextEl) {
         this.subTextEl.innerHTML = isDoubles
-          ? `🎉 <strong>Tung đôi!</strong> Thêm lượt!`
-          : `Đi ${total} bước tiếp theo`;
+          ? `🎉 Đôi ${val1}! Thêm lượt`
+          : `Đi ${total} bước`;
       }
 
       this.isRolling = false;

@@ -1,4 +1,4 @@
-import { GAME_CONSTANTS } from './constants.js';
+import { GAME_CONSTANTS, formatVND } from './constants.js';
 import { SAIGON_BOARD_DATA } from './data/board-data.js';
 
 /**
@@ -75,7 +75,7 @@ export const GameRules = {
 
     // 5. Kiểm tra tiền
     if (player.money < tile.houseCost) {
-      return { canBuild: false, reason: `Không đủ tiền xây (${(tile.houseCost / 1_000_000).toFixed(1)}M VNĐ).` };
+      return { canBuild: false, reason: `Không đủ tiền xây (${formatVND(tile.houseCost)}).` };
     }
 
     const isHotel = currentHouses === 4;
@@ -128,7 +128,7 @@ export const GameRules = {
 
       if (ownedCount === 0) return 0;
       const multiplier = ownedCount >= 2 ? GAME_CONSTANTS.UTILITY_MULTIPLIERS[1] : GAME_CONSTANTS.UTILITY_MULTIPLIERS[0];
-      return multiplier * diceTotal;
+      return multiplier * diceTotal * 100_000;
     }
 
     return 0;
@@ -199,7 +199,7 @@ export const GameRules = {
     if (player.money < unmortgageCost) {
       return {
         canUnmortgage: false,
-        reason: `Không đủ tiền chuộc sổ đỏ (Cần ${(unmortgageCost / 1_000_000).toFixed(2)}M, bao gồm 10% lãi).`,
+        reason: `Không đủ tiền chuộc sổ đỏ (Cần ${formatVND(unmortgageCost)}, bao gồm 10% lãi).`,
         unmortgageCost
       };
     }

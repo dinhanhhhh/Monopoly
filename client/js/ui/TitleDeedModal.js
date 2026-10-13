@@ -1,6 +1,4 @@
-/**
- * TitleDeedModal.js - Bằng khoán & Hộp thoại Mua Đất / Xây Nhà / Bán Nhà / Thế Chấp / Chuộc Lại
- */
+import { formatVND } from '../../../shared/constants.js';
 
 export class TitleDeedModal {
   constructor(containerId = 'modal-container') {
@@ -38,16 +36,13 @@ export class TitleDeedModal {
     const isMortgaged = !!propState.isMortgaged;
     const currentHouses = propState.houses || 0;
 
-    const formatMoney = (amount) => {
-      if (!amount) return '0đ';
-      if (amount >= 1_000_000) {
-        const m = amount / 1_000_000;
-        return Number.isInteger(m) ? `${m} Triệu` : `${m.toFixed(1)} Triệu`;
-      }
-      return `${Math.round(amount / 1_000)}K`;
-    };
+    const formatMoney = (amount) => formatVND(amount);
 
-    let colorHeaderStyle = tile.color ? `background: ${tile.color}; color: #fff;` : 'background: #2c3e50; color: #fff;';
+    const tileColor = tile.colorHex || tile.color || (tile.type === 'railroad' ? '#4A3B32' : tile.type === 'utility' ? '#0284C7' : '#1F6F8B');
+    const isLightColor = ['#FFE066', '#FFD166', '#87CEEB', '#06D6A0', '#F5CB63'].includes(tileColor);
+    const headerTextColor = isLightColor ? '#1E293B' : '#FFFFFF';
+    const subTextColor = isLightColor ? 'rgba(30, 41, 59, 0.85)' : 'rgba(255, 255, 255, 0.9)';
+    const colorHeaderStyle = `background-color: ${tileColor} !important; color: ${headerTextColor} !important; border-bottom: 3px solid #2E241B;`;
 
     let rentsHtml = '';
     if (tile.type === 'property' && tile.rent) {
@@ -70,10 +65,10 @@ export class TitleDeedModal {
     } else if (tile.type === 'railroad') {
       rentsHtml = `
         <div class="deed-rents">
-          <div class="rent-row"><span class="rent-label">Sở hữu 1 Bến Xe:</span> <span class="rent-val">250K</span></div>
-          <div class="rent-row"><span class="rent-label">Sở hữu 2 Bến Xe:</span> <span class="rent-val">500K</span></div>
-          <div class="rent-row"><span class="rent-label">Sở hữu 3 Bến Xe:</span> <span class="rent-val">1 Triệu</span></div>
-          <div class="rent-row highlight"><span class="rent-label">Sở hữu 4 Bến Xe:</span> <span class="rent-val">2 Triệu</span></div>
+          <div class="rent-row"><span class="rent-label">Sở hữu 1 Bến Xe:</span> <span class="rent-val">250k</span></div>
+          <div class="rent-row"><span class="rent-label">Sở hữu 2 Bến Xe:</span> <span class="rent-val">500k</span></div>
+          <div class="rent-row"><span class="rent-label">Sở hữu 3 Bến Xe:</span> <span class="rent-val">1tr</span></div>
+          <div class="rent-row highlight"><span class="rent-label">Sở hữu 4 Bến Xe:</span> <span class="rent-val">2tr</span></div>
         </div>
         <div class="deed-costs">
           <div>Giá Thế Chấp: <strong>${formatMoney(tile.mortgage || tile.price * 0.5)}</strong></div>
@@ -82,8 +77,8 @@ export class TitleDeedModal {
     } else if (tile.type === 'utility') {
       rentsHtml = `
         <div class="deed-rents">
-          <div class="rent-row"><span class="rent-label">1 Tiện ích:</span> <span class="rent-val">Điểm Xúc xắc × 4</span></div>
-          <div class="rent-row highlight"><span class="rent-label">2 Tiện ích:</span> <span class="rent-val">Điểm Xúc xắc × 10</span></div>
+          <div class="rent-row"><span class="rent-label">Sở hữu 1 Tiện ích:</span> <span class="rent-val">Điểm Xúc xắc × 400k</span></div>
+          <div class="rent-row highlight"><span class="rent-label">Sở hữu 2 Tiện ích:</span> <span class="rent-val">Điểm Xúc xắc × 1tr</span></div>
         </div>
         <div class="deed-costs">
           <div>Giá Thế Chấp: <strong>${formatMoney(tile.mortgage || tile.price * 0.5)}</strong></div>
@@ -93,7 +88,7 @@ export class TitleDeedModal {
 
     let ownerInfo = '<div class="deed-owner-info unowned">Chưa có chủ sở hữu (Thuộc Ngân Hàng)</div>';
     if (owner) {
-      ownerInfo = `<div class="deed-owner-info owned" style="border-left: 4px solid ${owner.token?.color || '#333'}">Chủ sở hữu: <strong>${owner.name}</strong></div>`;
+      ownerInfo = `<div class="deed-owner-info owned" style="border-left: 4px solid ${tileColor}; background: #F8F9FA;">Chủ sở hữu: <strong>${owner.name}</strong></div>`;
     }
 
     let mortgageAlert = '';

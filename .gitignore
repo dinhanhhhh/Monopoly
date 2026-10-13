@@ -1,0 +1,19 @@
+# Dependency directories
+node_modules/
+
+# Local Dev Tools & Test Panels (Chỉ dùng nội bộ ở máy dev, không push lên GitHub)
+client/js/dev/
+
+# Environment files & Secrets
+.env
+.env.local
+.env.*.local
+*.log
+
+# Editor & System Files
+.vscode/
+.idea/
+.gemini/
+.DS_Store
+Thumbs.db
+desktop.ini

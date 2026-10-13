@@ -1,19 +1,30 @@
 /* ==========================================================================
-   MAIN.CSS - Bố Cục Cockpit Dashboard 3 Cột (Chuẩn Game eSports / Board Game)
+   MAIN.CSS - Giao Diện Sài Gòn Hoài Cổ (Vintage Saigon Board Game Aesthetics)
+   Theo Bản Thiết Kế Mockup: 3 Cột Cân Đối, Màu Kem Ấm, Teal & Cam Rực Rỡ
    ========================================================================== */
 
 :root {
-  --font-main: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-title: 'Quicksand', var(--font-main);
-  
-  /* Màu nền tổng thể sáng ấm nhẹ nhàng */
-  --bg-wooden-table: #F5EFEB;
-  --bg-gradient: radial-gradient(circle at 50% 35%, #FDFBF7 0%, #EFE5DC 100%);
-  --text-dark: #1E293B;
-  --text-muted: #64748B;
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --card-border: rgba(255, 255, 255, 0.95);
-  --primary-accent: #FF7A00;
+  /* Font chữ chính toàn bộ dự án: Baloo 2 (Font của ô Khởi Hành) */
+  --font-ui: 'Baloo 2', cursive, sans-serif;
+  --font-retro: 'Baloo 2', cursive, sans-serif;
+  --font-main: var(--font-ui);
+  --font-title: var(--font-retro);
+
+  /* Bảng màu chuẩn Thiết Kế (Design System) */
+  --color-page-bg: #F4EBDD;       /* Kem ấm nền trang */
+  --color-tile-bg: #FFFCF6;       /* Trắng ngà nền ô & thẻ */
+  --color-border: #2E241B;        /* Nâu đậm viền cổ điển 2px */
+  --color-teal: #176B78;          /* Teal màu chủ đạo (active player, biển hiệu, nút ván mới) */
+  --color-teal-dark: #104C55;
+  --color-teal-light: #2A8F9E;
+  --color-orange: #F08A24;        /* Cam rực rỡ nút Tung xúc xắc & thẻ Cơ Hội */
+  --color-orange-dark: #D35400;
+  --color-yellow: #F5CB63;        /* Vàng thẻ Khí Vận */
+  --color-gold: #F1C40F;
+
+  --text-main: #2E241B;
+  --text-muted: #6B5B4D;
+  --text-light: #8C7B6C;
 }
 
 * {
@@ -23,442 +34,768 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+button, input, select, textarea {
+  font-family: inherit;
+}
+
 body {
-  font-family: var(--font-main);
-  background: var(--bg-wooden-table);
-  background-image: var(--bg-gradient);
-  color: var(--text-dark);
-  height: 100vh;
+  font-family: var(--font-ui);
+  background-color: var(--color-page-bg);
+  color: var(--text-main);
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
   user-select: none;
 }
 
-.game-wrapper.layout-two-column {
+/* ================= KHUNG CHÍNH (Layout 100dvh) ================= */
+.game-wrapper {
   width: 100vw;
-  height: 100vh;
-  max-height: 100vh;
-  display: grid;
-  grid-template-columns: 285px 1fr;
-  gap: 12px;
-  padding: 6px 12px;
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 10px 10px;
   box-sizing: border-box;
   overflow: hidden;
-  align-items: center;
-}
-
-/* ================= 1. SIDEBAR TRÁI: 4 NGƯỜI CHƠI & CÔNG CỤ ================= */
-.arena-sidebar-full {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 12px);
-  gap: 8px;
   justify-content: space-between;
+  gap: 4px;
 }
 
-.sidebar-players-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 2px;
-}
-
-/* Thẻ người chơi kiểu Online Monopoly */
-.player-cockpit-card {
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: 14px;
-  padding: 8px 10px;
-  border: 1.5px solid #E2E8F0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.player-cockpit-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-/* Người chơi đang đến lượt có viền xanh lá neon nổi bật như hình mẫu */
-.player-cockpit-card.active-turn {
-  border: 2.5px solid #22C55E;
-  background: #F0FDF4;
-  box-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
-  transform: scale(1.02);
-}
-
-.player-card-top-row {
+/* ================= 1. HEADER TOP BAR (Phong cách Sài Gòn Xưa) ================= */
+.game-header {
+  height: 42px;
+  min-height: 42px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.player-card-identity {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cockpit-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: var(--color-tile-bg);
+  border-radius: 10px;
+  border: 2px solid var(--color-border);
+  box-shadow: 0 2px 6px rgba(46, 36, 27, 0.08);
+  padding: 0 10px;
   flex-shrink: 0;
 }
 
-.cockpit-name {
-  font-size: 0.85rem;
-  font-weight: 900;
-  color: #1E293B;
-  display: block;
-  line-height: 1.2;
-}
-
-.cockpit-title {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #64748B;
-  display: block;
-}
-
-.cockpit-turn-tag {
-  font-size: 0.65rem;
-  font-weight: 900;
-  padding: 2px 6px;
-  border-radius: 6px;
-}
-
-.turn-active {
-  background: #22C55E;
-  color: #FFF;
-  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
-}
-
-.turn-waiting {
-  background: #F1F5F9;
-  color: #64748B;
-}
-
-.turn-danger {
-  background: #EF4444;
-  color: #FFF;
-}
-
-.cockpit-financial-box {
+/* Cụm Logo Trái */
+.header-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: rgba(241, 245, 249, 0.6);
-  padding: 4px 8px;
-  border-radius: 8px;
-  margin-bottom: 4px;
+  gap: 10px;
 }
 
-.financial-item {
+.header-illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.vintage-brand-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vintage-signboard {
+  background: var(--color-teal);
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+  padding: 2px 10px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(23, 107, 120, 0.25);
 }
 
-.fin-label {
-  font-size: 0.58rem;
-  font-weight: 800;
-  color: #64748B;
-}
-
-.fin-value {
-  font-size: 0.8rem;
+.signboard-top {
+  font-family: var(--font-retro);
+  font-size: 0.95rem;
   font-weight: 900;
-  color: #1E293B;
+  color: #FFF;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
 }
 
-.fin-value.cash {
-  color: #16A34A;
+.signboard-bottom {
+  font-family: var(--font-retro);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--color-yellow);
+  letter-spacing: 1px;
+  line-height: 1;
 }
 
-.cockpit-position-row {
+.vintage-slogan {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 0.68rem;
-  color: #475569;
+  font-size: 0.72rem;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1.2;
+  border-left: 1.5px solid rgba(46, 36, 27, 0.25);
+  padding-left: 8px;
+  white-space: nowrap;
 }
 
-/* Cụm công cụ dưới sidebar */
-.sidebar-action-tools {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+/* Cụm Thống Kê Giữa (Pill Badges) */
+.header-center-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stat-pill {
+  background: #FFFDF8;
+  border: 1.5px solid var(--color-border);
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(46, 36, 27, 0.05);
 }
 
-.sidebar-btn-tool {
-  background: #FFFFFF;
-  border: 1px solid #CBD5E1;
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-family: inherit;
-  font-size: 0.75rem;
+.stat-pill .pill-icon {
+  font-size: 0.85rem;
+}
+
+.stat-pill .pill-label {
+  color: var(--text-muted);
+}
+
+.stat-pill .pill-val {
+  color: var(--color-teal);
+  font-family: var(--font-retro);
+  font-size: 0.92rem;
   font-weight: 800;
-  color: #334155;
+}
+
+.stat-pill.gold-pill {
+  background: #FFF9E6;
+  border-color: #D4AC0D;
+}
+
+.stat-pill.gold-pill .pill-val {
+  color: #B7950B;
+}
+
+/* Cụm Nút Phải */
+.header-right-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-tool {
+  background: var(--color-tile-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
   cursor: pointer;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
+  gap: 5px;
 }
 
-.sidebar-btn-tool:hover {
-  background: #F8FAFC;
-  border-color: #94A3B8;
+.btn-tool:hover {
+  background: #FFF;
   transform: translateY(-1px);
 }
 
-.sidebar-btn-tool.btn-trade {
-  background: linear-gradient(135deg, #10B981, #059669);
-  color: #FFF;
-  border: none;
+.btn-sound-icon {
+  padding: 4px 8px;
+  font-size: 0.85rem;
 }
 
-.sidebar-btn-tool.btn-restart {
-  background: linear-gradient(135deg, #64748B, #475569);
+.btn-restart-teal {
+  background: var(--color-teal);
   color: #FFF;
-  border: none;
+  border-color: var(--color-border);
+  box-shadow: 0 2px 6px rgba(23, 107, 120, 0.3);
 }
 
-/* ================= 2. CỘT PHẢI: BÀN CỜ SIÊU TO ================= */
-.arena-center {
+.btn-restart-teal:hover {
+  background: var(--color-teal-dark);
+  color: #FFF;
+}
+
+.btn-test-amber {
+  background: #E67E22;
+  color: #FFF;
+  border-color: #B95C0E;
+  box-shadow: 0 2px 6px rgba(230, 126, 34, 0.35);
+}
+
+.btn-test-amber:hover {
+  background: #D35400;
+  color: #FFF;
+}
+
+/* ================= 2. BỐ CỤC 3 CỘT (Arena Grid) ================= */
+.game-arena-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 200px 1fr 240px;
+  gap: 10px;
+  align-items: center;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ================= 3. CỘT TRÁI: 4 THẺ NGƯỜI CHƠI (Player Cards) ================= */
+.arena-sidebar-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  gap: 6px;
+  width: 200px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.player-card {
+  background: var(--color-tile-bg);
+  border-radius: 10px;
+  border: 1.5px solid var(--color-border);
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 2px 6px rgba(46, 36, 27, 0.06);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.player-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(46, 36, 27, 0.1);
+}
+
+/* THẺ ĐANG ĐẾN LƯỢT (Active Player): Nền Teal sang trọng theo mockup */
+.player-card.active-player {
+  background: var(--color-teal);
+  color: #FFFFFF;
+  border: 2px solid var(--color-border);
+  box-shadow: 0 6px 16px rgba(23, 107, 120, 0.35);
+  transform: scale(1.02);
+}
+
+.player-avatar-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 100%;
+  background: #FFF;
 }
 
-.board-table-mat {
-  position: relative;
-  padding: 2px;
-  background: #D7BC98;
-  background: linear-gradient(145deg, #DECCA7, #C6A882);
-  border-radius: 16px;
-  box-shadow: 
-    0 16px 40px rgba(80, 48, 24, 0.28),
-    0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* ================= 3. BOTTOM ACTION DOCK ================= */
-.game-action-dock {
-  width: 100%;
-  height: 56px;
-  display: grid;
-  grid-template-columns: 245px 1fr 245px;
-  gap: 8px;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-  padding: 3px 10px;
-  flex-shrink: 0;
-}
-
-/* Cột trái dock: Nhật ký nhanh */
-.dock-left {
-  height: 100%;
-  display: flex;
-  align-items: center;
-}
-
-.game-log-box {
+.player-avatar-box svg {
   width: 100%;
   height: 100%;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
-  padding: 6px 10px;
+}
+
+.player-card-main {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.log-title {
-  font-size: 0.65rem;
+.player-name-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1px;
+  width: 100%;
+}
+
+.player-display-name {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.player-card.active-player .player-display-name {
+  color: #FFFFFF;
+}
+
+.player-badge {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 8px;
+  line-height: 1.2;
+  z-index: 3;
+}
+
+.badge-playing {
+  background: rgba(255, 255, 255, 0.3);
+  color: #FFF;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.badge-jail {
+  background: #EF4444;
+  color: #FFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.badge-bankrupt {
+  background: #78281F;
+  color: #FFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.player-card.is-bankrupt {
+  opacity: 0.55;
+  filter: grayscale(0.8);
+  border-color: #78281F !important;
+  background: #FADBD8 !important;
+}
+
+.player-cash-amount {
+  font-family: var(--font-retro);
+  font-size: 1.05rem;
   font-weight: 900;
-  color: #64748B;
-  letter-spacing: 0.5px;
+  color: var(--color-teal);
+  line-height: 1.1;
+  letter-spacing: 0.2px;
+  padding-right: 28px;
+}
+
+.player-card.active-player .player-cash-amount {
+  color: #FFFFFF;
+}
+
+.player-networth-row {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 2px;
-}
-
-.log-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #10B981;
-}
-
-.log-messages {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #1E293B;
-  line-height: 1.3;
+  color: var(--text-muted);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-/* Cột giữa dock: Xúc xắc & Nút Tung xúc xắc */
-.dock-center {
+.player-card.active-player .player-networth-row {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dot-separator {
+  opacity: 0.6;
+}
+
+.player-color-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 5px;
+  margin-top: 4px;
+}
+
+.player-color-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 1px 5px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #4A3E3D;
+  line-height: 1;
+}
+
+.player-card.active-player .player-color-chip {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #FFFFFF;
+}
+
+.chip-color-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.chip-count-num {
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.player-token-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #FFF;
+  border: 1.5px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.player-token-badge svg {
+  width: 100%;
   height: 100%;
+}
+
+/* ================= 4. CỘT GIỮA: BÀN CỜ ================= */
+.arena-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+}
+
+.board-table-mat {
+  position: relative;
+  padding: 3px;
+  background: linear-gradient(145deg, #E2D3B8, #C8B28E);
+  border-radius: 12px;
+  box-shadow: 
+    0 16px 36px rgba(46, 36, 27, 0.25),
+    0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ================= 5. CỘT PHẢI: BẢNG THAO TÁC & NHẬT KÝ ================= */
+.arena-sidebar-right {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 240px;
+  min-height: 0;
+  max-height: 100%;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.action-panel-container {
+  background: var(--color-tile-bg);
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(46, 36, 27, 0.06);
+  flex-shrink: 0;
+}
+
+.recent-log-container {
+  background: var(--color-tile-bg);
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border);
+  padding: 8px 10px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 6px rgba(46, 36, 27, 0.06);
+  overflow: hidden;
+}
+
+.recent-log-header h3 {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  border-bottom: 1px dashed rgba(46, 36, 27, 0.2);
+  padding-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.recent-log-messages {
+  flex: 1;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.recent-log-messages::-webkit-scrollbar {
+  width: 4px;
+}
+.recent-log-messages::-webkit-scrollbar-thumb {
+  background: rgba(46, 36, 27, 0.2);
+  border-radius: 4px;
+}
+
+.log-entry-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  animation: fadeInLog 0.25s ease-out;
+}
+
+@keyframes fadeInLog {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.log-avatar-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1.5px solid var(--color-border);
+  background: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.log-avatar-thumb svg {
+  width: 100%;
+  height: 100%;
+}
+
+.log-entry-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-entry-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.log-entry-time {
+  font-size: 0.65rem;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+/* ================= 6. BẢNG ĐIỀU KHIỂN LƯỢT CHƠI (Action Panel trong Cột Phải) ================= */
+/* Cụm Tung Xúc Xắc */
+.dock-dice-cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
 }
 
 .dice-compact-display {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  padding: 4px 12px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  justify-content: space-between;
+  background: #FFFDF8;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 4px 8px;
+  gap: 6px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .dice-pair {
   display: flex;
-  gap: 10px;
-  perspective: 500px;
+  gap: 6px;
   align-items: center;
-  padding: 0 4px;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.dice-pair .die {
+  transform: scale(0.96);
+  transform-origin: center;
 }
 
 .dice-sum-info {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+  text-align: right;
 }
 
-.sum-text {
-  font-size: 0.95rem;
+.dice-sum-info .sum-text {
+  font-family: var(--font-retro);
+  font-size: 1.05rem;
   font-weight: 900;
-  color: #0F172A;
+  color: var(--color-teal);
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .dice-sum-info small {
-  font-size: 0.68rem;
-  color: #64748B;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
-.btn-dock-roll {
-  height: 52px;
-  padding: 0 24px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-  color: #FFFFFF;
-  border: none;
-  font-family: inherit;
-  font-size: 1.05rem;
-  font-weight: 900;
-  letter-spacing: 0.5px;
+/* NÚT TUNG XÚC XẮC LỚN CAM RỰC RỠ */
+.btn-dock-roll-huge {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  background: linear-gradient(135deg, #F08A24 0%, #E65100 100%);
+  color: #FFFFFF;
+  border: 2px solid var(--color-border);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-family: var(--font-retro);
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
-  transition: all 0.15s ease;
+  box-shadow: 
+    0 4px 10px rgba(230, 81, 0, 0.35),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.btn-dock-roll:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.55);
+.btn-dock-roll-huge:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 5px 14px rgba(230, 81, 0, 0.45);
 }
 
-.btn-dock-roll:disabled {
-  opacity: 0.6;
+.btn-dock-roll-huge:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-dock-roll-huge:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
-  filter: grayscale(0.4);
+  transform: none;
+  box-shadow: none;
 }
 
-/* Cột phải dock: Cụm nút hành động */
-.dock-right {
+/* Cụm Nút Hành Động Lưới 2x2 */
+.dock-actions-cluster {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  height: 100%;
-  align-items: center;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  width: 100%;
 }
 
 .btn-dock-action {
-  height: 52px;
-  border-radius: 10px;
-  border: none;
-  font-family: inherit;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-border);
+  background: #FFF;
+  color: var(--text-main);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-weight: 800;
+  box-shadow: 0 1px 3px rgba(46, 36, 27, 0.05);
+  white-space: nowrap;
+}
+
+.btn-dock-action:hover:not(:disabled) {
+  background: #F6F1E6;
+  transform: translateY(-1px);
+}
+
+.btn-dock-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #EDE8DC;
+  border-color: rgba(46, 36, 27, 0.4);
 }
 
 .btn-dock-action .act-icon {
-  font-size: 1.1rem;
+  font-size: 0.85rem;
 }
 
-.btn-dock-action .act-title {
-  font-size: 0.68rem;
+/* Responsive cơ bản */
+@media (max-width: 1200px) {
+  .game-arena-grid {
+    grid-template-columns: 195px 1fr 235px;
+    gap: 8px;
+  }
+  .arena-sidebar-left {
+    width: 195px;
+  }
+  .arena-sidebar-right {
+    width: 235px;
+  }
 }
 
-.btn-dock-action.btn-buy {
-  background: #10B981;
-  color: #FFF;
-}
-.btn-dock-action.btn-buy:hover:not(:disabled) { background: #059669; }
-
-.btn-dock-action.btn-build {
-  background: #3B82F6;
-  color: #FFF;
-}
-.btn-dock-action.btn-build:hover:not(:disabled) { background: #2563EB; }
-
-.btn-dock-action.btn-trade {
-  background: #8B5CF6;
-  color: #FFF;
-}
-.btn-dock-action.btn-trade:hover:not(:disabled) { background: #7C3AED; }
-
-.btn-dock-action.btn-pass {
-  background: #F1F5F9;
-  color: #475569;
-  border: 1px solid #CBD5E1;
-}
-.btn-dock-action.btn-pass:hover:not(:disabled) { background: #E2E8F0; }
-
-.btn-dock-action:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-@keyframes pulse {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.8; }
+@media (max-width: 900px) {
+  .game-wrapper {
+    height: auto;
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
+  .game-arena-grid {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+    gap: 10px;
+  }
+  .arena-sidebar-left,
+  .arena-sidebar-right {
+    width: 100%;
+    max-width: 450px;
+    height: auto;
+    margin-bottom: 0;
+  }
+  .arena-center {
+    width: 100%;
+    height: auto;
+    margin-bottom: 0;
+  }
 }

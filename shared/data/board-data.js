@@ -55,6 +55,7 @@ export const SAIGON_BOARD_DATA = [
   {
     id: 5,
     name: 'Bến Xe Miền Đông',
+    shortName: 'BX M.Đông',
     subName: 'Bến xe khách liên tỉnh',
     type: 'railroad',
     group: 'railroad',
@@ -104,8 +105,9 @@ export const SAIGON_BOARD_DATA = [
   },
   {
     id: 10,
-    name: 'Thăm Tù / Đi Tù',
-    subName: 'Chỉ ghé thăm / Bị giam',
+    name: 'THĂM TÙ',
+    shortName: 'THĂM TÙ',
+    subName: '',
     type: 'corner',
     action: 'jail_visit',
     icon: '🚔',
@@ -207,11 +209,11 @@ export const SAIGON_BOARD_DATA = [
   },
   {
     id: 20,
-    name: 'Bãi Xe Miễn Phí',
-    subName: 'Điểm dừng chân an toàn',
+    name: 'Quỹ Trúng Thưởng',
+    subName: 'Hũ Jackpot tiền mặt',
     type: 'corner',
-    action: 'free_parking',
-    icon: '🅿️',
+    action: 'jackpot',
+    icon: '🎰',
   },
 
   // ================= CẠNH TRÊN: TỪ TRÁI QUA PHẢI (21 -> 29) =================
@@ -247,6 +249,7 @@ export const SAIGON_BOARD_DATA = [
   {
     id: 24,
     name: 'Tôn Đức Thắng',
+    shortName: 'Tôn Đ. Thắng',
     type: 'property',
     group: 'red',
     colorHex: GAME_CONSTANTS.COLOR_GROUPS.RED.hex,
@@ -290,6 +293,7 @@ export const SAIGON_BOARD_DATA = [
   {
     id: 28,
     name: 'Cấp Nước Sawaco',
+    shortName: 'Sawaco',
     subName: 'Tiện ích cấp thoát nước',
     type: 'utility',
     group: 'utility',
@@ -350,6 +354,7 @@ export const SAIGON_BOARD_DATA = [
   {
     id: 34,
     name: 'Huỳnh Thúc Kháng',
+    shortName: 'H. Thúc Kháng',
     type: 'property',
     group: 'green',
     colorHex: GAME_CONSTANTS.COLOR_GROUPS.GREEN.hex,

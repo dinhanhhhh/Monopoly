@@ -1,4 +1,4 @@
-import { GAME_CONSTANTS } from './constants.js';
+import { GAME_CONSTANTS, formatVND } from './constants.js';
 import { SAIGON_BOARD_DATA } from './data/board-data.js';
 import { CHANCE_CARDS } from './data/chance-cards.js';
 import { CHEST_CARDS } from './data/chest-cards.js';
@@ -14,11 +14,12 @@ export const TURN_STATES = {
 };
 
 export class GameEngine {
-  constructor(playerConfigs = []) {
-    this.state = this.createInitialState(playerConfigs);
+  constructor(playerConfigs = [], options = {}) {
+    this.options = options;
+    this.state = this.createInitialState(playerConfigs, options);
   }
 
-  createInitialState(playerConfigs) {
+  createInitialState(playerConfigs, options = {}) {
     const players = playerConfigs.map((cfg, idx) => ({
       id: cfg.id || `p${idx + 1}`,
       name: cfg.name || `Người chơi ${idx + 1}`,
@@ -29,7 +30,8 @@ export class GameEngine {
       jailTurns: 0,
       hasJailCard: false,
       isBankrupt: false,
-      isBot: !!cfg.isBot
+      isBot: !!cfg.isBot,
+      personality: cfg.personality || (cfg.isBot ? 'balanced' : null)
     }));
 
     const properties = {};
@@ -42,6 +44,22 @@ export class GameEngine {
         };
       }
     });
+
+    // Chế độ Chơi Nhanh (Fast Mode): Phát ngẫu nhiên 2 - 3 mảnh đất cho mỗi người chơi
+    if (options.fastMode) {
+      const regularPropIds = SAIGON_BOARD_DATA
+        .filter((t) => t.type === 'property')
+        .map((t) => t.id);
+      const shuffledProps = this.shuffleArray([...regularPropIds]);
+      let propIndex = 0;
+      players.forEach((p) => {
+        const count = 3; // Phát sẵn 3 ô đất
+        for (let i = 0; i < count && propIndex < shuffledProps.length; i++) {
+          const tid = shuffledProps[propIndex++];
+          properties[tid].owner = p.id;
+        }
+      });
+    }
 
     const chanceDeck = this.shuffleArray([...CHANCE_CARDS]);
     const chestDeck = this.shuffleArray([...CHEST_CARDS]);
@@ -56,7 +74,9 @@ export class GameEngine {
       consecutiveDoubles: 0,
       lastRoll: null,
       pendingAction: null,
-      history: []
+      jackpotPot: 1_000_000, // Hũ Quỹ Trúng Thưởng khởi điểm 1.000.000đ
+      history: [],
+      cardHistory: []
     };
   }
 
@@ -99,11 +119,11 @@ export class GameEngine {
     switch (act.type) {
       case 'ADD_MONEY':
         player.money += act.amount;
-        return { message: `${player.name} nhận được +${(act.amount / 1_000_000).toFixed(1)}M!` };
+        return { message: `${player.name} nhận được +${formatVND(act.amount)}!` };
 
       case 'SUB_MONEY':
         player.money -= act.amount;
-        return { message: `${player.name} bị trừ -${(act.amount / 1_000_000).toFixed(1)}M!` };
+        return { message: `${player.name} bị trừ -${formatVND(act.amount)}!` };
 
       case 'PAY_ALL_PLAYERS': {
         let totalPaid = 0;
@@ -114,7 +134,7 @@ export class GameEngine {
             totalPaid += act.amount;
           }
         });
-        return { message: `${player.name} đã trả ${(act.amount / 1_000)}K cho mỗi người chơi!` };
+        return { message: `${player.name} đã trả ${formatVND(act.amount)} cho mỗi người chơi!` };
       }
 
       case 'RECEIVE_FROM_ALL': {
@@ -124,7 +144,7 @@ export class GameEngine {
             player.money += act.amount;
           }
         });
-        return { message: `${player.name} đã thu ${(act.amount / 1_000)}K từ mỗi người chơi!` };
+        return { message: `${player.name} đã thu ${formatVND(act.amount)} từ mỗi người chơi!` };
       }
 
       case 'GET_JAIL_CARD':
@@ -133,7 +153,7 @@ export class GameEngine {
 
       case 'GO_TO_JAIL':
         this.sendToJail(player);
-        return { message: `🚨 ${player.name} bị đưa thẳng vào buồng giam!` };
+        return { message: `🚨 ${player.name} bị đưa thẳng vào buồng giam!`, moveTarget: 10 };
 
       case 'MOVE_TO': {
         const prevPos = player.position;
@@ -259,6 +279,46 @@ export class GameEngine {
         return this.evaluateLanding(player, landingPos);
       }
 
+      case 'PAY_JAIL_FINE': {
+        if (!player.inJail) {
+          return { success: false, error: 'Người chơi không ở trong tù' };
+        }
+        if (player.money < GAME_CONSTANTS.JAIL_FINE) {
+          return { success: false, error: `Không đủ tiền nộp phạt (${formatVND(GAME_CONSTANTS.JAIL_FINE)})` };
+        }
+        player.money -= GAME_CONSTANTS.JAIL_FINE;
+        this.state.jackpotPot = (this.state.jackpotPot || 0) + GAME_CONSTANTS.JAIL_FINE;
+        player.inJail = false;
+        player.jailTurns = 0;
+        this.state.turnState = TURN_STATES.WAIT_ROLL;
+        return {
+          success: true,
+          event: 'JAIL_PAID_FINE',
+          fineAmount: GAME_CONSTANTS.JAIL_FINE,
+          message: `💸 ${player.name} đã nộp phạt ${formatVND(GAME_CONSTANTS.JAIL_FINE)} vào Quỹ Trúng Thưởng để ra tù!`,
+          state: this.state
+        };
+      }
+
+      case 'USE_JAIL_CARD': {
+        if (!player.inJail) {
+          return { success: false, error: 'Người chơi không ở trong tù' };
+        }
+        if (!player.hasJailCard) {
+          return { success: false, error: 'Bạn không có Thẻ Ra Tù' };
+        }
+        player.hasJailCard = false;
+        player.inJail = false;
+        player.jailTurns = 0;
+        this.state.turnState = TURN_STATES.WAIT_ROLL;
+        return {
+          success: true,
+          event: 'JAIL_USED_CARD',
+          message: `🎟️ ${player.name} đã dùng Thẻ Ra Tù Miễn Phí!`,
+          state: this.state
+        };
+      }
+
       case 'BUY_PROPERTY': {
         const tile = this.getTile(player.position);
         const prop = this.state.properties[tile.id];
@@ -278,7 +338,7 @@ export class GameEngine {
         return {
           success: true,
           event: 'PROPERTY_BOUGHT',
-          message: `🏠 ${player.name} đã mua thành công ${tile.name} với giá ${(tile.price / 1_000_000).toFixed(1)}M!`,
+          message: `🏠 ${player.name} đã mua thành công ${tile.name} với giá ${formatVND(tile.price)}!`,
           state: this.state
         };
       }
@@ -331,7 +391,7 @@ export class GameEngine {
           event: 'PROPERTY_MORTGAGED',
           tile,
           mortgageValue: check.mortgageValue,
-          message: `🔒 ${player.name} đã thế chấp ${tile.name}, nhận ${(check.mortgageValue / 1_000_000).toFixed(2)}M VNĐ!`,
+          message: `🔒 ${player.name} đã thế chấp ${tile.name}, nhận ${formatVND(check.mortgageValue)}!`,
           state: this.state
         };
       }
@@ -349,7 +409,7 @@ export class GameEngine {
           event: 'PROPERTY_UNMORTGAGED',
           tile,
           unmortgageCost: check.unmortgageCost,
-          message: `🔓 ${player.name} đã chuộc lại ${tile.name} với giá ${(check.unmortgageCost / 1_000_000).toFixed(2)}M VNĐ!`,
+          message: `🔓 ${player.name} đã chuộc lại ${tile.name} với giá ${formatVND(check.unmortgageCost)}!`,
           state: this.state
         };
       }
@@ -368,7 +428,7 @@ export class GameEngine {
           tile,
           houses: check.nextHouses,
           refund: check.refund,
-          message: `💰 ${player.name} đã bán bớt nhà tại ${tile.name}, nhận lại ${(check.refund / 1_000_000).toFixed(2)}M VNĐ!`,
+          message: `💰 ${player.name} đã bán bớt nhà tại ${tile.name}, nhận lại ${formatVND(check.refund)}!`,
           state: this.state
         };
       }
@@ -392,7 +452,7 @@ export class GameEngine {
           success: true,
           event: 'AUCTION_STARTED',
           auction: this.state.auction,
-          message: `🔨 Bắt đầu phiên đấu giá ${tile.name}! Giá khởi điểm: ${(startBid / 1_000).toFixed(0)}K!`,
+          message: `🔨 Bắt đầu phiên đấu giá ${tile.name}! Giá khởi điểm: ${formatVND(startBid)}!`,
           state: this.state
         };
       }
@@ -420,7 +480,7 @@ export class GameEngine {
           success: true,
           event: 'AUCTION_BID_PLACED',
           auction: this.state.auction,
-          message: `🔨 ${bidder.name} đặt giá ${(bidAmount >= 1_000_000 ? (bidAmount / 1_000_000).toFixed(2) + 'M' : (bidAmount / 1_000) + 'K')}!`,
+          message: `🔨 ${bidder.name} đặt giá ${formatVND(bidAmount)}!`,
           state: this.state
         };
       }
@@ -450,7 +510,7 @@ export class GameEngine {
               winner,
               tile,
               winningBid,
-              message: `🏆 ${winner.name} đã thắng đấu giá ${tile.name} với giá ${(winningBid >= 1_000_000 ? (winningBid / 1_000_000).toFixed(2) + 'M' : (winningBid / 1_000) + 'K')}!`,
+              message: `🏆 ${winner.name} đã thắng đấu giá ${tile.name} với giá ${formatVND(winningBid)}!`,
               state: this.state
             };
           } else {
@@ -587,6 +647,15 @@ export class GameEngine {
       const card = this.drawCard(tile.type);
       const cardResult = this.executeCard(player, card);
 
+      this.state.cardHistory = this.state.cardHistory || [];
+      this.state.cardHistory.unshift({
+        cardType: tile.type,
+        card,
+        player: { id: player.id, name: player.name },
+        result: cardResult,
+        timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+      });
+
       this.state.turnState = TURN_STATES.ACTION_REQUIRED;
       this.state.pendingAction = {
         type: 'CARD_PROMPT',
@@ -616,14 +685,44 @@ export class GameEngine {
       };
     }
 
-    if (tile.type === 'tax') {
-      const taxAmount = tile.amount || 1_000_000;
-      player.money -= taxAmount;
+    if (tile.action === 'jackpot' || tile.action === 'free_parking' || tile.id === 20) {
+      const wonAmount = this.state.jackpotPot || 1_000_000;
+      player.money += wonAmount;
+      this.state.jackpotPot = 500_000; // Reset hũ về mức cơ bản 500k
       this.state.turnState = TURN_STATES.END_TURN;
       return {
         success: true,
+        event: 'JACKPOT_WON',
+        amount: wonAmount,
+        message: `🎰 NỔ HŨ JACKPOT! ${player.name} đã ẵm trọn Quỹ Trúng Thưởng ${formatVND(wonAmount)}!`,
+        state: this.state
+      };
+    }
+
+    if (tile.type === 'tax') {
+      const taxAmount = tile.amount || 1_000_000;
+      player.money -= taxAmount;
+      this.state.jackpotPot = (this.state.jackpotPot || 0) + taxAmount;
+      this.state.turnState = TURN_STATES.END_TURN;
+
+      if (player.money < 0) {
+        const bRes = this.declareBankruptcy(player, null);
+        return {
+          success: true,
+          event: 'BANKRUPTCY',
+          bankruptPlayer: player,
+          winner: bRes?.winner,
+          message: bRes?.message || `💀 ${player.name} phá sản vì không đủ tiền nộp thuế!`,
+          state: this.state
+        };
+      }
+
+      return {
+        success: true,
         event: 'TAX_PAID',
-        message: `💸 ${player.name} nộp ${(taxAmount / 1_000_000).toFixed(1)}M ${tile.name}!`,
+        taxAmount,
+        jackpotPot: this.state.jackpotPot,
+        message: `💸 ${player.name} nộp ${formatVND(taxAmount)} ${tile.name}! (Gom vào Quỹ Trúng Thưởng: ${formatVND(this.state.jackpotPot)})`,
         state: this.state
       };
     }
@@ -644,7 +743,7 @@ export class GameEngine {
           event: 'BUY_PROMPT',
           tile,
           canAfford: player.money >= tile.price,
-          message: `Đất trống: ${tile.name} (Giá: ${(tile.price / 1_000_000).toFixed(1)}M). Bạn có muốn mua?`,
+          message: `Đất trống: ${tile.name} (Giá: ${formatVND(tile.price)}). Bạn có muốn mua?`,
           state: this.state
         };
       }
@@ -664,13 +763,28 @@ export class GameEngine {
       owner.money += rent;
       this.state.turnState = TURN_STATES.END_TURN;
 
+      if (player.money < 0) {
+        const bRes = this.declareBankruptcy(player, owner);
+        return {
+          success: true,
+          event: 'BANKRUPTCY',
+          rent,
+          owner,
+          tile,
+          bankruptPlayer: player,
+          winner: bRes?.winner,
+          message: bRes?.message || `💸 ${player.name} không đủ tiền trả ${formatVND(rent)} và đã PHÁ SẢN!`,
+          state: this.state
+        };
+      }
+
       return {
         success: true,
         event: 'RENT_PAID',
         rent,
         owner,
         tile,
-        message: `💸 ${player.name} trả ${(rent >= 1_000_000 ? (rent / 1_000_000).toFixed(2) + 'M' : rent / 1_000 + 'K')} tiền thuê ${tile.name} cho ${owner.name}!`,
+        message: `💸 ${player.name} trả ${formatVND(rent)} tiền thuê ${tile.name} cho ${owner.name}!`,
         state: this.state
       };
     }
@@ -690,5 +804,50 @@ export class GameEngine {
     player.jailTurns = 0;
     this.state.consecutiveDoubles = 0;
     this.state.turnState = TURN_STATES.END_TURN;
+  }
+
+  /**
+   * Tuyên bố phá sản cho một người chơi
+   * @param {Object} player - Người chơi phá sản
+   * @param {Object} [creditor] - Chủ nợ nhận tài sản (nếu có)
+   */
+  declareBankruptcy(player, creditor = null) {
+    if (!player || player.isBankrupt) return null;
+    player.isBankrupt = true;
+    player.money = 0;
+
+    // Chuyển giao hoặc giải phóng tài sản
+    Object.keys(this.state.properties).forEach((tileId) => {
+      const prop = this.state.properties[tileId];
+      if (prop && prop.owner === player.id) {
+        if (creditor && !creditor.isBankrupt) {
+          prop.owner = creditor.id;
+        } else {
+          prop.owner = null;
+          prop.houses = 0;
+          prop.isMortgaged = false;
+        }
+      }
+    });
+
+    const activePlayers = this.state.players.filter((p) => !p.isBankrupt);
+    let winner = null;
+    if (activePlayers.length === 1) {
+      winner = activePlayers[0];
+      this.state.winner = winner;
+      this.state.isGameOver = true;
+    }
+
+    return {
+      success: true,
+      event: 'BANKRUPTCY',
+      player,
+      creditor,
+      winner,
+      isGameOver: !!winner,
+      message: winner
+        ? `🏆 ${player.name} đã PHÁ SẢN! ${winner.name} là ĐẠI GIA CHIẾN THẮNG!`
+        : `💀 ${player.name} đã chính thức PHÁ SẢN và rời khỏi cuộc chơi!`
+    };
   }
 }

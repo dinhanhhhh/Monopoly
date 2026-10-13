@@ -1,6 +1,4 @@
-/**
- * AuctionModal.js - Hộp thoại Đấu Giá Đất Công Khai thời gian thực
- */
+import { formatVND } from '../../../shared/constants.js';
 
 export class AuctionModal {
   constructor(containerId = 'auction-modal-container') {
@@ -13,12 +11,7 @@ export class AuctionModal {
   }
 
   formatMoney(amount) {
-    if (!amount) return '0đ';
-    if (amount >= 1_000_000) {
-      const m = amount / 1_000_000;
-      return Number.isInteger(m) ? `${m} Triệu` : `${m.toFixed(2)}M`;
-    }
-    return `${Math.round(amount / 1_000)}K`;
+    return formatVND(amount);
   }
 
   /**
@@ -38,7 +31,10 @@ export class AuctionModal {
     const highestBidderPlayer = engine.state.players.find((p) => p.id === highestBidder);
     const currentTurnPlayer = engine.state.players.find((p) => p.id === currentTurnPlayerId);
 
-    const colorHeader = tile.color ? `background: ${tile.color}; color: #fff;` : 'background: #2c3e50; color: #fff;';
+    const tileColor = tile.colorHex || tile.color || '#1F6F8B';
+    const isLightColor = ['#FFE066', '#FFD166', '#87CEEB', '#06D6A0', '#F5CB63'].includes(tileColor);
+    const headerTextColor = isLightColor ? '#1E293B' : '#FFFFFF';
+    const colorHeader = `background-color: ${tileColor} !important; color: ${headerTextColor} !important; border-bottom: 3px solid #2E241B;`;
 
     // Danh sách người chơi tham gia
     const playersListHtml = engine.state.players

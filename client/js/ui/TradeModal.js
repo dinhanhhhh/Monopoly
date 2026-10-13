@@ -4,6 +4,7 @@
 
 import { SAIGON_BOARD_DATA } from '../../../shared/data/board-data.js';
 import { GameRules } from '../../../shared/rules.js';
+import { formatVND } from '../../../shared/constants.js';
 
 export class TradeModal {
   constructor(containerId = 'trade-modal-container') {
@@ -15,13 +16,8 @@ export class TradeModal {
     }
   }
 
-  formatMoney(amount) {
-    if (!amount) return '0đ';
-    if (amount >= 1_000_000) {
-      const m = amount / 1_000_000;
-      return Number.isInteger(m) ? `${m} Triệu` : `${m.toFixed(2)}M`;
-    }
-    return `${Math.round(amount / 1_000)}K`;
+  formatMoney(amount, withSign = false) {
+    return formatVND(amount, withSign);
   }
 
   show(engine, onComplete = null) {

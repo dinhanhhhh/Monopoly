@@ -167,7 +167,7 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 ### 📌 Phase 1: Nền Tảng Giao Diện & Bàn Cờ Sài Gòn (1–2 tuần)
 > Mục tiêu: Vẽ xong bàn cờ responsive CSS Grid, hiển thị 40 ô Sài Gòn, di chuyển quân cờ mượt mà
 
-- [ ] Tạo cấu trúc thư mục dự án (`shared/`, `client/`, `server/`)
+- [x] Tạo cấu trúc thư mục dự án (`shared/`, `client/`, `server/`)
 - [x] Xây dựng file dữ liệu `shared/data/board-data.js` (40 ô địa danh Sài Gòn, giá đất, màu sắc)
 - [x] Dựng khung bàn cờ HTML/CSS dạng **CSS Grid 11x11**, bo góc, gắn nhãn màu
 - [x] Thiết kế bộ icon SVG cho 6 quân cờ (Xe máy, Nón lá, Bánh mì...)
@@ -179,7 +179,7 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 ### 📌 Phase 2: State Machine & Luật Cốt Lõi Offline (1–2 tuần)
 > Mục tiêu: Hoàn thiện engine dùng chung, chơi được mượt mà 2 người trên cùng 1 máy (Hot-seat)
 
-- [ ] Viết `shared/engine.js` theo mô hình **State Machine**:
+- [x] Viết `shared/engine.js` theo mô hình **State Machine**:
   `WAIT_ROLL` ➔ `ROLLING` ➔ `MOVING` ➔ `LAND_EVAL` ➔ `ACTION_REQUIRED` ➔ `END_TURN`
 - [x] Quản lý tài chính: Khởi đầu 15M/người, cộng 2M khi qua Khởi Hành (GO)
 - [x] Mua đất khi dừng ở ô trống, đánh dấu chủ sở hữu
@@ -194,9 +194,10 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 > Mục tiêu: Đầy đủ 100% cơ chế tương tác phức tạp của game
 
 - [x] Cơ chế xây dựng: Kiểm tra đủ bộ màu, luật xây đều, giới hạn 32 nhà / 12 khách sạn
-- [x] Render mô hình nhà xanh / khách sạn đỏ trên từng ô đất
+- [x] Render mô hình nhà xanh / khách sạn đỏ 3D xoay hướng theo dải ô cờ
 - [x] Xây dựng bộ 16 thẻ Cơ Hội & 16 thẻ Khí Vận trong `shared/data/`:
   - Thẻ nhận/phạt tiền, di chuyển đến Bến xe gần nhất (thuê x2), Tiện ích gần nhất (x10 xúc xắc), Ra tù miễn phí
+- [x] Khay thẻ Cơ Hội & Khí Vận tương tác ở trung tâm bàn cờ (tra cứu số lượng còn lại, lịch sử rút thẻ và danh mục 32 thẻ)
 - [x] Cơ chế Thế chấp sổ đỏ (Mortgage) nhận 50% tiền + Chuộc lại tính 10% lãi & Bán nhà thu 50% tiền
 - [x] Modal Đấu Giá Đất (Auction Modal): Mở phiên khi người chơi bỏ qua không mua, mọi người đặt giá
 - [x] Modal Giao Dịch (Trade Modal): Đổi tiền, đất giữa các người chơi
@@ -227,12 +228,14 @@ Bàn cờ chia làm 4 cạnh (mỗi cạnh 10 ô, tính cả ô góc), tạo th�
 ### 📌 Phase 6: Hoàn Thiện Âm Thanh, Tutorial & Deploy (1–2 tuần)
 > Mục tiêu: Trải nghiệm người dùng mượt mà, phát hành sản phẩm
 
-- [ ] Thêm hiệu ứng âm thanh: Xúc xắc lắc, tiền leng keng, còi xe máy, nhạc nền acoustic Sài Gòn
-- [ ] Màn hình Hướng dẫn luật chơi (Tutorial Modal / Quick Guide) trực quan, có hình minh họa
+- [x] Thêm hiệu ứng âm thanh: Xúc xắc lắc, tiền leng keng, còi xe máy, nhạc kèn Sài Gòn xưa
+- [x] Màn hình Hướng dẫn luật chơi (RulebookModal / Quick Guide) trực quan, chuẩn luật
+- [x] Tối ưu deploy GitHub Pages với file root `index.html` chuyển hướng tự động
+- [x] Tách biệt môi trường Local Dev Tools qua `.gitignore` đảm bảo mã nguồn repository sạch sẽ
 - [ ] Tối ưu cảm ứng Mobile: Hỗ trợ cử chỉ chạm vuốt, phóng to thu nhỏ bàn cờ dễ thao tác
 - [ ] Kiểm thử toàn diện (Cross-browser, iOS Safari, Android Chrome)
-- [ ] Deploy Server WebSocket lên **Railway / Render / Fly.io**
-- [ ] Deploy Giao diện Web lên **Vercel / Cloudflare Pages / Netlify**
+- [ ] Deploy Server WebSocket lên **Railway / Render / Fly.io** (khi làm Online)
+- [ ] Deploy Giao diện Web lên **Vercel / Cloudflare Pages / Netlify / GitHub Pages**
 
 ---
 

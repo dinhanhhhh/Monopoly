@@ -250,6 +250,25 @@ class SoundManager {
     osc.start(now);
     osc.stop(now + 0.35);
   }
+
+  // Gia vị giọng thoại vui nhộn đậm chất Sài Gòn
+  speakSaigon(text) {
+    if (this.isMuted) return;
+    if (!('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'vi-VN';
+      utterance.rate = 1.08;
+      utterance.pitch = 1.12;
+      const voices = window.speechSynthesis.getVoices();
+      const viVoice = voices.find((v) => v.lang.includes('vi') || v.lang.includes('VN'));
+      if (viVoice) utterance.voice = viVoice;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('SpeechSynthesis:', e);
+    }
+  }
 }
 
 export const sound = new SoundManager();

@@ -6,121 +6,225 @@
   <title>Cờ Tỷ Phú Sài Gòn - Saigon Tycoon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800;900&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/board.css">
   <link rel="stylesheet" href="css/ui.css">
 </head>
 <body>
-  <div class="game-wrapper layout-two-column">
-    <!-- Cột Trái: Danh Sách 4 Người Chơi & Cụm Công Cụ (Chuẩn hình mẫu Online Monopoly) -->
-    <aside class="arena-sidebar arena-sidebar-full" id="sidebar-left">
-      <!-- 4 người chơi được render bởi HUD.js vào đây -->
-      <div id="players-list-wrapper" class="sidebar-players-list"></div>
+  <div class="game-wrapper">
+    <!-- 1. Header Top Bar (Vintage Saigon Style) -->
+    <header class="game-header">
+      <!-- Cụm Logo & Slogan Trái -->
+      <div class="header-left">
+        <div class="header-illustration notredame-illustration">
+          <!-- Minh họa Nhà thờ Đức Bà hoài cổ -->
+          <svg width="46" height="46" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 60V28L22 18L30 28V60H14Z" fill="#D35400" stroke="#78281F" stroke-width="1.8"/>
+            <path d="M34 60V28L42 18L50 28V60H34Z" fill="#D35400" stroke="#78281F" stroke-width="1.8"/>
+            <path d="M22 18V8L24 4L26 8V18" stroke="#78281F" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M42 18V8L44 4L46 8V18" stroke="#78281F" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="22" y1="8" x2="26" y2="8" stroke="#78281F" stroke-width="1.8"/>
+            <line x1="42" y1="8" x2="46" y2="8" stroke="#78281F" stroke-width="1.8"/>
+            <path d="M26 36H38V60H26V36Z" fill="#E67E22" stroke="#78281F" stroke-width="1.8"/>
+            <circle cx="32" cy="42" r="3" fill="#FADBD8" stroke="#78281F" stroke-width="1.5"/>
+            <rect x="18" y="34" width="8" height="12" rx="4" fill="#FADBD8" stroke="#78281F" stroke-width="1.2"/>
+            <rect x="38" y="34" width="8" height="12" rx="4" fill="#FADBD8" stroke="#78281F" stroke-width="1.2"/>
+          </svg>
+        </div>
 
-      <!-- Cụm công cụ & Thao tác nhanh -->
-      <div class="sidebar-action-tools">
-        <button id="btn-action-trade" class="sidebar-btn-tool btn-trade" title="Mở menu trao đổi">
-          <span>🤝</span> Giao Dịch
+        <div class="vintage-brand-box">
+          <div class="vintage-signboard">
+            <span class="signboard-top">CỜ TỶ PHÚ</span>
+            <span class="signboard-bottom">— SÀI GÒN —</span>
+          </div>
+          <div class="vintage-slogan">
+            <span>Kiến tạo tài sản — Thịnh vượng tương lai</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cụm Thống Kê Giữa (Pill Badges) -->
+      <div class="header-center-stats">
+        <div class="stat-pill">
+          <span class="pill-icon">⏱️</span>
+          <span class="pill-label">Thời gian</span>
+          <strong id="game-timer" class="pill-val">00:00</strong>
+        </div>
+        <div class="stat-pill">
+          <span class="pill-icon">🎯</span>
+          <span class="pill-label">Lượt đấu</span>
+          <strong id="game-turn-count" class="pill-val">1</strong>
+        </div>
+        <div class="stat-pill gold-pill">
+          <span class="pill-icon">🪙</span>
+          <span class="pill-label">Quỹ khởi hành</span>
+          <strong class="pill-val">2.000.000</strong>
+        </div>
+      </div>
+
+      <!-- Cụm Tiện Ích Phải & Minh Họa Chợ Bến Thành -->
+      <div class="header-right-tools">
+        <div class="header-illustration benthanh-illustration">
+          <!-- Minh họa Chợ Bến Thành hoài cổ -->
+          <svg width="48" height="46" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 60V42H24V24H40V42H52V60H12Z" fill="#FAD7A0" stroke="#7D6608" stroke-width="1.8"/>
+            <path d="M22 24L32 12L42 24H22Z" fill="#C0392B" stroke="#78281F" stroke-width="1.8"/>
+            <line x1="32" y1="12" x2="32" y2="6" stroke="#78281F" stroke-width="2"/>
+            <circle cx="32" cy="32" r="5" fill="#FFF" stroke="#7D6608" stroke-width="1.5"/>
+            <line x1="32" y1="32" x2="32" y2="29" stroke="#78281F" stroke-width="1.5"/>
+            <line x1="32" y1="32" x2="35" y2="32" stroke="#78281F" stroke-width="1.5"/>
+            <path d="M26 60V48H38V60" fill="#78281F"/>
+          </svg>
+        </div>
+        <button id="btn-open-rulebook" class="btn-tool" title="Sổ tay luật chơi">
+          <span class="btn-tool-icon">📖</span> Luật Chơi
         </button>
-        <button id="btn-open-rulebook" class="sidebar-btn-tool" title="Xem sổ tay luật">
-          <span>📖</span> Luật Chơi
+        <button id="btn-toggle-sound" class="btn-tool btn-sound-icon" title="Bật/Tắt âm thanh">
+          🔊
         </button>
-        <button id="btn-toggle-sound" class="sidebar-btn-tool" title="Bật/Tắt âm thanh">
-          <span>🔊</span> Âm Thanh
-        </button>
-        <button id="btn-restart-game" class="sidebar-btn-tool btn-restart" title="Tạo ván cờ mới">
-          <span>⚙️</span> Ván Mới
+        <button id="btn-restart-game" class="btn-tool btn-restart-teal" title="Tạo ván mới">
+          <span class="btn-tool-icon">🔄</span> Ván Mới
         </button>
       </div>
-    </aside>
+    </header>
 
-    <!-- Cột Phải: BÀN CỜ SIÊU TO TOÀN MÀN HÌNH -->
-    <main class="arena-center">
-      <div class="board-table-mat">
-        <div id="monopoly-board" class="monopoly-board">
-          <!-- 40 ô cờ sẽ được BoardRenderer.js tự động render vào đây -->
+    <!-- 2. Main 3-Column Arena (Bố Cục 3 Cột) -->
+    <div class="game-arena-grid">
+      <!-- Cột Trái: Danh Sách 4 Thẻ Người Chơi (Player Cards) -->
+      <aside class="arena-sidebar arena-sidebar-left" id="sidebar-left">
+        <!-- Render bởi HUD.js: Cả 4 thẻ người chơi Bạn, Cô Ba Bọt, Bác Xích Lô, Tiệm Bánh -->
+      </aside>
 
-          <!-- Khu vực TRUNG TÂM BÀN CỜ: Chứa Xúc xắc, Thông số vòng chơi, Banner ô đứng & Nhật ký trận đấu -->
-          <div class="board-center">
-            <div class="center-cockpit-panel">
-              <!-- Hàng trên: Vòng đấu & Xúc xắc 3D -->
-              <div class="center-top-bar">
-                <div class="center-stat-pill">
-                  ⏱️ <span id="game-timer">00:00</span>
-                  <span class="stat-sep">•</span>
-                  VÒNG <strong id="game-turn-count">1</strong>
-                </div>
+      <!-- Cột Giữa: Sân Khấu Bàn Cờ Cổ Điển Hiện Đại -->
+      <main class="arena-center">
+        <!-- Bàn cờ 11x11 -->
+        <div class="board-table-mat">
+          <div id="monopoly-board" class="monopoly-board">
+            <!-- 40 ô cờ được BoardRenderer.js tự động render xung quanh -->
 
-                <div class="center-dice-group">
-                  <div class="dice-pair">
-                    <div id="die-1" class="die show-1">
-                      <div class="die-face face-1"><span class="dot dot-center dot-red"></span></div>
-                      <div class="die-face face-2"><span class="dot dot-top-left"></span><span class="dot dot-bottom-right"></span></div>
-                      <div class="die-face face-3"><span class="dot dot-top-left"></span><span class="dot dot-center"></span><span class="dot dot-bottom-right"></span></div>
-                      <div class="die-face face-4"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
-                      <div class="die-face face-5"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-center"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
-                      <div class="die-face face-6"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-middle-left"></span><span class="dot dot-middle-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
-                    </div>
-                    <div id="die-2" class="die show-1">
-                      <div class="die-face face-1"><span class="dot dot-center dot-red"></span></div>
-                      <div class="die-face face-2"><span class="dot dot-top-left"></span><span class="dot dot-bottom-right"></span></div>
-                      <div class="die-face face-3"><span class="dot dot-top-left"></span><span class="dot dot-center"></span><span class="dot dot-bottom-right"></span></div>
-                      <div class="die-face face-4"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
-                      <div class="die-face face-5"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-center"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
-                      <div class="die-face face-6"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-middle-left"></span><span class="dot dot-middle-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
-                    </div>
-                  </div>
-                  <div class="dice-sum-info">
-                    <span class="sum-text" id="dice-sum-text">Điểm: ?</span>
-                    <small id="dice-sub-text">Sẵn sàng</small>
-                  </div>
-                  <button id="btn-roll" class="btn-dock-roll">
-                    <span class="roll-icon">🎲</span>
-                    <span class="roll-label">TUNG XÚC XẮC</span>
-                  </button>
-                </div>
+            <!-- Thông Báo Giữa Bàn Chơi (Toast Notification) -->
+            <div id="game-toast" class="game-toast"></div>
+
+            <!-- Khu Vực Trung Tâm Bàn Cờ: Tranh Phong Cảnh Sài Gòn Hoài Cổ -->
+            <div class="board-center">
+              <div class="center-retro-art-layer">
+                <img src="assets/saigon_retro_center.jpg" alt="Tranh Sài Gòn Hoài Cổ" class="retro-artwork-img" />
               </div>
 
-              <!-- Hàng giữa: Banner ô đang đứng & Cụm nút hành động Mua / Xây / Bỏ lượt -->
-              <div class="center-action-row">
-                <div class="standing-tile-banner" id="standing-tile-banner">
-                  <span class="standing-badge" id="standing-badge">📍 Ô ĐANG ĐỨNG</span>
-                  <span class="standing-name" id="standing-tile-name">Khởi Hành (GO)</span>
-                  <span class="standing-price" id="standing-tile-price">+2.000.000đ</span>
-                  <span class="standing-status" id="standing-tile-status">Nhận tiền thưởng mỗi khi đi qua</span>
+              <div class="center-retro-layout">
+                <!-- Khay thẻ CƠ HỘI chéo phía trên bên trái -->
+                <div class="deck-slot deck-chance" id="slot-chance" title="Bấm để xem Bộ thẻ Cơ Hội & Lịch sử">
+                  <div class="deck-slot-inner">
+                    <span class="deck-title">CƠ HỘI</span>
+                    <span class="deck-mark">
+                      <span class="chance-mark-symbol deck-chance-glyph">?</span>
+                    </span>
+                    <span class="deck-bottom-label">RÚT THẺ</span>
+                    <span class="deck-count-tag" id="chance-deck-count">16 thẻ</span>
+                  </div>
                 </div>
 
-                <div class="center-action-buttons">
-                  <button id="btn-action-buy" class="btn-center-action btn-buy" disabled>
-                    <span class="act-icon">🏠</span> <span class="act-title">Mua Đất</span>
-                  </button>
-                  <button id="btn-action-build" class="btn-center-action btn-build" disabled>
-                    <span class="act-icon">🏗️</span> <span class="act-title">Xây Nhà</span>
-                  </button>
-                  <button id="btn-action-pass" class="btn-center-action btn-pass" disabled>
-                    <span class="act-icon">⏭️</span> <span class="act-title">Bỏ Lượt</span>
-                  </button>
+                <!-- Tiêu Đề CỜ TỶ PHÚ — SÀI GÒN — cong hoài cổ ở trung tâm -->
+                <div class="center-title-banner">
+                  <div class="retro-ribbon-title">
+                    <span class="retro-main-title">CỜ TỶ PHÚ</span>
+                    <span class="retro-sub-ribbon">— SÀI GÒN —</span>
+                  </div>
                 </div>
-              </div>
 
-              <!-- Hàng dưới: Hộp Nhật Ký Trận Đấu (Trò chuyện / Lịch sử) -->
-              <div class="center-log-box">
-                <div class="center-log-title">
-                  <span>📜 NHẬT KÝ VÁN ĐẤU</span>
-                </div>
-                <div class="center-log-messages" id="game-log-messages">
-                  <div class="log-item">Ván cờ bắt đầu! Sẵn sàng tung xúc xắc.</div>
+                <!-- Khay thẻ KHÍ VẬN chéo phía dưới bên phải -->
+                <div class="deck-slot deck-chest" id="slot-chest" title="Bấm để xem Bộ thẻ Khí Vận & Lịch sử">
+                  <div class="deck-slot-inner">
+                    <span class="deck-title">KHÍ VẬN</span>
+                    <span class="deck-mark chest-mark-symbol">
+                      <svg width="22" height="18" viewBox="0 0 24 20" fill="#6D4C41" stroke="#3E2723" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 8h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z" fill="#5D4037"/>
+                        <path d="M2 8V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3" fill="#8D6E63"/>
+                        <path d="M3 8h18" stroke="#FFE082" stroke-width="1.4"/>
+                        <circle cx="12" cy="12" r="1.5" fill="#FFD54F"/>
+                      </svg>
+                    </span>
+                    <span class="deck-bottom-label">RÚT THẺ</span>
+                    <span class="deck-count-tag" id="chest-deck-count">16 thẻ</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
 
-    <!-- Sidebar Right ẩn đi để dành toàn bộ chỗ cho bàn cờ -->
-    <div id="sidebar-right" style="display: none;"></div>
+      <!-- Cột Phải: Bảng Thao Tác & Hộp Nhật Ký Trận Đấu -->
+      <aside class="arena-sidebar arena-sidebar-right" id="sidebar-right">
+        <!-- Khối Điều Khiển Lượt Chơi (Tung Xúc Xắc & Hành Động) -->
+        <div class="action-panel-container">
+          <!-- Cụm Tung Xúc Xắc Nổi Bật -->
+          <div class="dock-dice-cluster">
+            <div class="dice-compact-display">
+              <div class="dice-pair">
+                <div id="die-1" class="die show-1">
+                  <div class="die-face face-1"><span class="dot dot-center dot-red"></span></div>
+                  <div class="die-face face-2"><span class="dot dot-top-left"></span><span class="dot dot-bottom-right"></span></div>
+                  <div class="die-face face-3"><span class="dot dot-top-left"></span><span class="dot dot-center"></span><span class="dot dot-bottom-right"></span></div>
+                  <div class="die-face face-4"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                  <div class="die-face face-5"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-center"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                  <div class="die-face face-6"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-middle-left"></span><span class="dot dot-middle-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                </div>
+                <div id="die-2" class="die show-1">
+                  <div class="die-face face-1"><span class="dot dot-center dot-red"></span></div>
+                  <div class="die-face face-2"><span class="dot dot-top-left"></span><span class="dot dot-bottom-right"></span></div>
+                  <div class="die-face face-3"><span class="dot dot-top-left"></span><span class="dot dot-center"></span><span class="dot dot-bottom-right"></span></div>
+                  <div class="die-face face-4"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                  <div class="die-face face-5"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-center"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                  <div class="die-face face-6"><span class="dot dot-top-left"></span><span class="dot dot-top-right"></span><span class="dot dot-middle-left"></span><span class="dot dot-middle-right"></span><span class="dot dot-bottom-left"></span><span class="dot dot-bottom-right"></span></div>
+                </div>
+              </div>
+              <div class="dice-sum-info">
+                <span class="sum-text" id="dice-sum-text">Điểm: ?</span>
+                <small id="dice-sub-text">Sẵn sàng</small>
+              </div>
+            </div>
+
+            <!-- Nút TUNG XÚC XẮC Lớn Màu Cam Nổi Bật -->
+            <button id="btn-roll" class="btn-dock-roll-huge">
+              <span class="roll-icon">🎲</span>
+              <span class="roll-label">TUNG XÚC XẮC</span>
+            </button>
+          </div>
+
+          <!-- Cụm Các Nút Hành Động Lưới 2x2 -->
+          <div class="dock-actions-cluster">
+            <button id="btn-action-buy" class="btn-dock-action btn-buy" disabled>
+              <span class="act-icon">🏠</span>
+              <span class="act-title">Mua Đất</span>
+            </button>
+            <button id="btn-action-build" class="btn-dock-action btn-build" disabled>
+              <span class="act-icon">🏗️</span>
+              <span class="act-title">Xây Nhà</span>
+            </button>
+            <button id="btn-action-trade" class="btn-dock-action btn-trade">
+              <span class="act-icon">🤝</span>
+              <span class="act-title">Giao Dịch</span>
+            </button>
+            <button id="btn-action-pass" class="btn-dock-action btn-pass" disabled>
+              <span class="act-icon">⏭️</span>
+              <span class="act-title">Bỏ Lượt</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Khối Nhật Ký Trận Đấu (Nhật Ký Gần Đây) -->
+        <div class="recent-log-container">
+          <div class="recent-log-header">
+            <h3>Nhật ký gần đây</h3>
+          </div>
+          <div class="recent-log-messages" id="game-log-messages">
+            <!-- Thêm sự kiện động kèm avatar và mốc thời gian -->
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 
   <!-- Script Modules -->

@@ -13,63 +13,60 @@ export class TokenRenderer {
    * @param {Array} players - Mảng danh sách người chơi
    */
   render(players) {
-    // Xóa sạch toàn bộ quân cờ cũ trước khi vẽ lại
+    // Xóa sạch toàn bộ quân cờ và khung chứa cũ trước khi vẽ lại
+    const existingGrids = this.board.querySelectorAll('.tile-tokens-grid');
+    existingGrids.forEach((el) => el.remove());
     const existingTokens = this.board.querySelectorAll('.player-token');
     existingTokens.forEach((el) => el.remove());
 
     // Nhóm người chơi theo vị trí ô cờ để xếp cụm không bị đè nhau
     const tileGroups = {};
     players.forEach((player) => {
+      if (player.isBankrupt) return;
       const pos = player.position ?? 0;
       if (!tileGroups[pos]) tileGroups[pos] = [];
       tileGroups[pos].push(player);
     });
 
-    // Vẽ từng quân cờ vào đúng ô
+    // Lấy vùng chứa tù nhân nếu có
+    const jailSlot = this.board.querySelector('#jail-inmate-tokens-slot');
+    if (jailSlot) jailSlot.innerHTML = '';
+
+    // Vẽ từng quân cờ vào đúng ô theo lưới 2x2 ở góc ô
     Object.entries(tileGroups).forEach(([posStr, group]) => {
       const pos = parseInt(posStr, 10);
       const targetTile = document.getElementById(`tile-${pos}`);
       if (!targetTile) return;
 
-      const groupSize = group.length;
+      const gridEl = document.createElement('div');
+      gridEl.className = 'tile-tokens-grid';
 
-      group.forEach((player, index) => {
+      group.forEach((player) => {
         const tokenEl = document.createElement('div');
         tokenEl.id = `player-token-${player.id}`;
         tokenEl.className = 'player-token';
         tokenEl.dataset.playerId = player.id;
         tokenEl.dataset.position = pos;
 
-        // Tọa độ lệch tâm (offset) chuẩn khi có nhiều quân cờ cùng 1 ô
-        let offsetX = 0;
-        let offsetY = 0;
-        if (groupSize === 2) {
-          offsetX = index === 0 ? -7 : 7;
-        } else if (groupSize > 2) {
-          const offsets = [
-            { x: -7, y: -7 },
-            { x: 7, y: -7 },
-            { x: -7, y: 7 },
-            { x: 7, y: 7 }
-          ];
-          const off = offsets[index % offsets.length];
-          offsetX = off.x;
-          offsetY = off.y;
-        }
-
-        tokenEl.style.borderColor = player.token.color;
-        tokenEl.style.backgroundColor = player.token.bgColor || '#FFF';
-        tokenEl.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+        tokenEl.style.backgroundColor = player.token?.color || player.token?.bgColor || '#176B78';
 
         tokenEl.innerHTML = `
-          <div class="token-svg">${player.token.svg}</div>
-          <span class="token-badge" style="background-color: ${player.token.color};">${player.id.toUpperCase()}</span>
+          <div class="token-svg">${player.token?.svg || ''}</div>
         `;
 
-        tokenEl.title = `${player.name} (${player.token.name}) - Ô: ${pos}`;
+        tokenEl.title = `${player.name} (${player.token?.name || ''}) - Ô: ${pos}${player.inJail ? ' [Đang ở tù]' : ''}`;
 
-        targetTile.appendChild(tokenEl);
+        // Nếu người chơi đang ở tù tại ô 10 -> đưa vào buồng giam
+        if (pos === 10 && player.inJail && jailSlot) {
+          jailSlot.appendChild(tokenEl);
+        } else {
+          gridEl.appendChild(tokenEl);
+        }
       });
+
+      if (gridEl.children.length > 0) {
+        targetTile.appendChild(gridEl);
+      }
     });
   }
 
