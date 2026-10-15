@@ -189,6 +189,29 @@ export const GameRules = {
   },
 
   /**
+   * Tính toán tối đa số tiền mặt người chơi có thể huy động ngay lập tức
+   * bằng cách bán toàn bộ nhà (50% giá xây) và thế chấp toàn bộ đất (50% giá đất)
+   */
+  calculateMaxLiquidation(player, propertiesState) {
+    if (!player) return 0;
+    let total = 0;
+    SAIGON_BOARD_DATA.forEach((tile) => {
+      const p = propertiesState[tile.id];
+      if (p && p.owner === player.id) {
+        // 1. Tiền thu được từ bán nhà (50% chi phí xây)
+        if (p.houses > 0 && tile.houseCost) {
+          total += p.houses * Math.round(tile.houseCost * 0.5);
+        }
+        // 2. Tiền thu được từ thế chấp ô đất (nếu ô đó chưa bị thế chấp)
+        if (!p.isMortgaged) {
+          total += tile.mortgage || Math.round((tile.price || 0) * 0.5);
+        }
+      }
+    });
+    return total;
+  },
+
+  /**
    * Kiểm tra xem ô đất có thể thế chấp (cầm cố) được không
    */
   canMortgage(tile, player, propertiesState) {

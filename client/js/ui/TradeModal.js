@@ -1,10 +1,12 @@
 /**
  * TradeModal.js - Hộp thoại Giao Dịch & Trao Đổi Đất / Tiền giữa người chơi
+ * Tích hợp hệ thống định giá tài sản trực quan, so sánh chênh lệch gói giao dịch & Bot AI tự đánh giá.
  */
 
 import { SAIGON_BOARD_DATA } from "../../../shared/data/board-data.js";
 import { GameRules } from "../../../shared/rules.js";
 import { formatVND } from "../../../shared/constants.js";
+import { BotAI } from "../../../shared/BotAI.js";
 
 export class TradeModal {
   constructor(containerId = "trade-modal-container") {
@@ -65,27 +67,35 @@ export class TradeModal {
         )
         .join("");
 
-      // Render danh sách đất của sender
-      const renderTileCheckboxes = (tiles, selectedSet, isSender) => {
+      // Render danh sách đất kèm định giá
+      const renderTileCheckboxes = (tiles, selectedSet) => {
         if (tiles.length === 0) {
           return '<div class="empty-tiles-tip">Không sở hữu mảnh đất nào</div>';
         }
 
         return tiles
           .map((tile) => {
+            const prop = engine.state.properties[tile.id] || {};
             const check = GameRules.canTradeProperty(
               tile,
               engine.state.properties,
             );
             const isChecked = selectedSet.has(tile.id);
             const disabled = !check.canTrade;
-            const tip = !check.canTrade ? ` (Đang có nhà - không thể đổi)` : "";
+            const tip = !check.canTrade ? ` (Có nhà - không thể đổi)` : "";
+            const isMortgaged = !!prop.isMortgaged;
 
             return `
-              <label class="trade-tile-item ${disabled ? "disabled" : ""}">
-                <input type="checkbox" data-tile-id="${tile.id}" ${isChecked ? "checked" : ""} ${disabled ? "disabled" : ""}>
-                <span class="trade-color-pill" style="background: ${tile.color || "#666"}"></span>
-                <span class="trade-tile-name">${tile.name}${tip}</span>
+              <label class="trade-tile-item ${disabled ? "disabled" : ""} ${isChecked ? "is-checked" : ""}">
+                <div class="tile-item-left">
+                  <input type="checkbox" data-tile-id="${tile.id}" ${isChecked ? "checked" : ""} ${disabled ? "disabled" : ""}>
+                  <span class="trade-color-pill" style="background: ${tile.colorHex || tile.color || "#8a7358"}"></span>
+                  <span class="trade-tile-name">${tile.name}${tip}</span>
+                </div>
+                <div class="tile-item-right">
+                  ${isMortgaged ? '<span class="trade-tile-mortgaged">🔒 Cầm sổ</span>' : ""}
+                  <span class="trade-tile-price">${this.formatMoney(tile.price)}</span>
+                </div>
               </label>
             `;
           })
@@ -97,7 +107,7 @@ export class TradeModal {
           <div class="trade-modal-card pop-in">
             <div class="trade-header">
               <h2>🤝 THỎA THUẬN GIAO DỊCH</h2>
-              <div class="trade-sub">Thương lượng đổi đất & chuyển giao tiền mặt</div>
+              <div class="trade-sub">Thương lượng đổi đất & chuyển giao tiền mặt (Có định giá tài sản)</div>
             </div>
 
             <div class="trade-partner-select-bar">
@@ -124,10 +134,15 @@ export class TradeModal {
                 </div>
 
                 <div class="trade-properties-section">
-                  <div class="section-label">Bất động sản của bạn:</div>
+                  <div class="section-label">Bất động sản của bạn (kèm định giá):</div>
                   <div class="trade-tiles-list" id="sender-tiles-list">
-                    ${renderTileCheckboxes(senderProps, selectedOfferTiles, true)}
+                    ${renderTileCheckboxes(senderProps, selectedOfferTiles)}
                   </div>
+                </div>
+
+                <div class="trade-col-summary">
+                  <span class="summary-lbl">Tổng định giá đưa ra:</span>
+                  <strong class="summary-val offer-sum" id="offer-total-val">0đ</strong>
                 </div>
               </div>
 
@@ -147,12 +162,26 @@ export class TradeModal {
                 </div>
 
                 <div class="trade-properties-section">
-                  <div class="section-label">Bất động sản của đối tác:</div>
+                  <div class="section-label">Bất động sản của đối tác (kèm định giá):</div>
                   <div class="trade-tiles-list" id="partner-tiles-list">
-                    ${renderTileCheckboxes(partnerProps, selectedRequestTiles, false)}
+                    ${renderTileCheckboxes(partnerProps, selectedRequestTiles)}
                   </div>
                 </div>
+
+                <div class="trade-col-summary">
+                  <span class="summary-lbl">Tổng định giá muốn nhận:</span>
+                  <strong class="summary-val request-sum" id="request-total-val">0đ</strong>
+                </div>
               </div>
+            </div>
+
+            <!-- Thanh Đánh Giá Cân Bằng Kèo Giao Dịch -->
+            <div class="trade-valuation-bar">
+              <div class="deal-diff-info">
+                <span class="diff-label">So sánh giá trị đề nghị:</span>
+                <span class="diff-val" id="trade-diff-val">Chưa có đề nghị</span>
+              </div>
+              <div class="deal-status-badge deal-none" id="trade-deal-badge">⚪ Chưa có đề nghị</div>
             </div>
 
             <div class="trade-footer-actions">
@@ -162,6 +191,64 @@ export class TradeModal {
           </div>
         </div>
       `;
+
+      // Hàm cập nhật định giá Real-time
+      const updateValuationTotals = () => {
+        let offerTilesSum = 0;
+        selectedOfferTiles.forEach((id) => {
+          offerTilesSum += SAIGON_BOARD_DATA[id]?.price || 0;
+        });
+        const totalOffer = offerMoney + offerTilesSum;
+
+        let requestTilesSum = 0;
+        selectedRequestTiles.forEach((id) => {
+          requestTilesSum += SAIGON_BOARD_DATA[id]?.price || 0;
+        });
+        const totalRequest = requestMoney + requestTilesSum;
+
+        const offerTotalEl = document.getElementById("offer-total-val");
+        const requestTotalEl = document.getElementById("request-total-val");
+        const diffValEl = document.getElementById("trade-diff-val");
+        const dealBadgeEl = document.getElementById("trade-deal-badge");
+
+        if (offerTotalEl)
+          offerTotalEl.textContent = this.formatMoney(totalOffer);
+        if (requestTotalEl)
+          requestTotalEl.textContent = this.formatMoney(totalRequest);
+
+        if (!diffValEl || !dealBadgeEl) return;
+
+        if (totalOffer === 0 && totalRequest === 0) {
+          diffValEl.textContent = "Chưa chọn tài sản trao đổi";
+          dealBadgeEl.className = "deal-status-badge deal-none";
+          dealBadgeEl.textContent = "⚪ Chưa có đề nghị";
+        } else if (totalOffer > 0 && totalRequest === 0) {
+          diffValEl.textContent = `Tặng không gói ${this.formatMoney(totalOffer)}`;
+          dealBadgeEl.className = "deal-status-badge deal-gift";
+          dealBadgeEl.textContent = "🎁 Tặng quà đối phương";
+        } else if (totalOffer === 0 && totalRequest > 0) {
+          diffValEl.textContent = `Yêu cầu không bù tiền gói ${this.formatMoney(totalRequest)}`;
+          dealBadgeEl.className = "deal-status-badge deal-greedy";
+          dealBadgeEl.textContent = "⚠️ Đòi hỏi 1 chiều";
+        } else {
+          const diff = totalOffer - totalRequest;
+          const ratio = totalOffer / totalRequest;
+
+          if (ratio >= 0.85 && ratio <= 1.18) {
+            diffValEl.textContent = `Chênh lệch nhỏ ~${this.formatMoney(Math.abs(diff))}`;
+            dealBadgeEl.className = "deal-status-badge deal-fair";
+            dealBadgeEl.textContent = "⚖️ Kèo tương đương (Cân bằng)";
+          } else if (ratio > 1.18) {
+            diffValEl.textContent = `Bạn đưa nhiều hơn +${this.formatMoney(diff)}`;
+            dealBadgeEl.className = "deal-status-badge deal-concede";
+            dealBadgeEl.textContent = "🟡 Kèo bạn nhượng bộ (Bù thêm)";
+          } else {
+            diffValEl.textContent = `Bạn nhận nhiều hơn +${this.formatMoney(-diff)}`;
+            dealBadgeEl.className = "deal-status-badge deal-advantage";
+            dealBadgeEl.textContent = "🟢 Kèo hời cho bạn (Ép giá)";
+          }
+        }
+      };
 
       // Event change đối tác
       const partnerSelect = document.getElementById("trade-partner-select");
@@ -182,6 +269,7 @@ export class TradeModal {
             0,
             Math.min(sender.money, parseInt(e.target.value, 10) || 0),
           );
+          updateValuationTotals();
         };
       }
       const inputRequest = document.getElementById("input-request-money");
@@ -191,6 +279,7 @@ export class TradeModal {
             0,
             Math.min(partner.money, parseInt(e.target.value, 10) || 0),
           );
+          updateValuationTotals();
         };
       }
 
@@ -201,8 +290,14 @@ export class TradeModal {
       senderCheckboxes.forEach((cb) => {
         cb.onchange = () => {
           const id = parseInt(cb.getAttribute("data-tile-id"), 10);
-          if (cb.checked) selectedOfferTiles.add(id);
-          else selectedOfferTiles.delete(id);
+          if (cb.checked) {
+            selectedOfferTiles.add(id);
+            cb.closest(".trade-tile-item")?.classList.add("is-checked");
+          } else {
+            selectedOfferTiles.delete(id);
+            cb.closest(".trade-tile-item")?.classList.remove("is-checked");
+          }
+          updateValuationTotals();
         };
       });
 
@@ -212,8 +307,14 @@ export class TradeModal {
       partnerCheckboxes.forEach((cb) => {
         cb.onchange = () => {
           const id = parseInt(cb.getAttribute("data-tile-id"), 10);
-          if (cb.checked) selectedRequestTiles.add(id);
-          else selectedRequestTiles.delete(id);
+          if (cb.checked) {
+            selectedRequestTiles.add(id);
+            cb.closest(".trade-tile-item")?.classList.add("is-checked");
+          } else {
+            selectedRequestTiles.delete(id);
+            cb.closest(".trade-tile-item")?.classList.remove("is-checked");
+          }
+          updateValuationTotals();
         };
       });
 
@@ -230,6 +331,51 @@ export class TradeModal {
             alert("Bạn chưa đưa ra hoặc yêu cầu tài sản nào!");
             return;
           }
+
+          // Nếu đối tác là Bot AI -> Bot tự động định giá và phản hồi
+          if (partner.isBot) {
+            const decision = BotAI.evaluateTradeOffer(
+              partner,
+              {
+                sender,
+                offerMoney,
+                offerTiles: Array.from(selectedOfferTiles),
+                requestMoney,
+                requestTiles: Array.from(selectedRequestTiles),
+              },
+              engine.state,
+            );
+
+            if (decision.accept) {
+              const res = engine.applyAction({
+                type: "EXECUTE_TRADE",
+                senderId: sender.id,
+                receiverId: partner.id,
+                offerMoney,
+                offerTiles: Array.from(selectedOfferTiles),
+                requestMoney,
+                requestTiles: Array.from(selectedRequestTiles),
+              });
+              this.hide();
+              if (onComplete) {
+                onComplete({
+                  ...res,
+                  message: `🤝 ${partner.name}: "${decision.reason}" - Giao dịch thành công!`,
+                });
+              }
+            } else {
+              this.hide();
+              if (onComplete) {
+                onComplete({
+                  success: false,
+                  message: `❌ ${partner.name} từ chối giao dịch: "${decision.reason}"`,
+                });
+              }
+            }
+            return;
+          }
+
+          // Đối tác là người chơi -> Hiện modal xác nhận giao dịch
           this.showConfirmation(
             engine,
             sender,
@@ -247,6 +393,9 @@ export class TradeModal {
       if (btnClose) {
         btnClose.onclick = () => this.hide();
       }
+
+      // Khởi tạo ban đầu
+      updateValuationTotals();
     };
 
     renderTradeForm();
@@ -262,13 +411,39 @@ export class TradeModal {
     requestTiles,
     onComplete,
   ) {
-    const getTileNames = (ids) => {
+    let offerTilesVal = 0;
+    const getTileDetails = (ids) => {
       if (ids.length === 0) return "<em>Không có</em>";
       return ids
-        .map((id) => SAIGON_BOARD_DATA[id]?.name)
+        .map((id) => {
+          const t = SAIGON_BOARD_DATA[id];
+          if (!t) return "";
+          offerTilesVal += t.price || 0;
+          return `${t.name} (${this.formatMoney(t.price)})`;
+        })
         .filter(Boolean)
         .join(", ");
     };
+
+    const offerTilesText = getTileDetails(offerTiles);
+    const totalOfferPkg = offerMoney + offerTilesVal;
+
+    let requestTilesVal = 0;
+    const getReqDetails = (ids) => {
+      if (ids.length === 0) return "<em>Không có</em>";
+      return ids
+        .map((id) => {
+          const t = SAIGON_BOARD_DATA[id];
+          if (!t) return "";
+          requestTilesVal += t.price || 0;
+          return `${t.name} (${this.formatMoney(t.price)})`;
+        })
+        .filter(Boolean)
+        .join(", ");
+    };
+
+    const reqTilesText = getReqDetails(requestTiles);
+    const totalReqPkg = requestMoney + requestTilesVal;
 
     this.container.innerHTML = `
       <div class="modal-backdrop fade-in">
@@ -281,18 +456,18 @@ export class TradeModal {
 
           <div class="confirm-deal-box">
             <div class="deal-row">
-              <span class="deal-tag receive">BẠN SẼ NHẬN:</span>
+              <span class="deal-tag receive">BẠN SẼ NHẬN (Tổng định giá: ${this.formatMoney(totalOfferPkg)}):</span>
               <div class="deal-content">
                 <strong>+${this.formatMoney(offerMoney)}</strong> tiền mặt<br>
-                Đất: ${getTileNames(offerTiles)}
+                Đất: ${offerTilesText}
               </div>
             </div>
             <div class="deal-divider"></div>
             <div class="deal-row">
-              <span class="deal-tag give">BẠN SẼ TRAO ĐI:</span>
+              <span class="deal-tag give">BẠN SẼ TRAO ĐI (Tổng định giá: ${this.formatMoney(totalReqPkg)}):</span>
               <div class="deal-content">
                 <strong>-${this.formatMoney(requestMoney)}</strong> tiền mặt<br>
-                Đất: ${getTileNames(requestTiles)}
+                Đất: ${reqTilesText}
               </div>
             </div>
           </div>

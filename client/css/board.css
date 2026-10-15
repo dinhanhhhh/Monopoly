@@ -760,20 +760,20 @@
   display: none !important;
 }
 
-/* ================= HUY HIỆU QUÂN CỜ CHỦ SỞ HỮU TRONG DẢI MÀU (15px, viền trắng 1.5px, nền màu người chơi) ================= */
+/* ================= HUY HIỆU QUÂN CỜ CHỦ SỞ HỮU TRONG DẢI MÀU (Nhỏ gọn 10px, viền 1px nằm gọn trong dải màu) ================= */
 .tile-owner-token-badge {
   position: absolute;
-  width: 15px;
-  height: 15px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  border: 1.5px solid #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  border: 1px solid #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
   pointer-events: none;
-  padding: 1.5px;
+  padding: 0.5px;
   box-sizing: border-box;
 }
 
@@ -787,7 +787,7 @@
 .edge-bottom .tile-color-bar .tile-owner-token-badge,
 .edge-top .tile-color-bar .tile-owner-token-badge {
   top: 50%;
-  right: 2px;
+  right: 3px;
   transform: translateY(-50%);
 }
 
@@ -795,14 +795,14 @@
 .edge-left .tile-color-bar .tile-owner-token-badge,
 .edge-right .tile-color-bar .tile-owner-token-badge {
   left: 50%;
-  bottom: 2px;
+  bottom: 3px;
   transform: translateX(-50%);
 }
 
 /* Với ô đặc biệt không có dải màu (ga tàu, tiện ích) */
 .tile-special .tile-owner-token-badge {
-  bottom: 2px;
-  right: 2px;
+  bottom: 3px;
+  right: 3px;
   top: auto;
   left: auto;
 }

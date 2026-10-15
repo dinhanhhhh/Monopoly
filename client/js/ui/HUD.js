@@ -85,19 +85,26 @@ export class HUD {
       rankBadge = `<div class="lb-rank-badge rank-4" title="Hạng 4"><span class="rank-txt">#4</span></div>`;
     }
 
-    // Nhãn trạng thái nổi bật ở góc thẻ
-    let statusBadge = "";
+    // Nhãn trạng thái nổi bật ở góc thẻ (hỗ trợ hiển thị song song Ở tù và Lượt đi / Lượt tới)
+    const badges = [];
     if (p.isBankrupt) {
-      statusBadge = '<span class="player-badge badge-bankrupt">Phá sản</span>';
-    } else if (p.inJail) {
-      statusBadge = '<span class="player-badge badge-jail">🚨 Ở tù</span>';
-    } else if (isActive) {
-      statusBadge = '<span class="player-badge badge-playing">🎯 Lượt đi</span>';
-    } else if (isNext) {
-      statusBadge = '<span class="player-badge badge-next-turn">⏭️ Lượt tới</span>';
-    } else if (isLowCash) {
-      statusBadge = '<span class="player-badge badge-low-cash">⚠️ Cạn tiền</span>';
+      badges.push('<span class="player-badge badge-bankrupt">Phá sản</span>');
+    } else {
+      if (p.inJail) {
+        badges.push('<span class="player-badge badge-jail">🚨 Ở tù</span>');
+      }
+      if (isActive) {
+        badges.push('<span class="player-badge badge-playing">🎯 Lượt đi</span>');
+      } else if (isNext) {
+        badges.push('<span class="player-badge badge-next-turn">⏭️ Lượt tới</span>');
+      } else if (isLowCash) {
+        badges.push('<span class="player-badge badge-low-cash">⚠️ Cạn tiền</span>');
+      }
     }
+
+    const statusBadge = badges.length > 0
+      ? `<div class="player-badges-cluster">${badges.join("")}</div>`
+      : "";
 
     return `
       <div id="hud-player-${p.id}" class="player-card lb-card ${p.isBankrupt ? "is-bankrupt" : ""} ${isActive ? "active-player" : ""} ${isNext ? "next-turn-player" : ""} ${isLowCash ? "is-low-cash" : ""} ${p.isBot ? "is-bot" : ""}" data-player-id="${p.id}" data-rank="${rankIdx + 1}">

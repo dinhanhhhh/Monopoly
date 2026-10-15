@@ -385,7 +385,7 @@ export class BoardRenderer {
             tileEl.style.backgroundColor = softBg;
           }
 
-          // 2. Huy hiệu quân cờ chủ sở hữu (15-16px, viền trắng 1.5px, nền màu người chơi) đặt trong dải màu
+          // 2. Huy hiệu quân cờ chủ sở hữu (10px, viền trắng 1px, nền màu người chơi) đặt gọn trong dải màu
           const tokenBadge = document.createElement("div");
           tokenBadge.className = "tile-owner-token-badge";
           tokenBadge.style.backgroundColor = ownerColor;

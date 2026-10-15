@@ -62,6 +62,11 @@ class SoundManager {
     this.playSynthDiceRoll();
   }
 
+  // Alias lắc xí ngầu
+  playDiceShake() {
+    this.playDiceRoll();
+  }
+
   // Âm thanh xúc xắc dự phòng bằng Web Audio API
   playSynthDiceRoll() {
     if (this.isMuted) return;

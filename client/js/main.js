@@ -24,6 +24,7 @@ import { CardDeckModal } from "./ui/CardDeckModal.js";
 import { AchievementManager } from "./ui/AchievementManager.js";
 import { MatchRecapModal } from "./ui/MatchRecapModal.js";
 import { VintageRadioWidget } from "./ui/VintageRadioWidget.js";
+import { DebtResolutionModal } from "./ui/DebtResolutionModal.js";
 import { sound } from "./audio/SoundEffects.js";
 import { getPlayerAvatar } from "./render/AvatarsData.js";
 
@@ -38,6 +39,7 @@ function initGameApp() {
   // Khởi tạo các Modal
   const titleDeedModal = new TitleDeedModal();
   const cardModal = new CardModal();
+  const debtResolutionModal = new DebtResolutionModal();
   const auctionModal = new AuctionModal();
   const tradeModal = new TradeModal();
   const gameSetupModal = new GameSetupModal();
@@ -896,6 +898,16 @@ function initGameApp() {
         currentTile,
         `Đã trả ${formatMoney(landResult.rent)} tiền thuê`,
       );
+      if (landResult.liquidated) {
+        boardRenderer.updateBuildings(
+          engine.state.properties,
+          engine.state.players,
+        );
+        boardRenderer.updateOwners(
+          engine.state.properties,
+          engine.state.players,
+        );
+      }
       sound.playCoin();
       showFloatingCash(p.id, -landResult.rent);
       if (landResult.owner) {
@@ -941,6 +953,16 @@ function initGameApp() {
     // E. Ô Thuế
     else if (landResult.event === "TAX_PAID") {
       updateStandingBanner(currentTile, "Nộp thuế vào Quỹ Trúng Thưởng");
+      if (landResult.liquidated) {
+        boardRenderer.updateBuildings(
+          engine.state.properties,
+          engine.state.players,
+        );
+        boardRenderer.updateOwners(
+          engine.state.properties,
+          engine.state.players,
+        );
+      }
       boardRenderer.updateJackpot(engine.state.jackpotPot);
       sound.playCoin();
       const taxAmt = landResult.taxAmount || currentTile.amount || 1_000_000;
@@ -960,6 +982,145 @@ function initGameApp() {
       addGameLog(landResult.message);
       showToast(landResult.message);
       setTimeout(() => finishTurn(false), 1400);
+    }
+    // F2. Thiếu tiền mặt nợ tiền (DEBT_REQUIRED)
+    else if (landResult.event === "DEBT_REQUIRED") {
+      updateStandingBanner(
+        currentTile,
+        `⚠️ Cảnh báo nợ: Thiếu ${formatMoney(landResult.deficit)}!`,
+      );
+      sound.playJail();
+      sound.speakSaigon("Thiếu tiền mặt rồi, mau xoay xở đi nghen!");
+      triggerPlayerEmote(p.id, "😭", 3500);
+      addGameLog(landResult.message);
+      showToast(landResult.message);
+
+      const refreshDebtModal = () => {
+        try {
+          debtResolutionModal.show({
+            player: engine.getCurrentPlayer(),
+            amount: landResult.amount,
+            debtType: landResult.debtType,
+            creditor: landResult.creditor,
+            tile: landResult.tile,
+            state: engine.state,
+          onAutoLiquidate: () => {
+            const res = engine.applyAction({ type: "AUTO_RESOLVE_DEBT" });
+            if (res.success) {
+              boardRenderer.updateBuildings(
+                engine.state.properties,
+                engine.state.players,
+              );
+              boardRenderer.updateOwners(
+                engine.state.properties,
+                engine.state.players,
+              );
+              hud.update(engine.state, handleShowPortfolio);
+              if (res.event === "DEBT_RESOLVED") {
+                debtResolutionModal.hide();
+                sound.playSuccess();
+                showFloatingCash(p.id, -landResult.amount);
+                if (landResult.creditor) {
+                  showFloatingCash(landResult.creditor.id, landResult.amount);
+                }
+                addGameLog(res.message);
+                showToast(res.message);
+                setTimeout(() => finishTurn(isDoubles), 1400);
+              } else {
+                refreshDebtModal();
+              }
+            } else {
+              showToast(res.error || "Không thể tự động giải cứu");
+            }
+          },
+          onMortgage: (tId) => {
+            const res = engine.applyAction({
+              type: "MORTGAGE_PROPERTY",
+              tileId: tId,
+            });
+            if (res.success) {
+              boardRenderer.updateOwners(
+                engine.state.properties,
+                engine.state.players,
+              );
+              hud.update(engine.state, handleShowPortfolio);
+              sound.playCoin();
+              addGameLog(res.message);
+              showToast(res.message);
+              refreshDebtModal();
+            } else {
+              showToast(res.error || "Không thể thế chấp ô đất");
+            }
+          },
+          onSellHouse: (tId) => {
+            const res = engine.applyAction({
+              type: "SELL_HOUSE",
+              tileId: tId,
+            });
+            if (res.success) {
+              boardRenderer.updateBuildings(
+                engine.state.properties,
+                engine.state.players,
+              );
+              hud.update(engine.state, handleShowPortfolio);
+              sound.playCoin();
+              addGameLog(res.message);
+              showToast(res.message);
+              refreshDebtModal();
+            } else {
+              showToast(res.error || "Không thể bán nhà");
+            }
+          },
+          onPayDebt: () => {
+            const res = engine.applyAction({ type: "PAY_DEBT" });
+            if (res.success) {
+              debtResolutionModal.hide();
+              sound.playSuccess();
+              showFloatingCash(p.id, -landResult.amount);
+              if (landResult.creditor) {
+                showFloatingCash(landResult.creditor.id, landResult.amount);
+              }
+              hud.update(engine.state, handleShowPortfolio);
+              addGameLog(res.message);
+              showToast(res.message);
+              setTimeout(() => finishTurn(isDoubles), 1400);
+            } else {
+              showToast(res.error || "Chưa đủ tiền thanh toán!");
+            }
+          },
+          onConcede: () => {
+            debtResolutionModal.hide();
+            const res = engine.applyAction({ type: "CONCEDE_BANKRUPTCY" });
+            if (res.success) {
+              updateStandingBanner(
+                currentTile,
+                `💀 ${p.name} đã Phá Sản!`,
+              );
+              boardRenderer.updateOwners(
+                engine.state.properties,
+                engine.state.players,
+              );
+              tokenRenderer.render(engine.state.players);
+              hud.update(engine.state);
+              sound.playJail();
+              triggerPlayerEmote(p.id, "😭", 3500);
+              addGameLog(res.message);
+              showToast(res.message);
+              if (res.winner) {
+                triggerPlayerEmote(res.winner.id, "😎", 4000);
+                showGameOverModal(res.winner);
+              } else {
+                setTimeout(() => finishTurn(false), 1600);
+              }
+            }
+          },
+        });
+      } catch (err) {
+        console.error("Lỗi khi mở modal nợ:", err);
+      }
+    };
+
+      refreshDebtModal();
     }
     // G. Phá sản
     else if (landResult.event === "BANKRUPTCY") {

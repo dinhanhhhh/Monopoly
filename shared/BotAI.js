@@ -231,4 +231,107 @@ export class BotAI {
 
     return mortgageList;
   }
+
+  /**
+   * Đánh giá đề nghị giao dịch từ đối thủ dựa trên định giá tài sản & chiến lược
+   * @param {Object} bot - Đối tượng Bot
+   * @param {Object} tradeOffer - { sender, offerMoney, offerTiles, requestMoney, requestTiles }
+   * @param {Object} state - Game state
+   * @returns {Object} { accept: boolean, reason: string }
+   */
+  static evaluateTradeOffer(bot, tradeOffer, state) {
+    const {
+      sender,
+      offerMoney = 0,
+      offerTiles = [],
+      requestMoney = 0,
+      requestTiles = [],
+    } = tradeOffer;
+
+    // 1. Kiểm tra tiền mặt
+    if (bot.money < requestMoney) {
+      return {
+        accept: false,
+        reason: "Tôi không có đủ tiền mặt để đáp ứng yêu cầu này!",
+      };
+    }
+
+    // 2. Định giá phần Bot NHẬN ĐƯỢC (Tài sản đối phương đưa ra)
+    let valReceived = offerMoney;
+    for (const tId of offerTiles) {
+      const tile = SAIGON_BOARD_DATA[tId];
+      if (!tile) continue;
+      let tileVal = tile.price || 0;
+
+      // Nếu mảnh này giúp Bot hoàn thành trọn bộ màu -> Định giá gấp 2.2 lần!
+      if (tile.type === "property" && tile.group) {
+        const groupTiles = SAIGON_BOARD_DATA.filter(
+          (t) => t.group === tile.group,
+        );
+        const owned = groupTiles.filter(
+          (t) => state.properties[t.id]?.owner === bot.id,
+        ).length;
+        if (owned === groupTiles.length - 1) {
+          tileVal = Math.round(tileVal * 2.2);
+        }
+      }
+      valReceived += tileVal;
+    }
+
+    // 3. Định giá phần Bot PHẢI TRAO ĐI (Tài sản đối phương đòi hỏi)
+    let valGiven = requestMoney;
+    for (const tId of requestTiles) {
+      const tile = SAIGON_BOARD_DATA[tId];
+      if (!tile) continue;
+      let tileVal = tile.price || 0;
+
+      // Không bao giờ đổi mảnh đất nằm trong trọn bộ màu mà Bot đã sở hữu
+      if (tile.type === "property" && tile.group) {
+        const fullSet = GameRules.hasFullColorSet(
+          tile.group,
+          bot.id,
+          state.properties,
+        );
+        if (fullSet) {
+          return {
+            accept: false,
+            reason: `Tôi không thể đổi ${tile.name} vì đang giữ trọn bộ màu để xây nhà!`,
+          };
+        }
+
+        // Nếu mảnh đất này giúp đối thủ gom đủ bộ màu -> Phạt giá 1.8x
+        const groupTiles = SAIGON_BOARD_DATA.filter(
+          (t) => t.group === tile.group,
+        );
+        const senderOwned = groupTiles.filter(
+          (t) => state.properties[t.id]?.owner === sender.id,
+        ).length;
+        if (senderOwned === groupTiles.length - 1) {
+          tileVal = Math.round(tileVal * 1.8);
+        }
+      }
+      valGiven += tileVal;
+    }
+
+    // 4. So sánh giá trị theo tính cách Bot
+    // - Cô Ba Bọt (tycoon): khôn ngoan, đòi hỏi valReceived >= valGiven * 1.05
+    // - Bác Xích Lô (cautious): dè dặt, valReceived >= valGiven * 1.0
+    // - Khác: valReceived >= valGiven * 0.95
+    let threshold = 0.95;
+    if (bot.personality === "tycoon") threshold = 1.05;
+    else if (bot.personality === "cautious") threshold = 1.0;
+
+    if (valReceived >= valGiven * threshold) {
+      return {
+        accept: true,
+        reason: "Thỏa thuận này đôi bên cùng có lợi, tôi đồng ý!",
+      };
+    }
+
+    return {
+      accept: false,
+      reason:
+        "Giá trị đề nghị chưa tương xứng với tài sản của tôi, hẹn dịp khác nhé!",
+    };
+  }
 }

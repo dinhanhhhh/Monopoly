@@ -478,16 +478,22 @@ body {
   color: #ffffff;
 }
 
-.player-badge {
+.player-badges-cluster {
   position: absolute;
   top: 4px;
   right: 6px;
-  font-size: 0.6rem;
-  font-weight: 800;
-  padding: 1.5px 7px;
-  border-radius: 8px;
-  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 3px;
   z-index: 5;
+}
+
+.player-badge {
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1.5px 6px;
+  border-radius: 7px;
+  line-height: 1.2;
   white-space: nowrap;
 }
 

@@ -479,6 +479,103 @@ export class GameEngine {
         };
       }
 
+      case "AUTO_RESOLVE_DEBT": {
+        const pending = this.state.pendingAction;
+        if (!pending || pending.type !== "DEBT_PROMPT") {
+          return {
+            success: false,
+            error: "Không có khoản nợ nào cần giải quyết",
+          };
+        }
+        const liquidation = this.autoLiquidateForDebt(player, pending.amount);
+        if (player.money >= pending.amount) {
+          player.money -= pending.amount;
+          if (pending.debtType === "RENT" && pending.creditorId) {
+            const creditor = this.state.players.find(
+              (p) => p.id === pending.creditorId,
+            );
+            if (creditor) creditor.money += pending.amount;
+          } else if (pending.debtType === "TAX") {
+            this.state.jackpotPot =
+              (this.state.jackpotPot || 0) + pending.amount;
+          }
+          this.state.pendingAction = null;
+          this.state.turnState = TURN_STATES.END_TURN;
+          return {
+            success: true,
+            event: "DEBT_RESOLVED",
+            debtType: pending.debtType,
+            amount: pending.amount,
+            liquidation,
+            message: `⚡ ${player.name} đã tự động giải cứu tài chính và thanh toán ${formatVND(pending.amount)}!`,
+            state: this.state,
+          };
+        }
+        return {
+          success: true,
+          event: "DEBT_PARTIALLY_LIQUIDATED",
+          liquidation,
+          deficit: pending.amount - player.money,
+          message: `Đã thanh lý tài sản nhưng vẫn còn thiếu ${formatVND(pending.amount - player.money)}.`,
+          state: this.state,
+        };
+      }
+
+      case "PAY_DEBT": {
+        const pending = this.state.pendingAction;
+        if (!pending || pending.type !== "DEBT_PROMPT") {
+          return {
+            success: false,
+            error: "Không có khoản nợ nào cần giải quyết",
+          };
+        }
+        if (player.money < pending.amount) {
+          return {
+            success: false,
+            error: `Chưa đủ tiền! Còn thiếu ${formatVND(pending.amount - player.money)}.`,
+          };
+        }
+        player.money -= pending.amount;
+        if (pending.debtType === "RENT" && pending.creditorId) {
+          const creditor = this.state.players.find(
+            (p) => p.id === pending.creditorId,
+          );
+          if (creditor) creditor.money += pending.amount;
+        } else if (pending.debtType === "TAX") {
+          this.state.jackpotPot = (this.state.jackpotPot || 0) + pending.amount;
+        }
+        this.state.pendingAction = null;
+        this.state.turnState = TURN_STATES.END_TURN;
+        return {
+          success: true,
+          event: "DEBT_PAID",
+          debtType: pending.debtType,
+          amount: pending.amount,
+          message: `💸 ${player.name} đã thanh toán thành công khoản nợ ${formatVND(pending.amount)}!`,
+          state: this.state,
+        };
+      }
+
+      case "CONCEDE_BANKRUPTCY": {
+        const pending = this.state.pendingAction;
+        const creditor =
+          pending?.creditorId
+            ? this.state.players.find((p) => p.id === pending.creditorId)
+            : null;
+        this.state.pendingAction = null;
+        const bRes = this.declareBankruptcy(player, creditor);
+        return {
+          success: true,
+          event: "BANKRUPTCY",
+          bankruptPlayer: player,
+          winner: bRes?.winner,
+          message:
+            bRes?.message ||
+            `💀 ${player.name} đã chấp nhận phá sản và rời cuộc chơi!`,
+          state: this.state,
+        };
+      }
+
       case "START_AUCTION": {
         const tile = this.getTile(action.tileId || player.position);
         const prop = this.state.properties[tile.id];
@@ -812,11 +909,26 @@ export class GameEngine {
 
     if (tile.type === "tax") {
       const taxAmount = tile.amount || 1_000_000;
-      player.money -= taxAmount;
-      this.state.jackpotPot = (this.state.jackpotPot || 0) + taxAmount;
-      this.state.turnState = TURN_STATES.END_TURN;
+      if (player.money >= taxAmount) {
+        player.money -= taxAmount;
+        this.state.jackpotPot = (this.state.jackpotPot || 0) + taxAmount;
+        this.state.turnState = TURN_STATES.END_TURN;
+        return {
+          success: true,
+          event: "TAX_PAID",
+          taxAmount,
+          jackpotPot: this.state.jackpotPot,
+          message: `💸 ${player.name} nộp ${formatVND(taxAmount)} ${tile.name}! (Gom vào Quỹ Trúng Thưởng: ${formatVND(this.state.jackpotPot)})`,
+          state: this.state,
+        };
+      }
 
-      if (player.money < 0) {
+      // Không đủ tiền nộp thuế: Kiểm tra xem có thể giải cứu tài chính không
+      const maxLiq = GameRules.calculateMaxLiquidation(
+        player,
+        this.state.properties,
+      );
+      if (player.money + maxLiq < taxAmount) {
         const bRes = this.declareBankruptcy(player, null);
         return {
           success: true,
@@ -825,17 +937,46 @@ export class GameEngine {
           winner: bRes?.winner,
           message:
             bRes?.message ||
-            `💀 ${player.name} phá sản vì không đủ tiền nộp thuế!`,
+            `💀 ${player.name} phá sản vì không đủ khả năng nộp ${formatVND(taxAmount)} thuế!`,
           state: this.state,
         };
       }
 
+      if (player.isBot) {
+        const liq = this.autoLiquidateForDebt(player, taxAmount);
+        player.money -= taxAmount;
+        this.state.jackpotPot = (this.state.jackpotPot || 0) + taxAmount;
+        this.state.turnState = TURN_STATES.END_TURN;
+        return {
+          success: true,
+          event: "TAX_PAID",
+          taxAmount,
+          jackpotPot: this.state.jackpotPot,
+          liquidated: liq,
+          message: `💸 ${player.name} đã thế chấp tài sản để nộp ${formatVND(taxAmount)} tiền thuế!`,
+          state: this.state,
+        };
+      }
+
+      // Người chơi người -> Kích hoạt trạng thái giải quyết nợ
+      this.state.turnState = TURN_STATES.ACTION_REQUIRED;
+      this.state.pendingAction = {
+        type: "DEBT_PROMPT",
+        debtType: "TAX",
+        creditorId: null,
+        amount: taxAmount,
+        tileId: tile.id,
+        isDoubles: this.state.lastRoll?.isDoubles || false,
+      };
       return {
         success: true,
-        event: "TAX_PAID",
-        taxAmount,
-        jackpotPot: this.state.jackpotPot,
-        message: `💸 ${player.name} nộp ${formatVND(taxAmount)} ${tile.name}! (Gom vào Quỹ Trúng Thưởng: ${formatVND(this.state.jackpotPot)})`,
+        event: "DEBT_REQUIRED",
+        debtType: "TAX",
+        amount: taxAmount,
+        creditor: null,
+        tile,
+        deficit: taxAmount - player.money,
+        message: `⚠️ ${player.name} không đủ tiền mặt nộp ${formatVND(taxAmount)} ${tile.name}! Hãy thế chấp tài sản hoặc bán nhà để nộp phạt.`,
         state: this.state,
       };
     }
@@ -877,11 +1018,29 @@ export class GameEngine {
         this.state.properties,
         diceTotal,
       );
-      player.money -= rent;
-      owner.money += rent;
-      this.state.turnState = TURN_STATES.END_TURN;
 
-      if (player.money < 0) {
+      // Nếu đủ tiền mặt -> Trả ngay
+      if (player.money >= rent) {
+        player.money -= rent;
+        owner.money += rent;
+        this.state.turnState = TURN_STATES.END_TURN;
+        return {
+          success: true,
+          event: "RENT_PAID",
+          rent,
+          owner,
+          tile,
+          message: `💸 ${player.name} trả ${formatVND(rent)} tiền thuê ${tile.name} cho ${owner.name}!`,
+          state: this.state,
+        };
+      }
+
+      // Không đủ tiền mặt trả thuê: Kiểm tra xem có thể giải cứu tài chính không
+      const maxLiq = GameRules.calculateMaxLiquidation(
+        player,
+        this.state.properties,
+      );
+      if (player.money + maxLiq < rent) {
         const bRes = this.declareBankruptcy(player, owner);
         return {
           success: true,
@@ -893,18 +1052,47 @@ export class GameEngine {
           winner: bRes?.winner,
           message:
             bRes?.message ||
-            `💸 ${player.name} không đủ tiền trả ${formatVND(rent)} và đã PHÁ SẢN!`,
+            `💀 ${player.name} không đủ khả năng trả ${formatVND(rent)} tiền thuê cho ${owner.name} và đã PHÁ SẢN!`,
           state: this.state,
         };
       }
 
+      if (player.isBot) {
+        const liq = this.autoLiquidateForDebt(player, rent);
+        player.money -= rent;
+        owner.money += rent;
+        this.state.turnState = TURN_STATES.END_TURN;
+        return {
+          success: true,
+          event: "RENT_PAID",
+          rent,
+          owner,
+          tile,
+          liquidated: liq,
+          message: `💸 ${player.name} đã thế chấp tài sản để trả ${formatVND(rent)} tiền thuê cho ${owner.name}!`,
+          state: this.state,
+        };
+      }
+
+      // Người chơi người -> Kích hoạt trạng thái giải quyết nợ
+      this.state.turnState = TURN_STATES.ACTION_REQUIRED;
+      this.state.pendingAction = {
+        type: "DEBT_PROMPT",
+        debtType: "RENT",
+        creditorId: owner.id,
+        amount: rent,
+        tileId: tile.id,
+        isDoubles: this.state.lastRoll?.isDoubles || false,
+      };
       return {
         success: true,
-        event: "RENT_PAID",
-        rent,
-        owner,
+        event: "DEBT_REQUIRED",
+        debtType: "RENT",
+        amount: rent,
+        creditor: owner,
         tile,
-        message: `💸 ${player.name} trả ${formatVND(rent)} tiền thuê ${tile.name} cho ${owner.name}!`,
+        deficit: rent - player.money,
+        message: `⚠️ ${player.name} không đủ tiền mặt trả ${formatVND(rent)} cho ${owner.name}! Hãy thế chấp tài sản hoặc bán nhà để trả nợ.`,
         state: this.state,
       };
     }
@@ -916,6 +1104,86 @@ export class GameEngine {
       message: `${player.name} dừng tại ${tile.name}.`,
       state: this.state,
     };
+  }
+
+  /**
+   * Tự động thanh lý tài sản (Bán nhà -> Thế chấp đất) để gom đủ số tiền nợ
+   * @param {Object} player - Người chơi cần gom tiền
+   * @param {number} neededAmount - Tổng số tiền nợ cần thanh toán
+   * @returns {Object} { recovered, soldHouses, mortgagedTiles }
+   */
+  autoLiquidateForDebt(player, neededAmount) {
+    let recovered = 0;
+    const soldHouses = [];
+    const mortgagedTiles = [];
+
+    // 1. Bán bớt nhà/khách sạn nếu có (theo luật bán đều tay)
+    let keepSelling = true;
+    while (player.money < neededAmount && keepSelling) {
+      keepSelling = false;
+      const ownedWithHouses = SAIGON_BOARD_DATA.filter((t) => {
+        const prop = this.state.properties[t.id];
+        return prop && prop.owner === player.id && (prop.houses || 0) > 0;
+      });
+      for (const tile of ownedWithHouses) {
+        const check = GameRules.canSellHouse(
+          tile,
+          player,
+          this.state.properties,
+        );
+        if (check.canSell) {
+          const prop = this.state.properties[tile.id];
+          prop.houses = check.nextHouses;
+          player.money += check.refund;
+          recovered += check.refund;
+          soldHouses.push({ tile, refund: check.refund });
+          keepSelling = true;
+          if (player.money >= neededAmount) break;
+        }
+      }
+    }
+
+    // 2. Thế chấp các mảnh đất chưa thế chấp
+    if (player.money < neededAmount) {
+      const ownedTiles = SAIGON_BOARD_DATA.filter((t) => {
+        const prop = this.state.properties[t.id];
+        return prop && prop.owner === player.id && !prop.isMortgaged;
+      });
+
+      // Sắp xếp: Ưu tiên ô đất lẻ loi trước, tránh phá vỡ trọn bộ màu
+      ownedTiles.sort((a, b) => {
+        const aFull = GameRules.hasFullColorSet(
+          a.group,
+          player.id,
+          this.state.properties,
+        );
+        const bFull = GameRules.hasFullColorSet(
+          b.group,
+          player.id,
+          this.state.properties,
+        );
+        if (aFull && !bFull) return 1;
+        if (!aFull && bFull) return -1;
+        return (a.price || 0) - (b.price || 0);
+      });
+
+      for (const tile of ownedTiles) {
+        const check = GameRules.canMortgage(
+          tile,
+          player,
+          this.state.properties,
+        );
+        if (check.canMortgage) {
+          this.state.properties[tile.id].isMortgaged = true;
+          player.money += check.mortgageValue;
+          recovered += check.mortgageValue;
+          mortgagedTiles.push({ tile, mortgageValue: check.mortgageValue });
+          if (player.money >= neededAmount) break;
+        }
+      }
+    }
+
+    return { recovered, soldHouses, mortgagedTiles };
   }
 
   sendToJail(player) {
