@@ -522,17 +522,6 @@ function initGameApp() {
       };
     }
 
-    // Click khay thẻ Cơ Hội / Khí Vận ở sidebar phải để xem bảng thẻ bài
-    document.querySelectorAll(".special-deck-card").forEach((deckEl) => {
-      deckEl.style.cursor = "pointer";
-      deckEl.title = "Nhấn để xem chi tiết & lịch sử thẻ";
-      deckEl.onclick = () => {
-        const isChance = deckEl.classList.contains("chance");
-        const type = isChance ? "chance" : "chest";
-        sound.playCardDraw();
-        cardDeckModal.show(type, engine.state);
-      };
-    });
 
     updateDeckCounts();
 

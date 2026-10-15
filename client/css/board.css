@@ -1128,33 +1128,6 @@
    DICE & CONTROLS 3D - Bảng Điều Khiển Xúc Xắc 3D & Animation Bước Nhảy
    ========================================================================== */
 
-.game-controls-container {
-  width: 100%;
-  max-width: 680px;
-  display: flex;
-  justify-content: center;
-}
-
-.dice-panel {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 10px 22px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow:
-    0 8px 24px rgba(117, 68, 34, 0.15),
-    0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-/* Khu vực 2 viên xúc xắc */
-.dice-wrapper {
-  display: flex;
-  gap: 14px;
-  perspective: 600px;
-}
 
 /* Viên xúc xắc 3D */
 .die {
@@ -1291,56 +1264,6 @@
   transform: var(--die-scale, scale(1)) rotateX(90deg) rotateY(0deg);
 }
 
-/* Nút bấm Tung Xúc Xắc */
-.btn-roll {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #ff7a00 0%, #e65100 100%);
-  color: #ffffff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 14px;
-  font-family: var(--font-ui);
-  font-size: 0.95rem;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  box-shadow:
-    0 4px 12px rgba(230, 81, 0, 0.35),
-    inset 0 1px 2px rgba(255, 255, 255, 0.4);
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
-  white-space: nowrap;
-}
-
-.btn-roll:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 6px 18px rgba(230, 81, 0, 0.45);
-}
-
-.btn-roll:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.btn-roll:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-icon {
-  font-size: 1.25rem;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-}
-
-/* Thông điệp kết quả */
-.roll-message {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #2c3e50;
-  max-width: 320px;
-  line-height: 1.25;
-}
 
 /* ================= ANIMATION BƯỚC NHẢY (HOPPING BOUNCE) ================= */
 .token-hopping {
@@ -1394,21 +1317,6 @@
   transform: translate(-50%, -50%) scale(1);
 }
 
-@media (max-width: 600px) {
-  .dice-panel {
-    flex-direction: column;
-    padding: 8px 14px;
-    gap: 8px;
-  }
-  .roll-message {
-    text-align: center;
-    font-size: 0.8rem;
-  }
-  .btn-roll {
-    padding: 8px 16px;
-    font-size: 0.85rem;
-  }
-}
 
 /* -------------------------------------------------------------
  * BUILDINGS: NHÀ XANH & KHÁCH SẠN ĐỎ 3D MINIATURE

@@ -498,6 +498,18 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+.badge-next-turn {
+  background: #2471a3;
+  color: #fff;
+  border: 1px solid #7fb3d5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.player-card.next-turn-player {
+  border-color: #5dade2 !important;
+  box-shadow: 0 2px 8px rgba(41, 128, 185, 0.15);
+}
+
 .badge-jail {
   background: #ef4444;
   color: #fff;

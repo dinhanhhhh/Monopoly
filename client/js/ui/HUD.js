@@ -20,9 +20,10 @@ export class HUD {
     this.lastState = null;
   }
 
-  renderPlayerCard(p, origIdx, rankIdx, state) {
+  renderPlayerCard(p, origIdx, rankIdx, state, nextTurnIndex = -1) {
     const { currentTurnIndex, properties } = state;
     const isActive = origIdx === currentTurnIndex;
+    const isNext = origIdx === nextTurnIndex && !p.isBankrupt && !isActive;
     const netWorth = GameRules.calculateNetWorth(p, properties);
     const ownedTiles = SAIGON_BOARD_DATA.filter(
       (tile) => properties[tile.id]?.owner === p.id,
@@ -92,12 +93,14 @@ export class HUD {
       statusBadge = '<span class="player-badge badge-jail">🚨 Ở tù</span>';
     } else if (isActive) {
       statusBadge = '<span class="player-badge badge-playing">🎯 Lượt đi</span>';
+    } else if (isNext) {
+      statusBadge = '<span class="player-badge badge-next-turn">⏭️ Lượt tới</span>';
     } else if (isLowCash) {
       statusBadge = '<span class="player-badge badge-low-cash">⚠️ Cạn tiền</span>';
     }
 
     return `
-      <div id="hud-player-${p.id}" class="player-card lb-card ${p.isBankrupt ? "is-bankrupt" : ""} ${isActive ? "active-player" : ""} ${isLowCash ? "is-low-cash" : ""} ${p.isBot ? "is-bot" : ""}" data-player-id="${p.id}" data-rank="${rankIdx + 1}">
+      <div id="hud-player-${p.id}" class="player-card lb-card ${p.isBankrupt ? "is-bankrupt" : ""} ${isActive ? "active-player" : ""} ${isNext ? "next-turn-player" : ""} ${isLowCash ? "is-low-cash" : ""} ${p.isBot ? "is-bot" : ""}" data-player-id="${p.id}" data-rank="${rankIdx + 1}">
         ${statusBadge}
 
         <!-- Cụm thứ hạng Leaderboard -->
@@ -173,7 +176,15 @@ export class HUD {
       this.onPlayerClick = onPlayerClick;
     }
 
-    const { players, properties = {} } = state;
+    const { players, properties = {}, currentTurnIndex = 0 } = state;
+
+    // Tìm người chơi tiếp theo theo vòng tua (bỏ qua người đã phá sản)
+    let nextTurnIndex = (currentTurnIndex + 1) % players.length;
+    let attempts = 0;
+    while (players[nextTurnIndex]?.isBankrupt && attempts < players.length) {
+      nextTurnIndex = (nextTurnIndex + 1) % players.length;
+      attempts++;
+    }
 
     // Sắp xếp tự động 4 người chơi theo thứ tự Net Worth giảm dần để thành Leaderboard
     const rankedPlayers = players.map((p, origIdx) => {
@@ -189,7 +200,7 @@ export class HUD {
 
     const cardsHtml = rankedPlayers
       .map((item, rankIdx) =>
-        this.renderPlayerCard(item.p, item.origIdx, rankIdx, state),
+        this.renderPlayerCard(item.p, item.origIdx, rankIdx, state, nextTurnIndex),
       )
       .join("");
 

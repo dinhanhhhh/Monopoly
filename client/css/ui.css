@@ -4,56 +4,7 @@
 
 /* HUD người chơi được định nghĩa chuẩn xác trong main.css */
 
-/* Hộp thẻ bài đặc biệt cột phải */
-.special-decks-box {
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 12px;
-  padding: 8px 10px;
-  border: 2px solid #e2e8f0;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
-}
 
-.decks-box-title {
-  font-size: 0.68rem;
-  font-weight: 900;
-  color: #475569;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.decks-box-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.special-deck-card {
-  border-radius: 8px;
-  padding: 8px 6px;
-  text-align: center;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.special-deck-card.chance {
-  background: linear-gradient(135deg, #ff9f1c, #e65100);
-}
-
-.special-deck-card.chest {
-  background: linear-gradient(135deg, #2471a3, #154360);
-}
-
-.s-deck-badge {
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-}
-
-.s-deck-count {
-  font-size: 0.6rem;
-  opacity: 0.9;
-  margin-top: 2px;
-}
 
 /* ================= HUY HIỆU CHỦ SỞ HỮU ĐƯỢC ĐỊNH NGHĨA TRONG BOARD.CSS ================= */
 
