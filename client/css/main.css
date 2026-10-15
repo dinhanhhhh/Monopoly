@@ -909,7 +909,7 @@ body {
   border-color: rgba(231, 76, 60, 0.4);
 }
 
-/* ================= 5. CỘT PHẢI: TOÀN BỘ CHO KHAY THẺ & NHẬT KÝ ================= */
+/* ================= 5. CỘT PHẢI: TOÀN BỘ CHO NHẬT KÝ TRẬN ĐẤU ================= */
 .arena-sidebar-right {
   display: flex;
   flex-direction: column;
@@ -917,15 +917,7 @@ body {
   width: 260px;
   min-height: 0;
   max-height: 100%;
-  gap: 6px;
   overflow: hidden;
-}
-
-.sidebar-cards-widget {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  flex-shrink: 0;
 }
 
 .recent-log-container {
