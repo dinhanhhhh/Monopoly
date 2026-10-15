@@ -2970,3 +2970,159 @@
   line-height: 1.4;
   text-align: center;
 }
+
+/* ==========================================================================
+   BONG BÓNG CẢM XÚC QUÂN CỜ (TOKEN EMOTE BUBBLE)
+   ========================================================================== */
+.token-emote-bubble {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: #ffffff;
+  border: 2px solid #3b2a1a;
+  border-radius: 14px;
+  padding: 4px 8px;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.28),
+    0 0 0 2px rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+  animation:
+    emotePopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+    emoteFloat 1.8s ease-in-out infinite alternate;
+}
+
+.token-emote-bubble.fade-out {
+  animation: emoteFadeOut 0.4s ease forwards;
+}
+
+.emote-glyph {
+  font-size: 1.45rem;
+  line-height: 1;
+  display: inline-block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.token-emote-bubble .emote-tail {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #3b2a1a;
+}
+
+.token-emote-bubble .emote-tail::after {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: -4px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #ffffff;
+}
+
+/* ==========================================================================
+   BONG BÓNG CẢM XÚC TRÊN THẺ HUD NGƯỜI CHƠI (HUD EMOTE BUBBLE)
+   ========================================================================== */
+.hud-emote-bubble {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ffffff;
+  border: 2px solid #e67e22;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 25;
+  animation:
+    hudEmotePopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+    hudEmoteBounce 1.5s ease-in-out infinite alternate;
+}
+
+.hud-emote-bubble.fade-out {
+  animation: hudEmoteFadeOut 0.4s ease forwards;
+}
+
+@keyframes hudEmotePopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes hudEmoteBounce {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-4px) scale(1.08);
+  }
+}
+
+@keyframes hudEmoteFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes emotePopIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.3);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -115%) scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -105%) scale(1);
+  }
+}
+
+@keyframes emoteFloat {
+  0% {
+    transform: translate(-50%, -105%);
+  }
+  100% {
+    transform: translate(-50%, -115%);
+  }
+}
+
+@keyframes emoteFadeOut {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -105%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -140%) scale(0.6);
+  }
+}
+

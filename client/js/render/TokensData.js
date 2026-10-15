@@ -1,8 +1,96 @@
 /**
- * TokensData.js - Bộ 6 biểu tượng quân cờ SVG chuẩn bản sắc Sài Gòn
+ * TokensData.js - Bộ biểu tượng quân cờ SVG chuẩn bản sắc văn hóa Sài Gòn
  */
 
 export const GAME_TOKENS = [
+  {
+    id: "token_coffee",
+    name: "Cà Phê Sữa Đá",
+    color: "#795548",
+    bgColor: "#EFEBE9",
+    svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ống hút cắm nghiêng -->
+      <path d="M26 4L34 2L29 20" stroke="#E53935" stroke-width="3" stroke-linecap="round"/>
+      <path d="M26 4L34 2L29 20" stroke="#FFFFFF" stroke-width="1" stroke-dasharray="2 3"/>
+      <!-- Ly thủy tinh cao -->
+      <path d="M14 14L17 42C17.2 43.5 18.5 44 20 44H28C29.5 44 30.8 43.5 31 42L34 14H14Z" fill="rgba(255,255,255,0.7)" stroke="#4E342E" stroke-width="2"/>
+      <!-- Lớp sữa đặc béo ngậy ở đáy ly -->
+      <path d="M17 35L17.5 42C17.6 43 18.5 44 20 44H28C29.5 44 30.4 43 30.5 42L31 35H17Z" fill="#FFF8E1"/>
+      <!-- Lớp cà phê nâu đậm sóng sánh ở giữa -->
+      <path d="M15.5 22L17 35H31L32.5 22H15.5Z" fill="#5D4037"/>
+      <!-- Đá viên trong veo nổi phía trên -->
+      <rect x="18" y="20" width="6" height="6" rx="1.5" fill="#E0F7FA" stroke="#B2EBF2" stroke-width="1"/>
+      <rect x="24" y="24" width="5.5" height="5.5" rx="1.5" fill="#E0F7FA" stroke="#B2EBF2" stroke-width="1"/>
+      <rect x="21" y="28" width="5" height="5" rx="1" fill="#E0F7FA" stroke="#B2EBF2" stroke-width="1"/>
+      <!-- Bọt sữa / Cà phê trên miệng ly -->
+      <ellipse cx="24" cy="14" rx="10" ry="3.5" fill="#8D6E63" stroke="#4E342E" stroke-width="1.5"/>
+      <ellipse cx="21" cy="13.5" rx="2" ry="1" fill="#D7CCC8"/>
+    </svg>`,
+  },
+  {
+    id: "token_banhmi",
+    name: "Bánh Mì Sài Gòn",
+    color: "#D97706",
+    bgColor: "#FEF3C7",
+    svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ổ bánh mì vàng giòn rụm -->
+      <path d="M6 24C6 15 15 13 24 13C33 13 42 15 42 24C42 33 33 35 24 35C15 35 6 33 6 24Z" fill="#F59E0B" stroke="#B45309" stroke-width="2.2"/>
+      <!-- Lớp vỏ nướng giòn đậm màu -->
+      <path d="M9 23C11 17 17 15 24 15C31 15 37 17 39 23C37 30 31 33 24 33C17 33 11 30 9 23Z" fill="#D97706"/>
+      <!-- Vết rạch giòn hé lộ ruột bánh mì xốp mềm -->
+      <path d="M13 20C15 18 19 23 17 26" stroke="#FEF3C7" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M22 19C24 17 28 24 26 27" stroke="#FEF3C7" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M31 19C33 17 37 23 35 26" stroke="#FEF3C7" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Cọng ngò xanh & lát ớt hé lộ -->
+      <circle cx="21" cy="22" r="1.8" fill="#10B981"/>
+      <circle cx="29" cy="23" r="1.8" fill="#EF4444"/>
+    </svg>`,
+  },
+  {
+    id: "token_hutieu",
+    name: "Xe Hủ Tiếu Gõ",
+    color: "#E11D48",
+    bgColor: "#FFE4E6",
+    svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Mái che xe đẩy -->
+      <path d="M8 12L24 8L40 12L38 15H10L8 12Z" fill="#E11D48" stroke="#9F1239" stroke-width="1.8"/>
+      <!-- Trụ chống mái -->
+      <line x1="12" y1="15" x2="12" y2="23" stroke="#475569" stroke-width="2"/>
+      <line x1="36" y1="15" x2="36" y2="23" stroke="#475569" stroke-width="2"/>
+      <!-- Thùng xe đẩy inox -->
+      <rect x="10" y="22" width="28" height="14" rx="2" fill="#E2E8F0" stroke="#334155" stroke-width="2"/>
+      <!-- Tủ kính hủ tiếu -->
+      <rect x="12" y="24" width="12" height="10" rx="1" fill="#BAE6FD" stroke="#0284C7" stroke-width="1"/>
+      <!-- Nồi nước lèo bốc khói -->
+      <ellipse cx="31" cy="25" rx="5" ry="2.5" fill="#F59E0B" stroke="#B45309" stroke-width="1.2"/>
+      <path d="M29 22C28 20 30 18 29 16M33 22C32 20 34 18 33 16" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Bánh xe đẩy lớn -->
+      <circle cx="16" cy="38" r="5" fill="#334155" stroke="#FFFFFF" stroke-width="1.5"/>
+      <circle cx="16" cy="38" r="2" fill="#94A3B8"/>
+      <circle cx="32" cy="38" r="5" fill="#334155" stroke="#FFFFFF" stroke-width="1.5"/>
+      <circle cx="32" cy="38" r="2" fill="#94A3B8"/>
+      <!-- Cặp thanh tre gõ lốc cốc -->
+      <line x1="38" y1="28" x2="43" y2="34" stroke="#D97706" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="41" y1="28" x2="44" y2="36" stroke="#B45309" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>`,
+  },
+  {
+    id: "token_nonla",
+    name: "Nón Lá",
+    color: "#059669",
+    bgColor: "#D1FAE5",
+    svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Nón lá chóp tròn duyên dáng -->
+      <path d="M24 8L6 34C6 34 15 39 24 39C33 39 42 34 42 34L24 8Z" fill="#FBBF24" stroke="#B45309" stroke-width="2" stroke-linejoin="round"/>
+      <!-- Các nan vành nón lá tre -->
+      <path d="M24 8V39" stroke="#D97706" stroke-width="1.5" stroke-dasharray="2 2"/>
+      <path d="M15 21C18 22.5 21 23 24 23C27 23 30 22.5 33 21" stroke="#B45309" stroke-width="1.4"/>
+      <path d="M10 28C14.5 30.5 19 31 24 31C29 31 33.5 30.5 38 28" stroke="#B45309" stroke-width="1.4"/>
+      <!-- Quai nón lụa mềm mại màu hồng ngọc -->
+      <path d="M12 34C15 42 20 44 24 44C28 44 33 42 36 34" stroke="#EC4899" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="24" cy="7.5" r="2" fill="#B45309"/>
+    </svg>`,
+  },
   {
     id: "token_motorbike",
     name: "Xe Máy Vespa",
@@ -21,19 +109,6 @@ export const GAME_TOKENS = [
     </svg>`,
   },
   {
-    id: "token_nonla",
-    name: "Nón Lá",
-    color: "#D97706",
-    bgColor: "#FEF3C7",
-    svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M24 10L6 34C6 34 16 38 24 38C32 38 42 34 42 34L24 10Z" fill="#F59E0B" stroke="#B45309" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M24 10V38" stroke="#D97706" stroke-width="1.5" stroke-dasharray="2 2"/>
-      <path d="M15 22C18 23.5 21 24 24 24C27 24 30 23.5 33 22" stroke="#B45309" stroke-width="1.5"/>
-      <path d="M10 29C15 31.5 19.5 32 24 32C28.5 32 33 31.5 38 29" stroke="#B45309" stroke-width="1.5"/>
-      <circle cx="24" cy="9" r="2" fill="#D97706"/>
-    </svg>`,
-  },
-  {
     id: "token_xichlo",
     name: "Xích Lô",
     color: "#2563EB",
@@ -49,41 +124,16 @@ export const GAME_TOKENS = [
     </svg>`,
   },
   {
-    id: "token_banhmi",
-    name: "Bánh Mì",
-    color: "#BE185D",
-    bgColor: "#FDF2F8",
-    svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 24C8 16 16 14 24 14C32 14 40 16 40 24C40 32 32 34 24 34C16 34 8 32 8 24Z" fill="#F472B6" stroke="#9D174D" stroke-width="2"/>
-      <path d="M11 23C13 18 19 16 24 16C29 16 35 18 37 23C35 29 29 32 24 32C19 32 13 29 11 23Z" fill="#DB2777"/>
-      <path d="M14 20L20 27M21 19L27 28M28 19L34 27" stroke="#FDFEFE" stroke-width="2" stroke-linecap="round"/>
-    </svg>`,
-  },
-  {
-    id: "token_coffee",
-    name: "Cà Phê Phin",
-    color: "#6E2C00",
-    bgColor: "#EDBB99",
-    svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14 22L16 38H32L34 22H14Z" fill="#FDFEFE" stroke="#5D6D7E" stroke-width="2"/>
-      <path d="M16 28H32V38H16V28Z" fill="#6E2C00"/>
-      <rect x="12" y="18" width="24" height="4" rx="2" fill="#BDC3C7" stroke="#7F8C8D" stroke-width="1.5"/>
-      <rect x="16" y="10" width="16" height="8" rx="1" fill="#95A5A6" stroke="#7F8C8D" stroke-width="1.5"/>
-      <circle cx="24" cy="9" r="1.5" fill="#E74C3C"/>
-      <path d="M34 26C37 26 38 29 38 31C38 33 36 34 33 34" stroke="#BDC3C7" stroke-width="2" stroke-linecap="round"/>
-    </svg>`,
-  },
-  {
     id: "token_boat",
     name: "Thuyền Buồm",
-    color: "#16A085",
-    bgColor: "#E8F8F5",
+    color: "#0891B2",
+    bgColor: "#ECFEFF",
     svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 32C12 36 36 36 38 32H10Z" fill="#E67E22" stroke="#A04000" stroke-width="2"/>
       <path d="M23 10V31" stroke="#2C3E50" stroke-width="2.5"/>
-      <path d="M24 12L36 27H24V12Z" fill="#1ABC9C"/>
-      <path d="M22 15L12 28H22V15Z" fill="#A3E4D7"/>
-      <path d="M6 38C12 40 18 36 24 38C30 40 36 36 42 38" stroke="#3498DB" stroke-width="2" stroke-linecap="round"/>
+      <path d="M24 12L36 27H24V12Z" fill="#0891B2"/>
+      <path d="M22 15L12 28H22V15Z" fill="#67E8F9"/>
+      <path d="M6 38C12 40 18 36 24 38C30 40 36 36 42 38" stroke="#0284C7" stroke-width="2" stroke-linecap="round"/>
     </svg>`,
   },
 ];

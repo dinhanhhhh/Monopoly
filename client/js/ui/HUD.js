@@ -177,4 +177,26 @@ export class HUD {
       cardEl.addEventListener("touchend", clearHighlight, { passive: true });
     });
   }
+
+  /**
+   * Hiển thị bong bóng cảm xúc (Emotes) trên thẻ người chơi ở HUD Cột Trái
+   */
+  showEmote(playerId, emoji, duration = 2600) {
+    const cardEl = document.getElementById(`hud-player-${playerId}`);
+    if (!cardEl) return;
+    const avatarBox = cardEl.querySelector(".player-avatar-box") || cardEl;
+
+    const existingOld = avatarBox.querySelector(".hud-emote-bubble");
+    if (existingOld) existingOld.remove();
+
+    const bubble = document.createElement("div");
+    bubble.className = "hud-emote-bubble";
+    bubble.innerHTML = `<span class="emote-glyph">${emoji}</span>`;
+    avatarBox.appendChild(bubble);
+
+    setTimeout(() => {
+      bubble.classList.add("fade-out");
+      setTimeout(() => bubble.remove(), 420);
+    }, duration);
+  }
 }

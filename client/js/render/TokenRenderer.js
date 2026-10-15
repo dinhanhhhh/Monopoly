@@ -114,4 +114,45 @@ export class TokenRenderer {
       callbacks.onComplete(player, player.position);
     }
   }
+
+  /**
+   * Hiển thị bong bóng cảm xúc (Emotes) động nổi lên ngay trên quân cờ
+   * @param {string|number} playerId - ID người chơi
+   * @param {string} emoji - Icon cảm xúc (😭, 🤑, 😡, 😎,...)
+   * @param {number} duration - Thời gian hiển thị (ms)
+   */
+  showEmote(playerId, emoji, duration = 2600) {
+    const tokenEl = document.getElementById(`player-token-${playerId}`);
+    if (!tokenEl || !this.board) return;
+
+    // Xóa bong bóng cũ của người chơi này nếu đang có
+    const existingOld = this.board.querySelector(
+      `.token-emote-bubble[data-player-id="${playerId}"]`,
+    );
+    if (existingOld) existingOld.remove();
+
+    const boardRect = this.board.getBoundingClientRect();
+    const tokenRect = tokenEl.getBoundingClientRect();
+
+    // Tính tọa độ tâm phía trên quân cờ so với board
+    const left = tokenRect.left - boardRect.left + tokenRect.width / 2;
+    const top = tokenRect.top - boardRect.top - 6;
+
+    const bubble = document.createElement("div");
+    bubble.className = "token-emote-bubble";
+    bubble.dataset.playerId = playerId;
+    bubble.style.left = `${left}px`;
+    bubble.style.top = `${top}px`;
+    bubble.innerHTML = `
+      <span class="emote-glyph">${emoji}</span>
+      <div class="emote-tail"></div>
+    `;
+
+    this.board.appendChild(bubble);
+
+    setTimeout(() => {
+      bubble.classList.add("fade-out");
+      setTimeout(() => bubble.remove(), 420);
+    }, duration);
+  }
 }

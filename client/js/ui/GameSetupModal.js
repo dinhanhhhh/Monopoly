@@ -40,16 +40,14 @@ export class GameSetupModal {
     }
 
     const render = () => {
-      const tokensHtml = GAME_TOKENS.slice(0, 4)
-        .map(
-          (t, idx) => `
+      const tokensHtml = GAME_TOKENS.map(
+        (t, idx) => `
           <div class="token-choice-item ${idx === selectedTokenIndex ? "selected" : ""}" data-idx="${idx}">
             <div class="token-choice-icon" style="background: ${t.bgColor}">${t.svg}</div>
             <span class="token-choice-name">${t.name}</span>
           </div>
         `,
-        )
-        .join("");
+      ).join("");
 
       let resumeBannerHtml = "";
       if (savedData) {

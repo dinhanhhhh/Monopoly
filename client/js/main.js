@@ -239,6 +239,21 @@ function initGameApp() {
     }
   }
 
+  /**
+   * Kích hoạt bong bóng biểu cảm động (Emote bubble) đồng thời trên quân cờ & HUD avatar
+   * @param {string} playerId
+   * @param {string} emoji
+   * @param {number} duration
+   */
+  function triggerPlayerEmote(playerId, emoji, duration = 2600) {
+    if (tokenRenderer && tokenRenderer.showEmote) {
+      tokenRenderer.showEmote(playerId, emoji, duration);
+    }
+    if (hud && hud.showEmote) {
+      hud.showEmote(playerId, emoji, duration);
+    }
+  }
+
   function updateStandingBanner(tile, statusText = "") {
     if (!tile) return;
     if (standingNameEl) standingNameEl.textContent = tile.name;
@@ -320,6 +335,7 @@ function initGameApp() {
           hud.update(engine.state, handleShowPortfolio);
           sound.playBuildHouse();
           showFloatingCash(currentPlayer.id, -tile.houseCost);
+          triggerPlayerEmote(currentPlayer.id, "😎", 2600);
           addGameLog(res.message);
           showToast(res.message);
           autoSaveGame();
@@ -510,6 +526,7 @@ function initGameApp() {
           showJailOptions,
           showGameOverModal,
           auctionModal,
+          triggerPlayerEmote,
         });
       })
       .catch(() => {
@@ -660,12 +677,14 @@ function initGameApp() {
       hud.update(engine.state);
       addGameLog(rollResult.message);
       showToast(rollResult.message);
+      triggerPlayerEmote(currentPlayer.id, "😭", 3000);
       if (rollResult.event === "JAIL_THREE_DOUBLES") sound.playJail();
       finishTurn(isDoubles);
       return;
     }
 
     if (rollResult.event === "JAIL_FREE_DOUBLES") {
+      triggerPlayerEmote(currentPlayer.id, "😎", 2600);
       achievementManager.check(engine.state, {
         event: "JAIL_DOUBLES_ESCAPE",
         playerId: currentPlayer.id,
@@ -686,6 +705,7 @@ function initGameApp() {
           hud.update(engine.state);
           sound.playCoin();
           showFloatingCash(p.id, 2_000_000);
+          triggerPlayerEmote(p.id, "🥳", 2400);
           sound.speakSaigon("Lãnh lương hai triệu nha!");
           addGameLog(
             `🎉 ${p.name} qua Khởi Hành: ${formatVND(2_000_000, true)}!`,
@@ -782,6 +802,7 @@ function initGameApp() {
           hud.update(engine.state);
           sound.playSuccess();
           showFloatingCash(p.id, -landResult.tile.price);
+          triggerPlayerEmote(p.id, "😎", 2600);
           addGameLog(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
           showToast(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
           achievementManager.check(engine.state);
@@ -807,6 +828,7 @@ function initGameApp() {
               hud.update(engine.state);
               sound.playSuccess();
               showFloatingCash(p.id, -currentTile.price);
+              triggerPlayerEmote(p.id, "😎", 2600);
               addGameLog(buyRes.message);
               showToast(buyRes.message);
               achievementManager.check(engine.state);
@@ -839,6 +861,7 @@ function initGameApp() {
               hud.update(engine.state);
               sound.playSuccess();
               showFloatingCash(p.id, -landResult.tile.price);
+              triggerPlayerEmote(p.id, "😎", 2600);
               addGameLog(buyRes.message);
               showToast(buyRes.message);
               achievementManager.check(engine.state);
@@ -863,7 +886,10 @@ function initGameApp() {
       showFloatingCash(p.id, -landResult.rent);
       if (landResult.owner) {
         showFloatingCash(landResult.owner.id, landResult.rent);
+        triggerPlayerEmote(landResult.owner.id, "🤑", 2600);
       }
+      const rentEmote = landResult.rent >= 3_000_000 ? "😡" : "😭";
+      triggerPlayerEmote(p.id, rentEmote, 2800);
       if (landResult.rent >= 3_000_000) {
         sound.speakSaigon("Trả tiền mệt xỉu luôn nghen!");
       }
@@ -881,6 +907,12 @@ function initGameApp() {
       sound.playSuccess();
       sound.playCoin();
       showFloatingCash(p.id, landResult.amount);
+      triggerPlayerEmote(p.id, "🤑", 3200);
+      engine.state.players.forEach((other) => {
+        if (other.id !== p.id && !other.isBankrupt) {
+          triggerPlayerEmote(other.id, "😭", 2500);
+        }
+      });
       sound.speakSaigon("Lụm trọn hũ vàng rồi nghen!");
       addGameLog(landResult.message);
       showToast(landResult.message);
@@ -899,6 +931,7 @@ function initGameApp() {
       sound.playCoin();
       const taxAmt = landResult.taxAmount || currentTile.amount || 1_000_000;
       showFloatingCash(p.id, -taxAmt);
+      triggerPlayerEmote(p.id, "😭", 2400);
       addGameLog(landResult.message);
       showToast(landResult.message);
       setTimeout(() => finishTurn(isDoubles), 1400);
@@ -908,6 +941,7 @@ function initGameApp() {
       updateStandingBanner(currentTile, "🚨 Bị bắt vào buồng giam");
       sound.playJail();
       sound.speakSaigon("Vô bốt ngồi nghen!");
+      triggerPlayerEmote(p.id, "😭", 3000);
       tokenRenderer.render(engine.state.players);
       addGameLog(landResult.message);
       showToast(landResult.message);
@@ -924,9 +958,11 @@ function initGameApp() {
       hud.update(engine.state);
       sound.playJail();
       sound.speakSaigon("Cháy túi rồi bà con ơi!");
+      triggerPlayerEmote(landResult.bankruptPlayer.id, "😭", 3500);
       addGameLog(landResult.message);
       showToast(landResult.message);
       if (landResult.winner) {
+        triggerPlayerEmote(landResult.winner.id, "😎", 4000);
         achievementManager.check(engine.state, {
           event: "GAME_WON",
           winnerId: landResult.winner.id,
@@ -964,6 +1000,9 @@ function initGameApp() {
           engine.state.players,
         );
         hud.update(engine.state);
+        if (auctionEndRes.winner) {
+          triggerPlayerEmote(auctionEndRes.winner.id, "😎", 2800);
+        }
         addGameLog(auctionEndRes.message);
         showToast(auctionEndRes.message);
         finishTurn(isDoubles);
@@ -996,6 +1035,9 @@ function initGameApp() {
                   engine.state.players,
                 );
                 hud.update(engine.state);
+                if (bidRes.winner) {
+                  triggerPlayerEmote(bidRes.winner.id, "😎", 2800);
+                }
                 addGameLog(bidRes.message);
                 showToast(bidRes.message);
                 finishTurn(isDoubles);
@@ -1017,6 +1059,9 @@ function initGameApp() {
                   engine.state.players,
                 );
                 hud.update(engine.state);
+                if (passRes.winner) {
+                  triggerPlayerEmote(passRes.winner.id, "😎", 2800);
+                }
                 addGameLog(passRes.message);
                 showToast(passRes.message);
                 finishTurn(isDoubles);
@@ -1050,6 +1095,7 @@ function initGameApp() {
             engine.state.players,
           );
           sound.playBuildHouse();
+          triggerPlayerEmote(justPlayed.id, "😎", 2400);
           addGameLog(
             `🏗️ ${justPlayed.name} nâng cấp nhà tại ${buildRes.tile.name}!`,
           );
