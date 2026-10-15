@@ -43,6 +43,52 @@ export class MatchRecapModal {
       }
     });
 
+    // Tính toán bảng tổng sắp thứ hạng các người chơi
+    const rankBadges = [
+      { icon: "🥇", label: "Quán Quân" },
+      { icon: "🥈", label: "Á Quân" },
+      { icon: "🥉", label: "Hạng 3" },
+      { icon: "4️⃣", label: "Hạng 4" },
+    ];
+
+    const rankedPlayers = [...players]
+      .map((p) => {
+        const isWinner = p.id === winner.id;
+        const netWorth = GameRules.calculateNetWorth(p, properties);
+        return { ...p, isWinner, netWorth };
+      })
+      .sort((a, b) => {
+        if (a.isWinner) return -1;
+        if (b.isWinner) return 1;
+        if (a.isBankrupt && !b.isBankrupt) return 1;
+        if (!a.isBankrupt && b.isBankrupt) return -1;
+        return b.netWorth - a.netWorth;
+      });
+
+    const standingsHtml = rankedPlayers
+      .map((p, idx) => {
+        const badge = rankBadges[idx] || { icon: `${idx + 1}` };
+        const statusHtml = p.isWinner
+          ? `<strong class="standing-val winner-val">${formatVND(p.netWorth)}</strong>`
+          : p.isBankrupt
+          ? `<span class="standing-bankrupt-tag">Đã phá sản</span>`
+          : `<strong class="standing-val">${formatVND(p.netWorth)}</strong>`;
+
+        return `
+          <div class="standing-row ${p.isWinner ? "is-winner-row" : ""}">
+            <div class="standing-rank-badge">${badge.icon}</div>
+            <div class="standing-player-info">
+              <span class="standing-player-name">${p.name}</span>
+              ${p.id === 0 ? '<span class="you-tag">(Tôi)</span>' : ""}
+            </div>
+            <div class="standing-player-status">
+              ${statusHtml}
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
     const modalHtml = `
       <div class="modal-backdrop fade-in" id="recap-backdrop">
         <div class="recap-modal-card pop-in">
@@ -64,8 +110,10 @@ export class MatchRecapModal {
             <!-- Cột Thao Tác Phải -->
             <div class="recap-actions-sidebar">
               <div class="recap-winner-summary">
-                <div class="winner-crown-big">👑</div>
-                <div class="winner-label">QUÁN QUÂN VÁN ĐẤU</div>
+                <div class="winner-crown-row">
+                  <span class="winner-crown-icon">👑</span>
+                  <span class="winner-label">QUÁN QUÂN VÁN ĐẤU</span>
+                </div>
                 <h2 class="winner-name-display">${winner.name}</h2>
                 <div class="winner-fortune-pill">
                   <span>Tài sản ròng:</span>
@@ -73,41 +121,20 @@ export class MatchRecapModal {
                 </div>
               </div>
 
-              <div class="recap-metrics-list">
-                <div class="recap-metric-item">
-                  <span class="m-icon">⏱️</span>
-                  <div class="m-content">
-                    <span class="m-label">Thời gian thi đấu</span>
-                    <strong class="m-val">${timeFormatted}</strong>
-                  </div>
+              <div class="recap-standings-card">
+                <div class="standings-header">
+                  <span class="standings-title">🏆 BẢNG TỔNG SẮP CHUNG CUỘC</span>
+                  <span class="standings-sub">${players.length} người chơi</span>
                 </div>
-                <div class="recap-metric-item">
-                  <span class="m-icon">🎯</span>
-                  <div class="m-content">
-                    <span class="m-label">Tổng số lượt</span>
-                    <strong class="m-val">${turnCount} lượt</strong>
-                  </div>
-                </div>
-                <div class="recap-metric-item">
-                  <span class="m-icon">🏘️</span>
-                  <div class="m-content">
-                    <span class="m-label">Bất động sản chiếm lĩnh</span>
-                    <strong class="m-val">${winnerPropsCount} / 28 ô đất</strong>
-                  </div>
-                </div>
-                <div class="recap-metric-item">
-                  <span class="m-icon">🏨</span>
-                  <div class="m-content">
-                    <span class="m-label">Công trình xây dựng</span>
-                    <strong class="m-val">${winnerHousesCount} Nhà • ${winnerHotelsCount} Khách sạn</strong>
-                  </div>
+                <div class="standings-list">
+                  ${standingsHtml}
                 </div>
               </div>
 
               <div class="recap-buttons-cluster">
                 <button id="btn-download-recap-png" class="btn-recap-action btn-download-png">
                   <span class="btn-icon">📥</span>
-                  <span>TẢI ẢNH KẾT QUẢ (PNG)</span>
+                  <span>TẢI POSTER KẾT QUẢ (PNG)</span>
                 </button>
                 <button id="btn-recap-start-new" class="btn-recap-action btn-new-game">
                   <span class="btn-icon">🔄</span>
@@ -116,7 +143,7 @@ export class MatchRecapModal {
               </div>
 
               <div class="recap-share-hint">
-                💡 Bạn có thể tải tấm poster chất lượng cao này về để lưu niệm hoặc chia sẻ chiến tích lên mạng xã hội!
+                💡 Poster bên trái đã tổng hợp đầy đủ số liệu & biểu đồ tài sản. Bạn có thể tải về làm kỷ niệm!
               </div>
             </div>
           </div>
@@ -153,6 +180,11 @@ export class MatchRecapModal {
     };
 
     if (btnClose) btnClose.onclick = closeModal;
+    if (backdrop) {
+      backdrop.onclick = (e) => {
+        if (e.target === backdrop) closeModal();
+      };
+    }
     if (btnStartNew) {
       btnStartNew.onclick = () => {
         closeModal();

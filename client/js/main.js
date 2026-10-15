@@ -23,6 +23,7 @@ import { PortfolioModal } from "./ui/PortfolioModal.js";
 import { CardDeckModal } from "./ui/CardDeckModal.js";
 import { AchievementManager } from "./ui/AchievementManager.js";
 import { MatchRecapModal } from "./ui/MatchRecapModal.js";
+import { VintageRadioWidget } from "./ui/VintageRadioWidget.js";
 import { sound } from "./audio/SoundEffects.js";
 import { getPlayerAvatar } from "./render/AvatarsData.js";
 
@@ -46,6 +47,7 @@ function initGameApp() {
   const cardDeckModal = new CardDeckModal();
   const achievementManager = new AchievementManager({ sound });
   const matchRecapModal = new MatchRecapModal();
+  const vintageRadio = new VintageRadioWidget();
 
   let netWorthHistory = [];
 
@@ -257,14 +259,26 @@ function initGameApp() {
   function updateStandingBanner(tile, statusText = "") {
     if (!tile) return;
     if (standingNameEl) standingNameEl.textContent = tile.name;
+    const dotEl = document.querySelector(".cockpit-tile-dot");
     if (standingPriceEl) {
       if (tile.id === 20) {
         standingPriceEl.textContent = `Hũ: ${formatMoney(engine?.state?.jackpotPot || 1_000_000)}`;
+        standingPriceEl.style.display = "inline";
+        if (dotEl) dotEl.style.display = "inline";
+      } else if (tile.price) {
+        standingPriceEl.textContent = formatMoney(tile.price);
+        standingPriceEl.style.display = "inline";
+        if (dotEl) dotEl.style.display = "inline";
       } else {
-        standingPriceEl.textContent = tile.price ? formatMoney(tile.price) : "";
+        standingPriceEl.textContent = "";
+        standingPriceEl.style.display = "none";
+        if (dotEl) dotEl.style.display = "none";
       }
     }
-    if (standingStatusEl) standingStatusEl.textContent = statusText;
+    if (standingStatusEl) {
+      standingStatusEl.textContent = "";
+      standingStatusEl.style.display = "none";
+    }
   }
 
   function updateDeckCounts() {
@@ -427,6 +441,9 @@ function initGameApp() {
       async ({ val1, val2, total, isDoubles }) => {
         await handleDiceRolled(val1, val2, total, isDoubles);
       },
+      () => {
+        sound.playDiceRoll();
+      },
     );
 
     // Nút Giao Dịch
@@ -455,9 +472,18 @@ function initGameApp() {
       btnSound.textContent = sound.isMuted ? "🔇" : "🔊";
       btnSound.onclick = () => {
         const isAudioOn = sound.toggleMute();
+        vintageRadio.synthesizer.setMute(!isAudioOn);
         btnSound.textContent = isAudioOn ? "🔊" : "🔇";
         showToast(isAudioOn ? "🔊 Đã bật âm thanh" : "🔇 Đã tắt âm thanh");
         if (isAudioOn) sound.playSaigonHorn();
+      };
+    }
+
+    // Nút Bật / Tắt Đài Radio Cát-xét Sài Gòn trên Header
+    const btnOpenRadio = document.getElementById("btn-open-radio");
+    if (btnOpenRadio) {
+      btnOpenRadio.onclick = () => {
+        vintageRadio.toggleOpen();
       };
     }
 
@@ -660,7 +686,6 @@ function initGameApp() {
    */
   async function handleDiceRolled(val1, val2, total, isDoubles) {
     const currentPlayer = engine.getCurrentPlayer();
-    sound.playDiceRoll();
     const rollResult = engine.applyAction({ type: "ROLL_DICE", val1, val2 });
 
     if (!rollResult.success) {

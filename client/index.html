@@ -210,6 +210,13 @@
             <span class="btn-tool-icon">🏆</span> Thành Tựu
           </button>
           <button
+            id="btn-open-radio"
+            class="btn-tool btn-radio-tool"
+            title="Mở Đài Radio Cát-xét Sài Gòn"
+          >
+            <span class="btn-tool-icon">📻</span> Đài Radio
+          </button>
+          <button
             id="btn-toggle-sound"
             class="btn-tool btn-sound-icon"
             title="Bật/Tắt âm thanh"
@@ -226,14 +233,23 @@
         </div>
       </header>
 
-      <!-- 2. Main 3-Column Arena (Bố Cục 3 Cột) -->
+      <!-- 2. Main 3-Column Arena (Bố Cục 3 Cột: Leaderboard | Bàn Cờ & Thanh Đáy Cockpit | Nhật Ký Trận Đấu) -->
       <div class="game-arena-grid">
-        <!-- Cột Trái: Danh Sách 4 Thẻ Người Chơi (Player Cards) -->
+        <!-- Cột Trái: Bảng Xếp Hạng Tài Sản Dọc (Leaderboard) -->
         <aside class="arena-sidebar arena-sidebar-left" id="sidebar-left">
-          <!-- Render bởi HUD.js: Cả 4 thẻ người chơi Bạn, Cô Ba Bọt, Bác Xích Lô, Tiệm Bánh -->
+          <div class="leaderboard-header">
+            <div class="leaderboard-title-box">
+              <span class="lb-trophy">🏆</span>
+              <span class="lb-title">BẢNG XẾP HẠNG</span>
+            </div>
+            <div class="leaderboard-sub">Tài sản ròng (Net Worth)</div>
+          </div>
+          <div class="leaderboard-list" id="leaderboard-list">
+            <!-- Render bởi HUD.js: 4 thẻ người chơi tự động xếp hạng từ 1 đến 4 -->
+          </div>
         </aside>
 
-        <!-- Cột Giữa: Sân Khấu Bàn Cờ Cổ Điển Hiện Đại -->
+        <!-- Cột Giữa: Sân Khấu Bàn Cờ & Thanh Đáy Cockpit -->
         <main class="arena-center">
           <!-- Bàn cờ 11x11 -->
           <div class="board-table-mat">
@@ -327,14 +343,20 @@
               </div>
             </div>
           </div>
-        </main>
 
-        <!-- Cột Phải: Bảng Thao Tác & Hộp Nhật Ký Trận Đấu -->
-        <aside class="arena-sidebar arena-sidebar-right" id="sidebar-right">
-          <!-- Khối Điều Khiển Lượt Chơi (Tung Xúc Xắc & Hành Động) -->
-          <div class="action-panel-container">
-            <!-- Cụm Tung Xúc Xắc Nổi Bật -->
-            <div class="dock-dice-cluster">
+          <!-- Thanh Đáy Cockpit (Bottom Dock - Bảng Điều Khiển Buồng Lái Hiện Đại Cổ Điển) -->
+          <div class="cockpit-bottom-dock" id="cockpit-bottom-dock">
+            <!-- Cánh Trái: Thông Tin Ô Đang Đứng Của Lượt Hiện Tại (Dòng Ngang Siêu Mỏng) -->
+            <div class="cockpit-section cockpit-tile-section" title="Vị trí ô cờ hiện tại">
+              <span class="standing-pin-icon">📍</span>
+              <span id="standing-tile-name" class="cockpit-tile-name">Khởi Hành</span>
+              <span class="cockpit-tile-dot">•</span>
+              <span id="standing-tile-price" class="cockpit-tile-price">+2.000.000 đ</span>
+              <span id="standing-tile-status" class="cockpit-tile-status" style="display:none">Nhận lương</span>
+            </div>
+
+            <!-- Khu Vực Trung Tâm: Cụm Xúc Xắc 3D & Nút Tung Xúc Xắc Lớn -->
+            <div class="cockpit-section cockpit-dice-section">
               <div class="dice-compact-display">
                 <div class="dice-pair">
                   <div id="die-1" class="die show-1">
@@ -421,43 +443,70 @@
               </button>
             </div>
 
-            <!-- Cụm Các Nút Hành Động Lưới 2x2 -->
-            <div class="dock-actions-cluster">
-              <button
-                id="btn-action-buy"
-                class="btn-dock-action btn-buy"
-                disabled
-              >
-                <span class="act-icon">🏠</span>
-                <span class="act-title">Mua Đất</span>
-              </button>
-              <button
-                id="btn-action-build"
-                class="btn-dock-action btn-build"
-                disabled
-              >
-                <span class="act-icon">🏗️</span>
-                <span class="act-title">Xây Nhà</span>
-              </button>
-              <button id="btn-action-trade" class="btn-dock-action btn-trade">
-                <span class="act-icon">🤝</span>
-                <span class="act-title">Giao Dịch</span>
-              </button>
-              <button
-                id="btn-action-pass"
-                class="btn-dock-action btn-pass"
-                disabled
-              >
-                <span class="act-icon">⏭️</span>
-                <span class="act-title">Bỏ Lượt</span>
-              </button>
+            <!-- Cánh Phải: Dải Nút Hành Động 4 Nút -->
+            <div class="cockpit-section cockpit-actions-section">
+              <div class="dock-actions-cluster">
+                <button
+                  id="btn-action-buy"
+                  class="btn-dock-action btn-buy"
+                  disabled
+                >
+                  <span class="act-icon">🏠</span>
+                  <span class="act-title">Mua Đất</span>
+                </button>
+                <button
+                  id="btn-action-build"
+                  class="btn-dock-action btn-build"
+                  disabled
+                >
+                  <span class="act-icon">🏗️</span>
+                  <span class="act-title">Xây Nhà</span>
+                </button>
+                <button id="btn-action-trade" class="btn-dock-action btn-trade">
+                  <span class="act-icon">🤝</span>
+                  <span class="act-title">Giao Dịch</span>
+                </button>
+                <button
+                  id="btn-action-pass"
+                  class="btn-dock-action btn-pass"
+                  disabled
+                >
+                  <span class="act-icon">⏭️</span>
+                  <span class="act-title">Bỏ Lượt</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Cột Phải: Toàn Bộ Cho Khay Thẻ Bài & Nhật Ký Trận Đấu Dạng Timeline -->
+        <aside class="arena-sidebar arena-sidebar-right" id="sidebar-right">
+          <!-- Widget Khay Thẻ Bài Đặc Biệt -->
+          <div class="sidebar-cards-widget">
+            <div
+              class="special-deck-card chance"
+              title="Nhấn để xem chi tiết bộ thẻ Cơ Hội"
+            >
+              <div class="s-deck-badge">CƠ HỘI (?)</div>
+              <div class="s-deck-count" id="sidebar-chance-tag">Tra cứu thẻ</div>
+            </div>
+            <div
+              class="special-deck-card chest"
+              title="Nhấn để xem chi tiết bộ thẻ Khí Vận"
+            >
+              <div class="s-deck-badge">KHÍ VẬN (🧰)</div>
+              <div class="s-deck-count" id="sidebar-chest-tag">Tra cứu thẻ</div>
             </div>
           </div>
 
-          <!-- Khối Nhật Ký Trận Đấu (Nhật Ký Gần Đây) -->
-          <div class="recent-log-container">
+          <!-- Khối Nhật Ký Trận Đấu Mở Rộng Chiếm Trọn Chiều Cao -->
+          <div class="recent-log-container expanded-log">
             <div class="recent-log-header">
-              <h3>Nhật ký gần đây</h3>
+              <div class="log-title-row">
+                <span class="log-header-icon">📜</span>
+                <h3>Nhật ký trận đấu</h3>
+              </div>
+              <span class="log-live-badge">TRỰC TIẾP</span>
             </div>
             <div class="recent-log-messages" id="game-log-messages">
               <!-- Thêm sự kiện động kèm avatar và mốc thời gian -->

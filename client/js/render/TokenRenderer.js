@@ -134,15 +134,28 @@ export class TokenRenderer {
     const boardRect = this.board.getBoundingClientRect();
     const tokenRect = tokenEl.getBoundingClientRect();
 
-    // Tính tọa độ tâm phía trên quân cờ so với board
-    const left = tokenRect.left - boardRect.left + tokenRect.width / 2;
-    const top = tokenRect.top - boardRect.top - 6;
+    // Tính tọa độ tâm quân cờ so với board, kẹp khoảng cách an toàn không tràn mép 2 bên
+    let left = tokenRect.left - boardRect.left + tokenRect.width / 2;
+    left = Math.max(28, Math.min(boardRect.width - 28, left));
+
+    const topDistFromBoardTop = tokenRect.top - boardRect.top;
+    const isNearTopEdge = topDistFromBoardTop < 55; // Nếu ở hàng trên cùng của bàn cờ
 
     const bubble = document.createElement("div");
-    bubble.className = "token-emote-bubble";
+    bubble.className = `token-emote-bubble ${isNearTopEdge ? "bubble-below" : "bubble-above"}`;
     bubble.dataset.playerId = playerId;
     bubble.style.left = `${left}px`;
-    bubble.style.top = `${top}px`;
+
+    if (isNearTopEdge) {
+      // Đặt ở phía dưới quân cờ, hướng vào khoảng không gian bao la của lòng bàn cờ
+      const top = tokenRect.bottom - boardRect.top + 4;
+      bubble.style.top = `${top}px`;
+    } else {
+      // Đặt ở phía trên quân cờ bình thường
+      const top = tokenRect.top - boardRect.top - 4;
+      bubble.style.top = `${top}px`;
+    }
+
     bubble.innerHTML = `
       <span class="emote-glyph">${emoji}</span>
       <div class="emote-tail"></div>

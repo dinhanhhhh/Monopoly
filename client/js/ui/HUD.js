@@ -13,18 +13,22 @@ import { getPlayerAvatar } from "../render/AvatarsData.js";
 
 export class HUD {
   constructor(container = null) {
-    this.container = container || document.getElementById("sidebar-left");
+    this.container =
+      container ||
+      document.getElementById("leaderboard-list") ||
+      document.getElementById("sidebar-left");
     this.lastState = null;
   }
 
-  renderPlayerCard(p, idx, state) {
+  renderPlayerCard(p, origIdx, rankIdx, state) {
     const { currentTurnIndex, properties } = state;
-    const isActive = idx === currentTurnIndex;
+    const isActive = origIdx === currentTurnIndex;
     const netWorth = GameRules.calculateNetWorth(p, properties);
     const ownedTiles = SAIGON_BOARD_DATA.filter(
       (tile) => properties[tile.id]?.owner === p.id,
     );
-    const avatarInfo = getPlayerAvatar(p.id, idx);
+    const avatarInfo = getPlayerAvatar(p.id, origIdx);
+    const isLowCash = p.money < 500000 && !p.isBankrupt;
 
     // Hàng chip nhỏ theo màu nhóm đất người đó đang sở hữu (mỗi chip kèm số ô)
     const groupCountMap = {};
@@ -66,19 +70,38 @@ export class HUD {
       )
       .join("");
 
-    // Nhãn trạng thái ở góc thẻ
+    // Huy hiệu thứ hạng trên bảng xếp hạng (🥇🥈🥉 #4)
+    let rankBadge = "";
+    if (p.isBankrupt) {
+      rankBadge = `<div class="lb-rank-badge rank-bankrupt" title="Đã phá sản"><span class="rank-txt">💀</span></div>`;
+    } else if (rankIdx === 0) {
+      rankBadge = `<div class="lb-rank-badge rank-1" title="Hạng 1: Giàu nhất Sài Gòn"><span class="rank-medal">🥇</span><span class="rank-txt">#1</span></div>`;
+    } else if (rankIdx === 1) {
+      rankBadge = `<div class="lb-rank-badge rank-2" title="Hạng 2"><span class="rank-medal">🥈</span><span class="rank-txt">#2</span></div>`;
+    } else if (rankIdx === 2) {
+      rankBadge = `<div class="lb-rank-badge rank-3" title="Hạng 3"><span class="rank-medal">🥉</span><span class="rank-txt">#3</span></div>`;
+    } else {
+      rankBadge = `<div class="lb-rank-badge rank-4" title="Hạng 4"><span class="rank-txt">#4</span></div>`;
+    }
+
+    // Nhãn trạng thái nổi bật ở góc thẻ
     let statusBadge = "";
     if (p.isBankrupt) {
       statusBadge = '<span class="player-badge badge-bankrupt">Phá sản</span>';
     } else if (p.inJail) {
-      statusBadge = '<span class="player-badge badge-jail">Ở tù</span>';
+      statusBadge = '<span class="player-badge badge-jail">🚨 Ở tù</span>';
     } else if (isActive) {
-      statusBadge = '<span class="player-badge badge-playing">Đang chơi</span>';
+      statusBadge = '<span class="player-badge badge-playing">🎯 Lượt đi</span>';
+    } else if (isLowCash) {
+      statusBadge = '<span class="player-badge badge-low-cash">⚠️ Cạn tiền</span>';
     }
 
     return `
-      <div id="hud-player-${p.id}" class="player-card ${p.isBankrupt ? "is-bankrupt" : ""} ${isActive ? "active-player" : ""} ${p.isBot ? "is-bot" : ""}" data-player-id="${p.id}">
+      <div id="hud-player-${p.id}" class="player-card lb-card ${p.isBankrupt ? "is-bankrupt" : ""} ${isActive ? "active-player" : ""} ${isLowCash ? "is-low-cash" : ""} ${p.isBot ? "is-bot" : ""}" data-player-id="${p.id}" data-rank="${rankIdx + 1}">
         ${statusBadge}
+
+        <!-- Cụm thứ hạng Leaderboard -->
+        ${rankBadge}
 
         <!-- Avatar tròn minh họa phong cách Sài Gòn -->
         <div class="player-avatar-box">
@@ -90,11 +113,11 @@ export class HUD {
           <div class="player-name-row">
             <span class="player-display-name" title="${p.name}">${p.name}</span>
           </div>
-          <div class="player-cash-amount">
+          <div class="player-cash-amount ${isLowCash ? "text-danger-cash" : ""}">
             ${formatVNDFull(p.money)}
           </div>
           <div class="player-networth-row">
-            <span>${formatVND(netWorth)}</span>
+            <span class="networth-tag" title="Tổng tài sản ròng">TS: ${formatVND(netWorth)}</span>
             <span class="dot-separator">•</span>
             <span>${ownedTiles.length} BĐS</span>
           </div>
@@ -137,8 +160,11 @@ export class HUD {
   }
 
   update(state, onPlayerClick = null) {
-    if (!this.container)
-      this.container = document.getElementById("sidebar-left");
+    if (!this.container || !document.body.contains(this.container)) {
+      this.container =
+        document.getElementById("leaderboard-list") ||
+        document.getElementById("sidebar-left");
+    }
     if (!this.container) return;
 
     this.lastState = state;
@@ -147,10 +173,47 @@ export class HUD {
       this.onPlayerClick = onPlayerClick;
     }
 
-    const { players } = state;
-    this.container.innerHTML = players
-      .map((p, idx) => this.renderPlayerCard(p, idx, state))
+    const { players, properties = {} } = state;
+
+    // Sắp xếp tự động 4 người chơi theo thứ tự Net Worth giảm dần để thành Leaderboard
+    const rankedPlayers = players.map((p, origIdx) => {
+      const netWorth = GameRules.calculateNetWorth(p, properties);
+      return { p, origIdx, netWorth };
+    });
+
+    rankedPlayers.sort((a, b) => {
+      if (a.p.isBankrupt && !b.p.isBankrupt) return 1;
+      if (!a.p.isBankrupt && b.p.isBankrupt) return -1;
+      return b.netWorth - a.netWorth;
+    });
+
+    const cardsHtml = rankedPlayers
+      .map((item, rankIdx) =>
+        this.renderPlayerCard(item.p, item.origIdx, rankIdx, state),
+      )
       .join("");
+
+    const existingList =
+      this.container.id === "leaderboard-list"
+        ? this.container
+        : this.container.querySelector("#leaderboard-list");
+
+    if (existingList) {
+      existingList.innerHTML = cardsHtml;
+    } else {
+      this.container.innerHTML = `
+        <div class="leaderboard-header">
+          <div class="leaderboard-title-box">
+            <span class="lb-trophy">🏆</span>
+            <span class="lb-title">BẢNG XẾP HẠNG</span>
+          </div>
+          <div class="leaderboard-sub">Tài sản ròng (Net Worth)</div>
+        </div>
+        <div class="leaderboard-list" id="leaderboard-list">
+          ${cardsHtml}
+        </div>
+      `;
+    }
 
     // Gắn sự kiện click mở danh mục tài sản và hover phát sáng các ô đất
     players.forEach((p) => {

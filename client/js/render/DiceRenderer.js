@@ -3,9 +3,10 @@
  */
 
 export class DiceRenderer {
-  constructor(containerElement, onRollComplete) {
+  constructor(containerElement, onRollComplete, onRollStart = null) {
     this.container = containerElement;
     this.onRollComplete = onRollComplete;
+    this.onRollStart = onRollStart;
     this.isRolling = false;
     this.init();
   }
@@ -28,6 +29,10 @@ export class DiceRenderer {
   roll() {
     if (this.isRolling) return;
     this.isRolling = true;
+
+    if (this.onRollStart) {
+      this.onRollStart();
+    }
 
     if (this.btnRoll) this.btnRoll.disabled = true;
     if (this.subTextEl) this.subTextEl.textContent = "Đang lắc...";

@@ -2733,13 +2733,14 @@
    MODAL TỔNG KẾT VÁN ĐẤU & POSTER CANVAS (MATCH RECAP MODAL)
    ========================================================================== */
 .recap-modal-card {
-  width: 96%;
-  max-width: 960px;
-  max-height: 92vh;
+  width: 95vw;
+  max-width: 940px;
+  height: 86vh;
+  max-height: 600px;
   background: #faf7f0;
-  border-radius: 22px;
+  border-radius: 20px;
   border: 3px solid #176b78;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2750,32 +2751,34 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 10px 20px;
   background: linear-gradient(135deg, #176b78 0%, #0e4852 100%);
   color: #ffffff;
-  border-bottom: 3px solid #d4af37;
+  border-bottom: 2.5px solid #d4af37;
+  flex-shrink: 0;
 }
 
 .recap-header-badge {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 900;
   color: #ffd700;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   display: inline-block;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }
 
 .recap-header-left h3 {
   font-family: var(--font-retro, "Baloo 2", sans-serif);
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 900;
   margin: 0;
   color: #ffffff;
+  line-height: 1.2;
 }
 
 .recap-header-sub {
-  font-size: 0.78rem;
-  margin: 3px 0 0;
+  font-size: 0.72rem;
+  margin: 2px 0 0;
   color: #b2dfdb;
 }
 
@@ -2784,9 +2787,9 @@
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  font-size: 0.95rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2800,163 +2803,265 @@
 }
 
 .recap-modal-body {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  gap: 24px;
-  padding: 20px 24px;
-  overflow-y: auto;
-  max-height: calc(92vh - 80px);
+  gap: 16px;
+  padding: 12px 18px;
+  overflow: hidden;
 }
 
 @media (max-width: 820px) {
+  .recap-modal-card {
+    height: auto;
+    max-height: 94vh;
+  }
   .recap-modal-body {
     flex-direction: column;
+    overflow-y: auto;
   }
 }
 
 .recap-canvas-container {
-  flex: 1.1;
+  flex: 1.15;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #ece7db;
-  padding: 14px;
-  border-radius: 16px;
+  padding: 8px;
+  border-radius: 14px;
   border: 2px solid #d8cfbc;
+  overflow: hidden;
 }
 
 .recap-canvas-preview {
   max-width: 100%;
+  max-height: 100%;
+  width: auto;
   height: auto;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   display: block;
 }
 
 .recap-actions-sidebar {
-  flex: 0.9;
+  flex: 0.85;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .recap-winner-summary {
   background: #ffffff;
   border: 2px solid #f39c12;
-  border-radius: 16px;
-  padding: 18px;
+  border-radius: 14px;
+  padding: 8px 12px;
   text-align: center;
-  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.2);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.16);
+  flex-shrink: 0;
 }
 
-.winner-crown-big {
-  font-size: 2.8rem;
-  margin-bottom: 4px;
+.winner-crown-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.winner-crown-icon {
+  font-size: 1.3rem;
 }
 
 .winner-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 800;
   color: #d35400;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
 }
 
 .winner-name-display {
   font-family: var(--font-retro, "Baloo 2", sans-serif);
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 900;
   color: #c0392b;
-  margin: 4px 0 10px;
+  margin: 1px 0 4px;
+  line-height: 1.2;
 }
 
 .winner-fortune-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: #e8f8f5;
   border: 1.5px solid #176b78;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  padding: 3px 12px;
+  border-radius: 16px;
+  font-size: 0.8rem;
   color: #176b78;
 }
 
-.recap-metrics-list {
+/* Bảng tổng sắp chung cuộc */
+.recap-standings-card {
   background: #ffffff;
   border: 2px solid #e8dfca;
-  border-radius: 16px;
-  padding: 14px 18px;
+  border-radius: 14px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.recap-metric-item {
+.standings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1.5px dashed #e0d6c3;
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.standings-title {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #176b78;
+  letter-spacing: 0.5px;
+}
+
+.standings-sub {
+  font-size: 0.68rem;
+  color: #888;
+  font-style: italic;
+}
+
+.standings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  justify-content: space-around;
+  min-height: 0;
+}
+
+.standing-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #fdfaf4;
+  border: 1px solid #f0e6d6;
 }
 
-.m-icon {
-  font-size: 1.5rem;
-  width: 32px;
+.standing-row.is-winner-row {
+  background: #fef9e7;
+  border: 1.5px solid #f1c40f;
+}
+
+.standing-rank-badge {
+  font-size: 1.05rem;
+  width: 22px;
   text-align: center;
+  flex-shrink: 0;
 }
 
-.m-content {
+.standing-player-info {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.m-label {
-  font-size: 0.72rem;
-  color: #7f8c8d;
-  font-weight: 600;
-}
-
-.m-val {
-  font-size: 0.95rem;
+.standing-player-name {
+  font-size: 0.82rem;
   font-weight: 800;
   color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.you-tag {
+  font-size: 0.68rem;
+  color: #d35400;
+  font-weight: 900;
+}
+
+.standing-player-status {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.standing-val {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #176b78;
+}
+
+.standing-val.winner-val {
+  color: #c0392b;
+}
+
+.standing-bankrupt-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #95a5a6;
+  background: #f0f3f4;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid #d5dbdb;
 }
 
 .recap-buttons-cluster {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: auto;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .btn-recap-action {
   width: 100%;
-  padding: 13px 20px;
-  border-radius: 12px;
+  padding: 9px 14px;
+  border-radius: 10px;
   border: none;
   font-weight: 800;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   transition: all 0.2s ease;
 }
 
 .btn-download-png {
   background: linear-gradient(135deg, #d35400 0%, #a04000 100%);
   color: #ffffff;
-  box-shadow: 0 6px 16px rgba(211, 84, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(211, 84, 0, 0.35);
 }
 
 .btn-download-png:hover {
   filter: brightness(1.1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(211, 84, 0, 0.45);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px rgba(211, 84, 0, 0.45);
 }
 
 .btn-new-game {
   background: #ffffff;
   color: #176b78;
-  border: 2px solid #176b78;
+  border: 1.5px solid #176b78;
 }
 
 .btn-new-game:hover {
@@ -2965,10 +3070,11 @@
 }
 
 .recap-share-hint {
-  font-size: 0.74rem;
-  color: #7f8c8d;
-  line-height: 1.4;
+  font-size: 0.68rem;
+  color: #8c8273;
+  line-height: 1.3;
   text-align: center;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -2976,7 +3082,6 @@
    ========================================================================== */
 .token-emote-bubble {
   position: absolute;
-  transform: translate(-50%, -100%);
   background: #ffffff;
   border: 2px solid #3b2a1a;
   border-radius: 14px;
@@ -2989,13 +3094,32 @@
   justify-content: center;
   z-index: 9999;
   pointer-events: none;
+}
+
+/* Bong bóng nổi ở phía trên quân cờ (Mặc định cho hàng đáy và 2 cạnh bên) */
+.token-emote-bubble.bubble-above,
+.token-emote-bubble:not(.bubble-below) {
+  transform: translate(-50%, -100%);
   animation:
     emotePopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
     emoteFloat 1.8s ease-in-out infinite alternate;
 }
 
-.token-emote-bubble.fade-out {
+.token-emote-bubble.bubble-above.fade-out,
+.token-emote-bubble:not(.bubble-below).fade-out {
   animation: emoteFadeOut 0.4s ease forwards;
+}
+
+/* Bong bóng nổi ở phía dưới quân cờ (Cho hàng đỉnh để không bị viền bàn cờ cắt cụt) */
+.token-emote-bubble.bubble-below {
+  transform: translate(-50%, 0);
+  animation:
+    emotePopInBelow 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+    emoteFloatBelow 1.8s ease-in-out infinite alternate;
+}
+
+.token-emote-bubble.bubble-below.fade-out {
+  animation: emoteFadeOutBelow 0.4s ease forwards;
 }
 
 .emote-glyph {
@@ -3005,6 +3129,7 @@
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
+/* Đuôi nhọn trỏ xuống quân cờ (cho bubble-above) */
 .token-emote-bubble .emote-tail {
   position: absolute;
   bottom: -6px;
@@ -3029,24 +3154,40 @@
   border-top: 5px solid #ffffff;
 }
 
+/* Đuôi nhọn trỏ ngược lên quân cờ (cho bubble-below) */
+.token-emote-bubble.bubble-below .emote-tail {
+  top: -6px;
+  bottom: auto;
+  border-top: none;
+  border-bottom: 6px solid #3b2a1a;
+}
+
+.token-emote-bubble.bubble-below .emote-tail::after {
+  top: 1px;
+  bottom: auto;
+  border-top: none;
+  border-bottom: 5px solid #ffffff;
+}
+
 /* ==========================================================================
    BONG BÓNG CẢM XÚC TRÊN THẺ HUD NGƯỜI CHƠI (HUD EMOTE BUBBLE)
    ========================================================================== */
 .hud-emote-bubble {
   position: absolute;
   top: -8px;
-  right: -8px;
+  right: -6px;
   background: #ffffff;
   border: 2px solid #e67e22;
   border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-size: 0.95rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
   z-index: 25;
+  pointer-events: none;
   animation:
     hudEmotePopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
     hudEmoteBounce 1.5s ease-in-out infinite alternate;
@@ -3126,3 +3267,730 @@
   }
 }
 
+@keyframes emotePopInBelow {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -4px) scale(0.3);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, 6px) scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 2px) scale(1);
+  }
+}
+
+@keyframes emoteFloatBelow {
+  0% {
+    transform: translate(-50%, 2px);
+  }
+  100% {
+    transform: translate(-50%, 6px);
+  }
+}
+
+@keyframes emoteFadeOutBelow {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 2px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 14px) scale(0.6);
+  }
+}
+
+/* ==========================================================================
+   VINTAGE RADIO CASSETTE PLAYER (ĐÀI RADIO CÁT-XÉT SÀI GÒN LO-FI)
+   ========================================================================== */
+.btn-radio-tool {
+  background: linear-gradient(135deg, #d35400, #b9770e);
+  color: #ffffff;
+  border: 1.5px solid #7e5109;
+  transition: all 0.2s ease;
+}
+
+.btn-radio-tool:hover {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(211, 84, 0, 0.35);
+}
+
+.btn-radio-tool.radio-playing {
+  background: linear-gradient(135deg, #27ae60, #1e8449);
+  border-color: #145a32;
+  box-shadow: 0 0 10px rgba(39, 174, 96, 0.45);
+}
+
+.radio-header-freq {
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+}
+
+/* Khung Widget Chính */
+.vintage-radio-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 22px;
+  z-index: 1000;
+  font-family: var(--font-ui, "Be Vietnam Pro", sans-serif);
+  user-select: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.vintage-radio-widget.hidden {
+  display: none !important;
+}
+
+.vintage-radio-widget.dragging {
+  cursor: grabbing !important;
+  transition: none !important;
+  user-select: none !important;
+  opacity: 0.95;
+}
+
+.vintage-radio-widget.dragging .radio-mini-bar {
+  cursor: grabbing !important;
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.65),
+    0 0 0 1.5px #f39c12;
+}
+
+.vintage-radio-widget.dragging .cassette-radio-body {
+  cursor: grabbing !important;
+  box-shadow:
+    0 28px 65px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 220, 150, 0.35);
+}
+
+/* 1. Trạng Thái Thu Gọn (Mini Bar) */
+.radio-mini-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3d2c1d, #271b11);
+  border: 2px solid #8e6234;
+  border-radius: 40px;
+  padding: 6px 12px 6px 10px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 215, 0, 0.2);
+  cursor: grab;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.mini-radio-drag-handle {
+  color: #d4ac0d;
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: -2px;
+  cursor: grab;
+  opacity: 0.8;
+  padding: 0 2px;
+}
+
+.radio-mini-bar:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 1.5px #f39c12;
+}
+
+.vintage-radio-widget.expanded .radio-mini-bar {
+  display: none;
+}
+
+.mini-radio-icon {
+  font-size: 1.25rem;
+  background: #f39c12;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.mini-radio-icon.pulse {
+  animation: radioPulse 1.8s infinite;
+}
+
+@keyframes radioPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7);
+  }
+  70% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(243, 156, 18, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(243, 156, 18, 0);
+  }
+}
+
+.mini-radio-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.mini-radio-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #f1c40f;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.mini-radio-station {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #ecf0f1;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-radio-toggle-btn {
+  background: #e67e22;
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.mini-radio-toggle-btn:hover {
+  background: #f39c12;
+  transform: scale(1.1);
+}
+
+.mini-expand-btn,
+.mini-close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #ecf0f1;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.mini-expand-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.mini-close-btn:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
+/* 2. Trạng Thái Mở Rộng Thân Máy Cassette Hoàn Chỉnh */
+.cassette-radio-body {
+  display: none;
+  width: 330px;
+  background: linear-gradient(145deg, #423223, #2a1f15);
+  border: 3px solid #7d5931;
+  border-radius: 18px;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 220, 150, 0.25);
+  overflow: hidden;
+  animation: cassettePop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.vintage-radio-widget.expanded .cassette-radio-body {
+  display: block;
+}
+
+@keyframes cassettePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Quai xách nóc đài - Cho phép cầm chuột kéo thả */
+.radio-top-handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: linear-gradient(180deg, #57412e, #3a2a1d);
+  border-bottom: 2px solid #23180f;
+  cursor: grab;
+  user-select: none;
+}
+
+.radio-top-handle:active {
+  cursor: grabbing;
+}
+
+.handle-grip-dots {
+  color: #d4ac0d;
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: -2px;
+  opacity: 0.8;
+}
+
+.handle-bar {
+  background: linear-gradient(180deg, #b88b56, #8c6436);
+  border: 1px solid #5a3d1c;
+  border-radius: 6px;
+  padding: 2px 10px;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.handle-bar-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: #fff4d9;
+  letter-spacing: 0.6px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.handle-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-radio-min,
+.btn-radio-close {
+  background: rgba(0, 0, 0, 0.35);
+  border: none;
+  color: #e0d0b8;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-radio-min:hover {
+  background: #f39c12;
+  color: #fff;
+}
+
+.btn-radio-close:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
+/* Khung thân máy */
+.radio-main-housing {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Màn hình LCD Tuner Hổ Phách */
+.radio-lcd-screen {
+  position: relative;
+  background: #14110b;
+  border: 2px solid #45341c;
+  border-radius: 10px;
+  padding: 8px 10px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 176, 32, 0.12);
+}
+
+.lcd-glow-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 190, 60, 0.08), transparent);
+  pointer-events: none;
+}
+
+.lcd-header-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #a88448;
+  letter-spacing: 0.6px;
+  margin-bottom: 2px;
+}
+
+.lcd-stereo-indicator {
+  color: #55442a;
+  transition: color 0.3s;
+}
+
+.lcd-stereo-indicator.active {
+  color: #e74c3c;
+  text-shadow: 0 0 6px rgba(231, 76, 60, 0.8);
+}
+
+.lcd-station-frequency {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  color: #ffb732;
+  text-shadow: 0 0 8px rgba(255, 183, 50, 0.6);
+  font-family: var(--font-retro, "Baloo 2", sans-serif);
+  line-height: 1;
+}
+
+.freq-number {
+  font-size: 1.85rem;
+  font-weight: 900;
+}
+
+.freq-unit {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #d49520;
+}
+
+.lcd-station-name-marquee {
+  margin-top: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 3px 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.station-marquee-text {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffd875;
+  letter-spacing: 0.4px;
+  animation: marqueeText 12s linear infinite;
+}
+
+@keyframes marqueeText {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Equalizer LED VU Meter */
+.lcd-vu-meter {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+  margin-top: 6px;
+}
+
+.vu-bar {
+  flex: 1;
+  background: #332717;
+  border-radius: 1px;
+  height: 3px;
+  transition: height 0.1s ease;
+}
+
+.lcd-vu-meter.active .vu-bar:nth-child(1) {
+  animation: vuBounce 0.4s infinite alternate;
+  background: #2ecc71;
+}
+.lcd-vu-meter.active .vu-bar:nth-child(2) {
+  animation: vuBounce 0.6s 0.1s infinite alternate;
+  background: #2ecc71;
+}
+.lcd-vu-meter.active .vu-bar:nth-child(3) {
+  animation: vuBounce 0.35s 0.2s infinite alternate;
+  background: #2ecc71;
+}
+.lcd-vu-meter.active .vu-bar:nth-child(4) {
+  animation: vuBounce 0.5s 0.15s infinite alternate;
+  background: #f1c40f;
+}
+.lcd-vu-meter.active .vu-bar:nth-child(5) {
+  animation: vuBounce 0.45s 0.05s infinite alternate;
+  background: #f1c40f;
+}
+.lcd-vu-meter.active .vu-bar:nth-child(6) {
+  animation: vuBounce 0.55s 0.25s infinite alternate;
+  background: #f39c12;
+}
+.lcd-vu-meter.active .vu-bar:nth-child(7) {
+  animation: vuBounce 0.38s 0.12s infinite alternate;
+  background: #e67e22;
+}
+.lcd-vu-meter.active .vu-bar:nth-child(8) {
+  animation: vuBounce 0.48s 0.18s infinite alternate;
+  background: #e74c3c;
+}
+
+@keyframes vuBounce {
+  0% {
+    height: 2px;
+  }
+  100% {
+    height: 14px;
+  }
+}
+
+/* Hộc Băng Cassette & Cuộn Băng Xoay Tít */
+.cassette-deck-window {
+  background: #1e150d;
+  border: 2px solid #573e27;
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.cassette-tape-body {
+  background: linear-gradient(135deg, #2b221a, #1a130d);
+  border: 1.5px solid #4a3622;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.tape-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fdf6e2;
+  color: #795548;
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  letter-spacing: 0.4px;
+}
+
+.tape-transparent-hub {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  padding: 4px 18px;
+  height: 38px;
+}
+
+.tape-window-bridge {
+  position: absolute;
+  left: 36px;
+  right: 36px;
+  height: 8px;
+  background: #3e2723;
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
+.tape-spool {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  background: #fdfefe;
+  border: 2px solid #7f8c8d;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  z-index: 2;
+}
+
+.spool-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: #111;
+  border-radius: 50%;
+}
+
+.spool-teeth {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: #bdc3c7;
+  transform: translateX(-50%);
+}
+
+.spool-teeth::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -9px;
+  width: 20px;
+  height: 2px;
+  background: #bdc3c7;
+  transform: translateY(-50%);
+}
+
+.tape-spool.spinning {
+  animation: spinReel 2.2s linear infinite;
+}
+
+@keyframes spinReel {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Cụm Phím Cơ Bấm Lồi (Cassette Keys) */
+.cassette-keys-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.cassette-key {
+  background: linear-gradient(180deg, #d5c4a1, #b59f77);
+  border: 1.5px solid #6b5235;
+  border-bottom: 3.5px solid #4a341e;
+  border-radius: 6px;
+  padding: 6px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+}
+
+.cassette-key:hover {
+  filter: brightness(1.08);
+}
+
+.cassette-key:active,
+.cassette-key.pressed {
+  transform: translateY(2px);
+  border-bottom-width: 1.5px;
+  background: linear-gradient(180deg, #b59f77, #9b825b);
+}
+
+.cassette-key.key-play.pressed {
+  background: linear-gradient(180deg, #27ae60, #1e8449);
+  color: #fff;
+  border-color: #145a32;
+}
+
+.key-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.key-label {
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #3e2723;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.cassette-key.key-play.pressed .key-label {
+  color: #fff;
+}
+
+/* Bảng Điều Khiển Footer: Volume & Dropdown */
+.radio-controls-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.volume-slider-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vol-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #e0d0b8;
+  letter-spacing: 0.5px;
+}
+
+.vintage-slider {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: #1a130d;
+  accent-color: #f39c12;
+  cursor: pointer;
+}
+
+.vol-value {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #f1c40f;
+  min-width: 28px;
+  text-align: right;
+}
+
+.station-select {
+  width: 100%;
+  background: #251b11;
+  border: 1px solid #6b5235;
+  color: #ffd875;
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+.station-select option {
+  background: #2b1f15;
+  color: #fff;
+}

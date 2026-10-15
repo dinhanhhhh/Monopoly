@@ -21,8 +21,8 @@
   display: grid;
   grid-template-columns: 1.65fr repeat(9, 1fr) 1.65fr;
   grid-template-rows: 1.65fr repeat(9, 1fr) 1.65fr;
-  width: min(calc(100dvh - 78px), calc(100vw - 490px), 800px);
-  height: min(calc(100dvh - 78px), calc(100vw - 490px), 800px);
+  width: min(calc(100dvh - 116px), calc(100vw - 520px), 614px);
+  height: min(calc(100dvh - 116px), calc(100vw - 520px), 614px);
   aspect-ratio: 1 / 1;
   background-color: #f4eedd;
   border: 4px solid #3b2a1a;
@@ -31,8 +31,14 @@
   padding: 5px;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
+
+/* Bo góc 4 ô góc khớp với viền bàn cờ khi overflow: visible */
+#tile-20 { border-top-left-radius: 8px; }
+#tile-30 { border-top-right-radius: 8px; }
+#tile-10 { border-bottom-left-radius: 8px; }
+#tile-0 { border-bottom-right-radius: 8px; }
 
 /* ================= Ô CỜ CHUNG (Board Tiles): Đường ngăn 1.5px #8A7358 ================= */
 .board-tile {
@@ -1165,13 +1171,13 @@
 
 @keyframes diceRollAnim {
   0% {
-    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+    transform: var(--die-scale, scale(1)) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
   }
   50% {
-    transform: rotateX(360deg) rotateY(180deg) rotateZ(180deg);
+    transform: var(--die-scale, scale(1)) rotateX(360deg) rotateY(180deg) rotateZ(180deg);
   }
   100% {
-    transform: rotateX(720deg) rotateY(360deg) rotateZ(360deg);
+    transform: var(--die-scale, scale(1)) rotateX(720deg) rotateY(360deg) rotateZ(360deg);
   }
 }
 
@@ -1179,31 +1185,41 @@
   position: absolute;
   width: 42px;
   height: 42px;
-  background: #fffdf9;
-  border: 1.5px solid #e5d5c5;
+  background: linear-gradient(145deg, #ffffff 0%, #fffef7 50%, #f5ecd9 100%);
+  border: 1.5px solid #a38258;
   border-radius: 8px;
-  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 3px rgba(163, 130, 88, 0.3),
+    0 2px 5px rgba(45, 30, 18, 0.28);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
   padding: 4px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-/* Chấm xí ngầu */
+/* Chấm xí ngầu khắc chìm sơn bóng */
 .dot {
-  width: 7px;
-  height: 7px;
-  background: #2c3e50;
+  width: 7.5px;
+  height: 7.5px;
+  background: radial-gradient(circle at 35% 35%, #34495e 0%, #1e2b37 80%);
   border-radius: 50%;
   align-self: center;
   justify-self: center;
+  box-shadow:
+    inset 0 1px 1.5px rgba(0, 0, 0, 0.6),
+    0 0.5px 1px rgba(255, 255, 255, 0.5);
 }
 
 .dot-red {
-  width: 12px;
-  height: 12px;
-  background: #e63946;
-  box-shadow: 0 1px 2px rgba(230, 57, 70, 0.4);
+  width: 12.5px;
+  height: 12.5px;
+  background: radial-gradient(circle at 35% 35%, #ff4d5a 0%, #c0392b 70%, #921f14 100%);
+  box-shadow:
+    inset 0 1.5px 2px rgba(0, 0, 0, 0.5),
+    0 0.5px 1px rgba(255, 255, 255, 0.6);
 }
 
 .dot-center {
@@ -1257,22 +1273,22 @@
 
 /* Vị trí dừng của các mặt */
 .die.show-1 {
-  transform: rotateX(0deg) rotateY(0deg);
+  transform: var(--die-scale, scale(1)) rotateX(0deg) rotateY(0deg);
 }
 .die.show-2 {
-  transform: rotateX(0deg) rotateY(-90deg);
+  transform: var(--die-scale, scale(1)) rotateX(0deg) rotateY(-90deg);
 }
 .die.show-3 {
-  transform: rotateX(0deg) rotateY(-180deg);
+  transform: var(--die-scale, scale(1)) rotateX(0deg) rotateY(-180deg);
 }
 .die.show-4 {
-  transform: rotateX(0deg) rotateY(90deg);
+  transform: var(--die-scale, scale(1)) rotateX(0deg) rotateY(90deg);
 }
 .die.show-5 {
-  transform: rotateX(-90deg) rotateY(0deg);
+  transform: var(--die-scale, scale(1)) rotateX(-90deg) rotateY(0deg);
 }
 .die.show-6 {
-  transform: rotateX(90deg) rotateY(0deg);
+  transform: var(--die-scale, scale(1)) rotateX(90deg) rotateY(0deg);
 }
 
 /* Nút bấm Tung Xúc Xắc */

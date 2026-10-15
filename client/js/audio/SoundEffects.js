@@ -7,6 +7,14 @@ class SoundManager {
   constructor() {
     this.ctx = null;
     this.isMuted = localStorage.getItem("monopoly_sound_muted") === "true";
+
+    // Nạp sẵn file âm thanh xúc xắc thực tế
+    try {
+      this.diceAudio = new Audio("js/audio/u_qpfzpydtro-dice-142528.mp3");
+      this.diceAudio.preload = "auto";
+    } catch (e) {
+      this.diceAudio = null;
+    }
   }
 
   initContext() {
@@ -24,41 +32,80 @@ class SoundManager {
   toggleMute() {
     this.isMuted = !this.isMuted;
     localStorage.setItem("monopoly_sound_muted", this.isMuted);
+    if (this.isMuted && this.diceAudio) {
+      this.diceAudio.pause();
+      this.diceAudio.currentTime = 0;
+    }
     return !this.isMuted;
   }
 
-  // Tiếng lắc xí ngầu xóc lốc cốc trong hộp gỗ
+  // Tiếng lắc xí ngầu: Phát file MP3 chân thực, tự động fallback nếu cần
   playDiceRoll() {
+    if (this.isMuted) return;
+
+    if (this.diceAudio) {
+      try {
+        this.diceAudio.currentTime = 0;
+        const playPromise = this.diceAudio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // Fallback sang Web Audio API nếu trình duyệt yêu cầu tương tác hoặc lỗi nạp
+            this.playSynthDiceRoll();
+          });
+        }
+        return;
+      } catch (e) {
+        // Fallback
+      }
+    }
+
+    this.playSynthDiceRoll();
+  }
+
+  // Âm thanh xúc xắc dự phòng bằng Web Audio API
+  playSynthDiceRoll() {
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
 
-    const count = 5;
-    for (let i = 0; i < count; i++) {
-      setTimeout(
-        () => {
-          if (this.isMuted) return;
-          const now = this.ctx.currentTime;
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
+    const delays = [0, 65, 135, 210, 290, 375, 465, 555, 650];
+    delays.forEach((delay, idx) => {
+      setTimeout(() => {
+        if (this.isMuted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const isFinalThud = idx === delays.length - 1;
 
-          // Âm thanh gõ gỗ biến thiên tần số
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(120 + Math.random() * 80, now);
-          osc.frequency.exponentialRampToValueAtTime(40, now + 0.06);
+        const oscHigh = this.ctx.createOscillator();
+        const gainHigh = this.ctx.createGain();
+        oscHigh.type = "sine";
+        const highFreq = isFinalThud ? 1400 : 1800 + Math.random() * 800;
+        oscHigh.frequency.setValueAtTime(highFreq, now);
+        oscHigh.frequency.exponentialRampToValueAtTime(250, now + (isFinalThud ? 0.08 : 0.045));
 
-          gain.gain.setValueAtTime(0.25, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        gainHigh.gain.setValueAtTime(isFinalThud ? 0.38 : 0.22, now);
+        gainHigh.gain.exponentialRampToValueAtTime(0.001, now + (isFinalThud ? 0.08 : 0.045));
 
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
+        oscHigh.connect(gainHigh);
+        gainHigh.connect(this.ctx.destination);
+        oscHigh.start(now);
+        oscHigh.stop(now + (isFinalThud ? 0.08 : 0.045));
 
-          osc.start(now);
-          osc.stop(now + 0.06);
-        },
-        i * 90 + Math.random() * 30,
-      );
-    }
+        const oscLow = this.ctx.createOscillator();
+        const gainLow = this.ctx.createGain();
+        oscLow.type = "triangle";
+        const lowFreq = isFinalThud ? 180 : 240 + Math.random() * 100;
+        oscLow.frequency.setValueAtTime(lowFreq, now);
+        oscLow.frequency.exponentialRampToValueAtTime(50, now + (isFinalThud ? 0.09 : 0.05));
+
+        gainLow.gain.setValueAtTime(isFinalThud ? 0.35 : 0.18, now);
+        gainLow.gain.exponentialRampToValueAtTime(0.001, now + (isFinalThud ? 0.09 : 0.05));
+
+        oscLow.connect(gainLow);
+        gainLow.connect(this.ctx.destination);
+        oscLow.start(now);
+        oscLow.stop(now + (isFinalThud ? 0.09 : 0.05));
+      }, delay);
+    });
   }
 
   // Tiếng bước nhảy quân cờ tí tách (Popping hop)
