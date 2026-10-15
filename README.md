@@ -48,6 +48,17 @@ Dự án được thiết kế với kiến trúc tách biệt rõ ràng giữa 
 
 - Tự động lưu tiến trình ván đấu vào `LocalStorage`. Khi mở lại trang, người chơi có thể tiếp tục ván đấu trước đó mà không bị mất dữ liệu.
 
+### 6. 🏆 Hệ Thống Thành Tựu & Phòng Trưng Bày Cúp (Trophy Room)
+
+- **Bộ 7 Huy Hiệu Vinh Danh**: _Trùm Bến Nghé (Đồng Khởi & Nguyễn Huệ), Vua Vận Tải (4 Bến xe), Thần Tài Cứu Cánh (Nổ hũ khi dưới 100k), Bậc Thầy Đàm Phán (3 giao dịch AI), Vượt Ngục Thần Sầu, Đại Gia Khách Sạn, Đại Phú Hào Sài Gòn_.
+- **Lưu trữ vĩnh viễn**: Kỷ lục người chơi được lưu trữ trong `LocalStorage` kèm ngày mở khóa và danh hiệu phong tặng.
+- **Hiệu ứng Pop-up hoàng kim**: Thông báo mở khóa huy hiệu lấp lánh và âm thanh kèn Sài Gòn chiến thắng.
+
+### 7. 📊 Xuất Poster Infographic Tổng Kết Ván Đấu (Match Recap Canvas)
+
+- **Biểu đồ biến động tài sản (Net Worth Trend Line Chart)**: Theo dõi biểu đồ đường tăng trưởng/lao dốc tài sản của từng người chơi theo lượt được vẽ sắc nét trên HTML5 Canvas.
+- **Tải ảnh poster (PNG HD)**: Xuất chứng nhận đại gia Sài Gòn chất lượng cao độ phân giải 900x1200 để lưu niệm hoặc chia sẻ lên mạng xã hội.
+
 ---
 
 ## 📁 Cấu Trúc Dự Án
@@ -59,7 +70,7 @@ Monopoly/
 │   ├── css/
 │   │   ├── main.css             # Layout 3 cột, Header, Reset & Biến CSS
 │   │   ├── board.css            # Thiết kế 40 ô cờ, khay thẻ, nhà & khách sạn 3D
-│   │   └── ui.css               # Hệ thống Modal, HUD người chơi, Card Viewer
+│   │   └── ui.css               # Hệ thống Modal, HUD, Trophy Room, Recap Poster
 │   ├── js/
 │   │   ├── main.js              # Controller kết nối Engine, Renderer & Modals
 │   │   ├── audio/
@@ -73,6 +84,8 @@ Monopoly/
 │   │   └── ui/
 │   │       ├── HUD.js           # Bảng thông tin người chơi & tài sản
 │   │       ├── CardDeckModal.js # Tra cứu cọc bài Cơ Hội / Khí Vận
+│   │       ├── AchievementManager.js # Quản lý thành tựu & Phòng cúp Trophy Room
+│   │       ├── MatchRecapModal.js    # Poster Infographic & biểu đồ Canvas
 │   │       ├── TitleDeedModal.js# Xem sổ đỏ, bằng khoán & xây nhà
 │   │       ├── CardModal.js     # Modal hiển thị thẻ bài vừa rút
 │   │       ├── AuctionModal.js  # Phòng đấu giá đất

@@ -21,10 +21,12 @@ import { RulebookModal } from "./ui/RulebookModal.js";
 import { JailModal } from "./ui/JailModal.js";
 import { PortfolioModal } from "./ui/PortfolioModal.js";
 import { CardDeckModal } from "./ui/CardDeckModal.js";
+import { AchievementManager } from "./ui/AchievementManager.js";
+import { MatchRecapModal } from "./ui/MatchRecapModal.js";
 import { sound } from "./audio/SoundEffects.js";
 import { getPlayerAvatar } from "./render/AvatarsData.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+function initGameApp() {
   const boardElement = document.getElementById("monopoly-board");
 
   if (!boardElement) {
@@ -42,6 +44,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const jailModal = new JailModal();
   const portfolioModal = new PortfolioModal();
   const cardDeckModal = new CardDeckModal();
+  const achievementManager = new AchievementManager({ sound });
+  const matchRecapModal = new MatchRecapModal();
+
+  let netWorthHistory = [];
 
   // Khởi tạo HUD 2 cánh
   const hud = new HUD(
@@ -142,6 +148,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
+   * Lưu lại một lát cắt tài sản ròng của tất cả người chơi cho biểu đồ Infographic
+   */
+  function recordNetWorthSnapshot() {
+    if (!engine || !engine.state || !engine.state.players) return;
+    const snapshot = { turn: turnCount, values: {} };
+    engine.state.players.forEach((p) => {
+      snapshot.values[p.id] = GameRules.calculateNetWorth(
+        p,
+        engine.state.properties,
+      );
+    });
+    netWorthHistory.push(snapshot);
+    if (netWorthHistory.length > 80) {
+      netWorthHistory.shift();
+    }
+  }
+
+  /**
    * Tự động lưu trạng thái ván cờ vào LocalStorage
    */
   function autoSaveGame() {
@@ -167,6 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
       state: cleanState,
       turnCount,
       secondsElapsed,
+      netWorthHistory,
       savedLogs,
       savedAt: Date.now(),
     };
@@ -400,6 +425,8 @@ document.addEventListener("DOMContentLoaded", () => {
             hud.update(engine.state);
             addGameLog(tradeRes.message);
             showToast(tradeRes.message);
+            achievementManager.recordTradeSuccess();
+            achievementManager.check(engine.state);
             autoSaveGame();
           }
         });
@@ -422,6 +449,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnRulebook = document.getElementById("btn-open-rulebook");
     if (btnRulebook) {
       btnRulebook.onclick = () => rulebookModal.show();
+    }
+
+    // Nút Phòng Trưng Bày Cúp & Thành Tựu
+    const btnAchievements = document.getElementById("btn-open-achievements");
+    if (btnAchievements) {
+      btnAchievements.onclick = () => achievementManager.showModal();
     }
 
     // Nút Tạo Ván Mới trên Header
@@ -500,6 +533,10 @@ document.addEventListener("DOMContentLoaded", () => {
     savedLogs = [];
     if (logContainer) logContainer.innerHTML = "";
 
+    achievementManager.resetProgress();
+    netWorthHistory = [];
+    recordNetWorthSnapshot();
+
     if (options.fastMode) {
       addGameLog(
         "⚡ Chế độ Chơi Nhanh kích hoạt: Đã phát ngẫu nhiên 3 BĐS cho mỗi người chơi!",
@@ -547,6 +584,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (turnCountEl) turnCountEl.textContent = turnCount;
 
     startTimer(savedData.secondsElapsed || 0);
+
+    netWorthHistory = savedData.netWorthHistory || [];
+    if (!netWorthHistory.length) {
+      recordNetWorthSnapshot();
+    }
 
     initGameInfrastructure();
 
@@ -621,6 +663,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (rollResult.event === "JAIL_THREE_DOUBLES") sound.playJail();
       finishTurn(isDoubles);
       return;
+    }
+
+    if (rollResult.event === "JAIL_FREE_DOUBLES") {
+      achievementManager.check(engine.state, {
+        event: "JAIL_DOUBLES_ESCAPE",
+        playerId: currentPlayer.id,
+      });
     }
 
     // Nhảy từng ô một
@@ -735,6 +784,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showFloatingCash(p.id, -landResult.tile.price);
           addGameLog(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
           showToast(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
+          achievementManager.check(engine.state);
           setTimeout(() => finishTurn(isDoubles), 1000);
         } else {
           addGameLog(`🤖 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
@@ -759,6 +809,7 @@ document.addEventListener("DOMContentLoaded", () => {
               showFloatingCash(p.id, -currentTile.price);
               addGameLog(buyRes.message);
               showToast(buyRes.message);
+              achievementManager.check(engine.state);
             }
             finishTurn(isDoubles);
           };
@@ -790,6 +841,7 @@ document.addEventListener("DOMContentLoaded", () => {
               showFloatingCash(p.id, -landResult.tile.price);
               addGameLog(buyRes.message);
               showToast(buyRes.message);
+              achievementManager.check(engine.state);
             }
             finishTurn(isDoubles);
           },
@@ -832,6 +884,12 @@ document.addEventListener("DOMContentLoaded", () => {
       sound.speakSaigon("Lụm trọn hũ vàng rồi nghen!");
       addGameLog(landResult.message);
       showToast(landResult.message);
+      achievementManager.check(engine.state, {
+        event: "JACKPOT_COLLECTED",
+        playerId: p.id,
+        previousMoney: p.money - landResult.amount,
+        jackpotAmount: landResult.amount,
+      });
       setTimeout(() => finishTurn(isDoubles), 1600);
     }
     // E. Ô Thuế
@@ -869,6 +927,10 @@ document.addEventListener("DOMContentLoaded", () => {
       addGameLog(landResult.message);
       showToast(landResult.message);
       if (landResult.winner) {
+        achievementManager.check(engine.state, {
+          event: "GAME_WON",
+          winnerId: landResult.winner.id,
+        });
         showGameOverModal(landResult.winner);
       } else {
         setTimeout(() => finishTurn(false), 1400);
@@ -1002,8 +1064,10 @@ document.addEventListener("DOMContentLoaded", () => {
       turnCount++;
       const turnCountEl = document.getElementById("game-turn-count");
       if (turnCountEl) turnCountEl.textContent = turnCount;
+      recordNetWorthSnapshot();
     }
 
+    achievementManager.check(engine.state);
     autoSaveGame();
     checkBotTurn();
   }
@@ -1125,56 +1189,28 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem("monopoly_saigon_save");
     } catch (e) {}
 
-    let overlay = document.getElementById("game-over-modal");
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.id = "game-over-modal";
-      overlay.className = "modal-backdrop";
-      document.body.appendChild(overlay);
-    }
-    overlay.innerHTML = `
-      <div style="
-        width: 100%;
-        max-width: 440px;
-        background: #FFFDF8;
-        border-radius: 24px;
-        border: 4px solid #F39C12;
-        box-shadow: 0 30px 80px rgba(243, 156, 18, 0.4);
-        padding: 28px 24px;
-        text-align: center;
-        animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        font-family: var(--font-ui, sans-serif);
-      ">
-        <div style="font-size: 3.5rem; margin-bottom: 8px;">👑</div>
-        <div style="font-size: 0.85rem; font-weight: 800; color: #D35400; letter-spacing: 2px;">KẾT THÚC VÁN ĐẤU</div>
-        <h2 style="font-family: var(--font-retro, sans-serif); font-size: 1.8rem; font-weight: 900; color: #176B78; margin: 6px 0 12px;">ĐẠI GIA SÀI GÒN</h2>
-        <div style="font-size: 1.15rem; font-weight: 800; color: #2C3E50; margin-bottom: 16px;">
-          🎉 Chúc mừng <span style="color: #C0392B;">${winner.name}</span> đã chiến thắng vẻ vang!
-        </div>
-        <p style="font-size: 0.85rem; color: #7F8C8D; margin-bottom: 24px;">
-          Tất cả các đối thủ khác đều đã phá sản. Bạn chính là ông trùm bất động sản duy nhất trụ lại thành phố!
-        </p>
-        <button id="btn-gameover-restart" style="
-          background: linear-gradient(135deg, #176B78, #0E4852);
-          color: #FFF;
-          border: none;
-          padding: 12px 28px;
-          border-radius: 12px;
-          font-weight: 800;
-          font-size: 1rem;
-          cursor: pointer;
-          box-shadow: 0 6px 16px rgba(23, 107, 120, 0.35);
-        ">🔄 BẮT ĐẦU VÁN MỚI</button>
-      </div>
-    `;
-    overlay.style.display = "flex";
-    overlay.classList.add("active");
-    document.getElementById("btn-gameover-restart").onclick = () => {
-      overlay.style.display = "none";
-      gameSetupModal.show(startNewGame, resumeGame);
-    };
+    matchRecapModal.show({
+      winner,
+      players: engine.state.players,
+      properties: engine.state.properties,
+      boardData: SAIGON_BOARD_DATA,
+      stats: {
+        turnCount,
+        secondsElapsed,
+        netWorthHistory,
+      },
+      onRestartGame: () => {
+        gameSetupModal.show(startNewGame, resumeGame);
+      },
+    });
   }
 
   // Khởi động GameSetupModal ngay khi vào trang (hỗ trợ Tiếp Tục hoặc Ván Mới)
   gameSetupModal.show(startNewGame, resumeGame);
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initGameApp);
+} else {
+  initGameApp();
+}
