@@ -354,16 +354,46 @@ body {
   box-shadow: 0 4px 10px rgba(46, 36, 27, 0.1);
 }
 
-/* HUY HIỆU THỨ HẠNG LEADERBOARD */
+/* CỤM AVATAR VÀ HUY HIỆU THỨ HẠNG ĐÍNH GÓC TRÊN */
+.player-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-avatar-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+}
+
+/* HUY HIỆU THỨ HẠNG LEADERBOARD ĐÍNH GÓC TRÊN AVATAR */
 .lb-rank-badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   font-weight: 900;
   line-height: 1;
 }
@@ -371,11 +401,10 @@ body {
 .lb-rank-badge.rank-1 {
   background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
   color: #fff;
-  box-shadow: 0 2px 6px rgba(243, 156, 18, 0.45);
-  border: 1px solid #f1c40f;
+  border-color: #ffd875;
 }
 .lb-rank-badge.rank-1 .rank-medal {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   line-height: 1;
 }
 .lb-rank-badge.rank-1 .rank-txt {
@@ -385,10 +414,10 @@ body {
 .lb-rank-badge.rank-2 {
   background: linear-gradient(135deg, #bdc3c7 0%, #7f8c8d 100%);
   color: #fff;
-  border: 1px solid #ecf0f1;
+  border-color: #ecf0f1;
 }
 .lb-rank-badge.rank-2 .rank-medal {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   line-height: 1;
 }
 .lb-rank-badge.rank-2 .rank-txt {
@@ -398,10 +427,10 @@ body {
 .lb-rank-badge.rank-3 {
   background: linear-gradient(135deg, #d35400 0%, #a04000 100%);
   color: #fff;
-  border: 1px solid #e59866;
+  border-color: #f5b041;
 }
 .lb-rank-badge.rank-3 .rank-medal {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   line-height: 1;
 }
 .lb-rank-badge.rank-3 .rank-txt {
@@ -411,14 +440,15 @@ body {
 .lb-rank-badge.rank-4 {
   background: #ede8dc;
   color: #5d4037;
-  border: 1px solid rgba(46, 36, 27, 0.2);
-  font-size: 0.72rem;
+  border-color: #ffffff;
+  font-size: 0.65rem;
 }
 
 .lb-rank-badge.rank-bankrupt {
   background: #78281f;
   color: #fff;
-  font-size: 0.82rem;
+  border-color: #ffffff;
+  font-size: 0.68rem;
 }
 
 /* THẺ ĐANG ĐẾN LƯỢT (Active Player): Nền Teal sang trọng, viền vàng kim */
@@ -428,19 +458,6 @@ body {
   border: 2px solid #ffd875;
   box-shadow: 0 5px 16px rgba(23, 107, 120, 0.45);
   transform: scale(1.02);
-}
-
-.player-avatar-box {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  position: relative;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
 }
 
 .player-avatar-box svg {
@@ -991,8 +1008,13 @@ body {
 }
 
 @keyframes pulseLive {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .recent-log-messages {

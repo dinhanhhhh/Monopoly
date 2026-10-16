@@ -14,6 +14,7 @@ client/js/dev/
 .vscode/
 .idea/
 .gemini/
+.agents/
 .DS_Store
 Thumbs.db
 desktop.ini

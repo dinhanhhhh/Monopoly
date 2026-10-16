@@ -4,8 +4,6 @@
 
 /* HUD người chơi được định nghĩa chuẩn xác trong main.css */
 
-
-
 /* ================= HUY HIỆU CHỦ SỞ HỮU ĐƯỢC ĐỊNH NGHĨA TRONG BOARD.CSS ================= */
 
 /* ================= MODAL THẺ BẰNG KHOÁN (TITLE DEED) & BACKDROP CHUNG ================= */
@@ -581,334 +579,508 @@
   line-height: 1.4;
 }
 
-/* ================= 3. MODAL GIAO DỊCH (TRADE MODAL) ================= */
-.trade-modal-card {
-  background: #fff;
+/* ================= 3. MODAL GIAO DỊCH (TRADE MODAL - MINIMAL MODERN) ================= */
+.trade-modal-window {
+  background: #ffffff;
   border-radius: 20px;
-  width: 95%;
-  max-width: 650px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
-  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: 92%;
+  max-width: 520px;
+  padding: 20px 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  position: relative;
+  font-family: var(--font-ui);
+  box-sizing: border-box;
 }
 
-.trade-header {
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #2c3e50, #1a252f);
-  color: #fff;
-  text-align: center;
-}
-
-.trade-header h2 {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 900;
-}
-
-.trade-sub {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  margin-top: 2px;
-}
-
-.trade-partner-select-bar {
-  padding: 10px 20px;
-  background: #f8f9fa;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.85rem;
-  font-weight: 800;
-  border-bottom: 1px solid #eceff1;
-}
-
-.trade-select {
-  flex: 1;
-  padding: 6px 10px;
+.trade-close-x {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  font-family: inherit;
-  font-weight: 800;
-  font-size: 0.85rem;
-}
-
-.trade-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  padding: 14px 20px;
-  overflow-y: auto;
-  max-height: 52vh;
-}
-
-.trade-column {
-  background: #f8fafc;
-  border-radius: 14px;
-  padding: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.col-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.user-badge {
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-.col-title {
-  font-size: 0.82rem;
-  font-weight: 900;
-  color: #334155;
-}
-
-.trade-money-section {
-  margin-bottom: 10px;
-}
-
-.trade-money-section label {
-  font-size: 0.75rem;
-  font-weight: 800;
+  background: #f1f5f9;
+  border: none;
+  font-size: 0.95rem;
   color: #64748b;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.money-input-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.trade-money-input {
-  width: 100%;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  font-family: inherit;
-  font-weight: 800;
-  font-size: 0.85rem;
-}
-
-.currency-tag {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: #64748b;
-}
-
-.section-label {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: #64748b;
-  margin-bottom: 6px;
-}
-
-.trade-tiles-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.trade-tile-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 10px;
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  font-size: 0.78rem;
-  font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s ease;
 }
 
-.trade-tile-item:hover:not(.disabled) {
-  border-color: #3b82f6;
-  background: #f0f9ff;
+.trade-close-x:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
-.trade-tile-item.is-checked {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.15);
+.trade-modal-header {
+  margin-bottom: 12px;
 }
 
-.trade-tile-item.disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+.trade-main-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 3px 0;
+  letter-spacing: -0.3px;
 }
 
-.tile-item-left {
+.trade-helper-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 14px 0;
+}
+
+.trade-partner-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trade-partner-lbl {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.trade-partner-pills {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+}
+
+.trade-partner-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px 4px 6px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.trade-partner-pill:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.trade-partner-pill.is-selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.18);
+}
+
+.partner-pill-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.partner-pill-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.trade-partner-pill.is-selected .partner-pill-name {
+  color: #1d4ed8;
+}
+
+/* 2 Cột giao dịch */
+.trade-modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+.trade-deal-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.deal-col-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.deal-col-heading {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.deal-col-heading strong {
+  color: #2563eb;
+}
+
+.deal-player-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.deal-player-tag.tag-sender {
+  color: #e11d48;
+}
+
+.deal-player-tag.tag-partner {
+  color: #2563eb;
+}
+
+/* Danh sách thẻ đất */
+.trade-cards-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 3px;
+  margin-bottom: 8px;
+}
+
+.trade-cards-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.trade-cards-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.trade-empty-tiles {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  padding: 18px 8px;
+  text-align: center;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px dashed #e2e8f0;
+}
+
+.trade-tile-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 32px;
+  box-sizing: border-box;
+}
+
+.trade-tile-card:hover:not(.is-disabled) {
+  border-color: #93c5fd;
+  background: #f8fafc;
+}
+
+.trade-tile-card.is-selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.15);
+}
+
+.trade-tile-card.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #f8fafc;
+  border-color: #f1f5f9;
+}
+
+.tile-card-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   flex: 1;
   min-width: 0;
 }
 
-.tile-item-right {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.trade-tile-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.trade-tile-price {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #475569;
-  background: #f1f5f9;
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
-.trade-tile-mortgaged {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #e74c3c;
-  background: #fdedec;
-  padding: 1px 4px;
-  border-radius: 4px;
-}
-
-.trade-color-pill {
-  width: 10px;
-  height: 10px;
+.tile-color-strip {
+  width: 4px;
+  height: 18px;
   border-radius: 3px;
   flex-shrink: 0;
 }
 
-.trade-col-summary {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: #ffffff;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.trade-col-summary .summary-lbl {
-  font-size: 0.72rem;
-  color: #64748b;
+.tile-card-title {
+  font-size: 0.78rem;
   font-weight: 800;
-  text-transform: uppercase;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
 }
 
-.trade-col-summary .summary-val {
-  font-size: 0.92rem;
-  font-weight: 900;
+.trade-tile-card.is-selected .tile-card-title {
+  color: #1d4ed8;
 }
 
-.trade-col-summary .summary-val.offer-sum {
-  color: #16a085;
+.tile-card-sub {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.trade-col-summary .summary-val.request-sum {
-  color: #e67e22;
+.tile-card-right {
+  flex-shrink: 0;
+  margin-left: 6px;
 }
 
-.trade-valuation-bar {
+.tile-card-price {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #475569;
+}
+
+/* Phần tiền mặt & Tổng giá trị */
+.trade-cash-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 6px 0;
+  border-top: 1px solid #f1f5f9;
 }
 
-.deal-diff-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.deal-diff-info .diff-label {
-  font-size: 0.68rem;
-  color: #64748b;
+.cash-label {
+  font-size: 0.78rem;
   font-weight: 700;
-  text-transform: uppercase;
+  color: #64748b;
 }
 
-.deal-diff-info .diff-val {
+.cash-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  padding: 2px 6px;
+}
+
+.cash-currency {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 800;
+  margin-right: 3px;
+}
+
+.trade-cash-input {
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #1e293b;
+  width: 65px;
+  text-align: right;
+  outline: none;
+  padding: 0;
+}
+
+.trade-col-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.total-amount {
   font-size: 0.88rem;
   font-weight: 900;
   color: #0f172a;
 }
 
-.deal-status-badge {
-  font-size: 0.76rem;
-  font-weight: 800;
-  padding: 4px 12px;
-  border-radius: 20px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.deal-status-badge.deal-none {
-  background: #e2e8f0;
-  color: #64748b;
-}
-
-.deal-status-badge.deal-fair {
-  background: #dbeafe;
-  color: #1d4ed8;
-  border: 1px solid #93c5fd;
-}
-
-.deal-status-badge.deal-advantage {
-  background: #dcfce7;
-  color: #15803d;
-  border: 1px solid #86efac;
-}
-
-.deal-status-badge.deal-concede {
-  background: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
-}
-
-.deal-status-badge.deal-gift {
-  background: #f3e8ff;
-  color: #7e22ce;
-  border: 1px solid #d8b4fe;
-}
-
-.deal-status-badge.deal-greedy {
-  background: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fca5a5;
-}
-
-.trade-footer-actions {
+/* Footer nút bấm */
+.trade-modal-footer {
   display: flex;
+  justify-content: flex-end;
+  align-items: center;
   gap: 10px;
-  padding: 12px 20px;
-  background: #fff;
-  border-top: 1px solid #eceff1;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-trade-cancel {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-trade-cancel:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.btn-trade-submit {
+  padding: 8px 22px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-trade-submit.is-ready {
+  background: #86efac;
+  color: #14532d;
+  box-shadow: 0 2px 8px rgba(134, 239, 172, 0.45);
+}
+
+.btn-trade-submit.is-ready:hover {
+  background: #4ade80;
+  transform: translateY(-1px);
+}
+
+.btn-trade-submit.is-disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* ================= FLOATING PENDING CARD (ĐANG CHỜ BOT PHẢN HỒI) ================= */
+.trade-pending-floating-wrap {
+  position: fixed;
+  top: 80px;
+  right: 28px;
+  z-index: 100000;
+}
+
+.trade-pending-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  padding: 12px 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+  min-width: 300px;
+  max-width: 380px;
+  font-family: var(--font-ui);
+  transition: all 0.25s ease;
+}
+
+.pending-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.pending-status-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.pending-timer-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.pending-body-summary {
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.pending-bottom-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn-cancel-pending {
+  padding: 3px 12px;
+  border-radius: 7px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cancel-pending:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.trade-pending-card.is-accepted {
+  border-color: #22c55e;
+  background: #f0fdf4;
+  box-shadow: 0 12px 30px rgba(34, 197, 94, 0.22);
+}
+
+.trade-pending-card.is-rejected {
+  border-color: #ef4444;
+  background: #fef2f2;
+  box-shadow: 0 12px 30px rgba(239, 68, 68, 0.18);
+}
+
+.pending-result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.pending-result-row .result-icon {
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.pending-result-row .result-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.pending-result-row .result-text strong {
+  font-size: 0.82rem;
+  color: #0f172a;
+}
+
+.pending-result-row .result-text small {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
 }
 
 .trade-confirm-card {
@@ -4128,7 +4300,11 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px 12px;
-  background: linear-gradient(90deg, rgba(231, 76, 60, 0.25) 0%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(231, 76, 60, 0.25) 0%,
+    transparent 100%
+  );
   border-bottom: 1px solid rgba(231, 76, 60, 0.3);
 }
 
@@ -4138,8 +4314,15 @@
 }
 
 @keyframes pulseDebt {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px #e74c3c); }
-  50% { transform: scale(1.15); filter: drop-shadow(0 0 10px #f39c12); }
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px #e74c3c);
+  }
+  50% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 10px #f39c12);
+  }
 }
 
 .debt-header-text h3 {
@@ -4222,8 +4405,13 @@
 }
 
 @keyframes pulseRedText {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.65; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
 }
 
 .debt-auto-box {
@@ -4243,7 +4431,9 @@
   cursor: pointer;
   text-align: left;
   box-shadow: 0 4px 15px rgba(211, 84, 0, 0.45);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .btn-debt-auto:hover {
@@ -4473,6 +4663,11 @@
 }
 
 @keyframes glowGreenBtn {
-  0%, 100% { box-shadow: 0 4px 18px rgba(46, 204, 113, 0.45); }
-  50% { box-shadow: 0 4px 26px rgba(46, 204, 113, 0.85); }
+  0%,
+  100% {
+    box-shadow: 0 4px 18px rgba(46, 204, 113, 0.45);
+  }
+  50% {
+    box-shadow: 0 4px 26px rgba(46, 204, 113, 0.85);
+  }
 }

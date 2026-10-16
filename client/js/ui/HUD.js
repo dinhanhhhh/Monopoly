@@ -94,28 +94,35 @@ export class HUD {
         badges.push('<span class="player-badge badge-jail">🚨 Ở tù</span>');
       }
       if (isActive) {
-        badges.push('<span class="player-badge badge-playing">🎯 Lượt đi</span>');
+        badges.push(
+          '<span class="player-badge badge-playing">🎯 Lượt đi</span>',
+        );
       } else if (isNext) {
-        badges.push('<span class="player-badge badge-next-turn">⏭️ Lượt tới</span>');
+        badges.push(
+          '<span class="player-badge badge-next-turn">⏭️ Lượt tới</span>',
+        );
       } else if (isLowCash) {
-        badges.push('<span class="player-badge badge-low-cash">⚠️ Cạn tiền</span>');
+        badges.push(
+          '<span class="player-badge badge-low-cash">⚠️ Cạn tiền</span>',
+        );
       }
     }
 
-    const statusBadge = badges.length > 0
-      ? `<div class="player-badges-cluster">${badges.join("")}</div>`
-      : "";
+    const statusBadge =
+      badges.length > 0
+        ? `<div class="player-badges-cluster">${badges.join("")}</div>`
+        : "";
 
     return `
       <div id="hud-player-${p.id}" class="player-card lb-card ${p.isBankrupt ? "is-bankrupt" : ""} ${isActive ? "active-player" : ""} ${isNext ? "next-turn-player" : ""} ${isLowCash ? "is-low-cash" : ""} ${p.isBot ? "is-bot" : ""}" data-player-id="${p.id}" data-rank="${rankIdx + 1}">
         ${statusBadge}
 
-        <!-- Cụm thứ hạng Leaderboard -->
-        ${rankBadge}
-
-        <!-- Avatar tròn minh họa phong cách Sài Gòn -->
-        <div class="player-avatar-box">
-          ${avatarInfo.svg}
+        <!-- Cụm Avatar kèm Huy hiệu thứ hạng Leaderboard đính góc trên -->
+        <div class="player-avatar-wrap">
+          <div class="player-avatar-box">
+            ${avatarInfo.svg}
+          </div>
+          ${rankBadge}
         </div>
 
         <!-- Thông tin trung tâm: Tên, Tiền mặt to, Tài sản rút gọn & Hàng chip nhóm đất -->
@@ -207,7 +214,13 @@ export class HUD {
 
     const cardsHtml = rankedPlayers
       .map((item, rankIdx) =>
-        this.renderPlayerCard(item.p, item.origIdx, rankIdx, state, nextTurnIndex),
+        this.renderPlayerCard(
+          item.p,
+          item.origIdx,
+          rankIdx,
+          state,
+          nextTurnIndex,
+        ),
       )
       .join("");
 
