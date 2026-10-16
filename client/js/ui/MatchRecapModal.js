@@ -61,8 +61,8 @@ export class MatchRecapModal {
         if (a.isWinner) return -1;
         if (b.isWinner) return 1;
         if (a.isBankrupt && !b.isBankrupt) return 1;
-        if (!a.isBankrupt && b.isBankrupt) return -1;
-        return b.netWorth - a.netWorth;
+        if (b.netWorth !== a.netWorth) return b.netWorth - a.netWorth;
+        return (b.money || 0) - (a.money || 0);
       });
 
     const standingsHtml = rankedPlayers

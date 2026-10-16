@@ -24,7 +24,8 @@ export class GameEngine {
       id: cfg.id || `p${idx + 1}`,
       name: cfg.name || `Người chơi ${idx + 1}`,
       token: cfg.token,
-      money: GAME_CONSTANTS.STARTING_MONEY,
+      money:
+        cfg.money !== undefined ? cfg.money : GAME_CONSTANTS.STARTING_MONEY,
       position: 0,
       inJail: false,
       jailTurns: 0,
@@ -79,6 +80,11 @@ export class GameEngine {
       lastRoll: null,
       pendingAction: null,
       jackpotPot: 1_000_000, // Hũ Quỹ Trúng Thưởng khởi điểm 1.000.000đ
+      round: 1, // Vòng đấu hiện tại của bàn cờ
+      maxRounds:
+        options.maxRounds ||
+        (options.fastMode ? 30 : GAME_CONSTANTS.MAX_ROUNDS),
+      announcedPhases: {}, // Tránh thông báo trùng lặp nhiều lần
       history: [],
       cardHistory: [],
     };
@@ -172,7 +178,11 @@ export class GameEngine {
         const prevPos = player.position;
         player.position = act.target;
         if (act.passGoReward && player.position < prevPos) {
-          player.money += GAME_CONSTANTS.GO_REWARD;
+          const phase = GameRules.getPhase(
+            this.state.round,
+            this.state.maxRounds,
+          );
+          player.money += phase.salary;
         }
         return {
           message: `${player.name} di chuyển đến ${this.getTile(act.target).name}!`,
@@ -872,15 +882,40 @@ export class GameEngine {
           attempts++;
         }
 
+        // Tăng vòng đấu: khi lượt quay vòng trở lại đầu danh sách người chơi còn sống
+        let roundIncremented = false;
+        if (nextIndex <= this.state.currentTurnIndex) {
+          this.state.round = (this.state.round || 1) + 1;
+          roundIncremented = true;
+        }
+
         this.state.currentTurnIndex = nextIndex;
         this.state.turnState = TURN_STATES.WAIT_ROLL;
         this.state.consecutiveDoubles = 0;
         this.state.lastRoll = null;
         this.state.pendingAction = null;
 
+        // Kiểm tra kết thúc ván do chạm trần số vòng (Sudden Death mốc cuối)
+        const maxRoundResult = this.checkGameEndByMaxRounds();
+        if (maxRoundResult) {
+          this.state.turnState = TURN_STATES.GAME_OVER;
+          return {
+            success: true,
+            event: "GAME_OVER_MAX_ROUNDS",
+            roundIncremented,
+            winner: maxRoundResult.winner,
+            ranked: maxRoundResult.ranked,
+            message: maxRoundResult.message,
+            state: this.state,
+          };
+        }
+
         return {
           success: true,
           event: "TURN_ENDED",
+          roundIncremented,
+          round: this.state.round,
+          phase: GameRules.getPhase(this.state.round, this.state.maxRounds),
           nextPlayer: this.getCurrentPlayer(),
           state: this.state,
         };
@@ -960,16 +995,22 @@ export class GameEngine {
 
     if (tile.type === "tax") {
       const taxAmount = tile.amount || 1_000_000;
+      const phase = GameRules.getPhase(this.state.round, this.state.maxRounds);
       if (player.money >= taxAmount) {
         player.money -= taxAmount;
-        this.state.jackpotPot = (this.state.jackpotPot || 0) + taxAmount;
+        if (!phase.taxToBank) {
+          this.state.jackpotPot = (this.state.jackpotPot || 0) + taxAmount;
+        }
         this.state.turnState = TURN_STATES.END_TURN;
+        const destMsg = phase.taxToBank
+          ? "Kho Ngân Hàng (Bão kinh tế)"
+          : `Gom vào Quỹ Trúng Thưởng: ${formatVND(this.state.jackpotPot)}`;
         return {
           success: true,
           event: "TAX_PAID",
           taxAmount,
           jackpotPot: this.state.jackpotPot,
-          message: `💸 ${player.name} nộp ${formatVND(taxAmount)} ${tile.name}! (Gom vào Quỹ Trúng Thưởng: ${formatVND(this.state.jackpotPot)})`,
+          message: `💸 ${player.name} nộp ${formatVND(taxAmount)} ${tile.name}! (${destMsg})`,
           state: this.state,
         };
       }
@@ -997,7 +1038,9 @@ export class GameEngine {
       if (player.isBot) {
         const liq = this.autoLiquidateForDebt(player, taxAmount);
         player.money -= taxAmount;
-        this.state.jackpotPot = (this.state.jackpotPot || 0) + taxAmount;
+        if (!phase.taxToBank) {
+          this.state.jackpotPot = (this.state.jackpotPot || 0) + taxAmount;
+        }
         this.state.turnState = TURN_STATES.END_TURN;
         return {
           success: true,
@@ -1064,11 +1107,16 @@ export class GameEngine {
         };
       }
 
+      const phase = GameRules.getPhase(
+        this.state.round,
+        this.state.maxRounds,
+      );
       const rent = GameRules.calculateRent(
         tile,
         owner,
         this.state.properties,
         diceTotal,
+        phase.rentMult,
       );
 
       // Nếu đủ tiền mặt -> Trả ngay
@@ -1261,4 +1309,40 @@ export class GameEngine {
         : `💀 ${player.name} đã chính thức PHÁ SẢN và rời khỏi cuộc chơi!`,
     };
   }
+
+  /**
+   * Kiểm tra điều kiện kết thúc ván đấu khi chạm ngưỡng MAX_ROUNDS (Lưới An Toàn)
+   * Phân định người chiến thắng theo tổng tài sản ròng Net Worth (Hòa thì xét tiền mặt)
+   */
+  checkGameEndByMaxRounds() {
+    if (this.state.isGameOver) return null;
+    const maxR = this.state.maxRounds || GAME_CONSTANTS.MAX_ROUNDS;
+    if (this.state.round > maxR) {
+      const activePlayers = this.state.players.filter((p) => !p.isBankrupt);
+      if (activePlayers.length === 0) return null;
+
+      const ranked = [...activePlayers].sort((a, b) =>
+        GameRules.comparePlayersNetWorth(a, b, this.state.properties),
+      );
+
+      const winner = ranked[0];
+      this.state.winner = winner;
+      this.state.isGameOver = true;
+      this.state.endReason = "MAX_ROUNDS_REACHED";
+      this.state.round = maxR; // Ghim đúng số vòng tối đa (ví dụ 50/50 thay vì 51/50)
+      const winnerNetWorth = GameRules.calculateNetWorth(
+        winner,
+        this.state.properties,
+      );
+
+      return {
+        isGameOver: true,
+        winner,
+        ranked,
+        message: `🏁 ĐÃ HẾT ${maxR} VÒNG ĐẤU! ${winner.name} giành CHIẾN THẮNG với tổng tài sản ${formatVND(winnerNetWorth)}!`,
+      };
+    }
+    return null;
+  }
 }
+

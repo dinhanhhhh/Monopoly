@@ -5,7 +5,7 @@
 import { SAIGON_BOARD_DATA } from "../../shared/data/board-data.js";
 import { GameEngine } from "../../shared/engine.js";
 import { GameRules } from "../../shared/rules.js";
-import { formatVND } from "../../shared/constants.js";
+import { GAME_CONSTANTS, formatVND } from "../../shared/constants.js";
 import { BotAI } from "../../shared/BotAI.js";
 import { BoardRenderer } from "./render/BoardRenderer.js";
 import { GAME_TOKENS } from "./render/TokensData.js";
@@ -151,6 +151,7 @@ function initGameApp() {
 
     if (pauseBtn) {
       pauseBtn.onclick = () => {
+        if (engine?.state?.isGameOver) return;
         isSimPaused = !isSimPaused;
         pauseBtn.textContent = isSimPaused ? "▶️" : "⏸️";
         pauseBtn.title = isSimPaused ? "Tiếp tục ván đấu" : "Tạm dừng";
@@ -254,6 +255,49 @@ function initGameApp() {
     netWorthHistory.push(snapshot);
     if (netWorthHistory.length > 80) {
       netWorthHistory.shift();
+    }
+  }
+
+  /**
+   * Cập nhật thông tin vòng đấu & chu kỳ kinh tế Sudden Death trên header
+   */
+  function updateRoundPhaseHeader(state) {
+    if (!state) return;
+    const maxRounds = state.maxRounds || GAME_CONSTANTS.MAX_ROUNDS;
+    const round = Math.min(state.round || 1, maxRounds);
+    const phase = GameRules.getPhase(round, maxRounds);
+
+    const pillEl = document.getElementById("round-phase-pill");
+    const valEl = document.getElementById("round-phase-val");
+    const iconEl = document.getElementById("round-phase-icon");
+
+    if (valEl) {
+      if (state.isGameOver) {
+        valEl.textContent = `Vòng ${round}/${maxRounds} · Kết Thúc`;
+      } else {
+        valEl.textContent = `Vòng ${round}/${maxRounds} · Lương ${formatVND(phase.salary)}`;
+      }
+    }
+
+    if (pillEl) {
+      pillEl.classList.remove("warning-pill", "danger-pill", "gold-pill");
+      if (state.isGameOver) {
+        pillEl.classList.add("danger-pill");
+        if (iconEl) iconEl.textContent = "🏁";
+        pillEl.title = `Ván đấu đã hoàn thành trọn vẹn ${round}/${maxRounds} vòng!`;
+      } else if (round >= maxRounds - 3) {
+        pillEl.classList.add("danger-pill");
+        if (iconEl) iconEl.textContent = "⚡";
+        pillEl.title = `Sắp chạm giới hạn! Vòng ${round}/${maxRounds} sẽ kết thúc ván đấu!`;
+      } else if (phase.isNearPhase) {
+        pillEl.classList.add("warning-pill");
+        if (iconEl) iconEl.textContent = "⚠️";
+        pillEl.title = `Cảnh báo: Còn ${phase.roundsToNext} vòng nữa bước vào ${phase.phaseName}!`;
+      } else {
+        pillEl.classList.add("gold-pill");
+        if (iconEl) iconEl.textContent = "🔄";
+        pillEl.title = `Giai đoạn: ${phase.phaseName}. Tiền thuê: x${phase.rentMult}`;
+      }
     }
   }
 
@@ -419,11 +463,16 @@ function initGameApp() {
       ? GameRules.canUnmortgage(tile, currentPlayer, engine.state.properties)
       : null;
 
+    const phase = engine
+      ? GameRules.getPhase(engine.state.round, engine.state.maxRounds)
+      : { rentMult: 1 };
+
     titleDeedModal.show(tile, {
       isBuyPrompt: false,
       player: currentPlayer,
       owner,
       propState,
+      rentMult: phase.rentMult,
       buildCheck,
       sellCheck,
       mortgageCheck,
@@ -715,6 +764,7 @@ function initGameApp() {
     boardRenderer.updateJackpot(engine.state.jackpotPot);
 
     updateStandingBanner(SAIGON_BOARD_DATA[0], "Vị trí xuất phát");
+    updateRoundPhaseHeader(engine.state);
 
     autoSaveGame();
     checkBotTurn();
@@ -801,6 +851,7 @@ function initGameApp() {
 
     addGameLog(`📂 Tiếp tục ván chơi trước (Lượt ${turnCount})!`);
     showToast(`📂 Đã tiếp tục ván đấu thành công!`);
+    updateRoundPhaseHeader(engine.state);
 
     autoSaveGame();
     checkBotTurn();
@@ -857,20 +908,33 @@ function initGameApp() {
         },
         onPassedGo: (p) => {
           if (mySession !== currentSessionId || isSimPaused) return;
-          p.money += 2_000_000;
+          const phase = GameRules.getPhase(
+            engine.state.round,
+            engine.state.maxRounds,
+          );
+          const salary = phase.salary;
+          p.money += salary;
           hud.update(engine.state);
           if (simSpeed < 10) {
             sound.playCoin();
-            showFloatingCash(p.id, 2_000_000);
-            triggerPlayerEmote(p.id, "🥳", 2400);
-            sound.speakSaigon("Lãnh lương hai triệu nha!");
+            if (salary > 0) {
+              showFloatingCash(p.id, salary);
+              triggerPlayerEmote(p.id, "🥳", 2400);
+              sound.speakSaigon(`Lãnh lương ${formatVND(salary)} nha!`);
+            }
           }
-          addGameLog(
-            `🎉 ${p.name} qua Khởi Hành: ${formatVND(2_000_000, true)}!`,
-          );
-          if (simSpeed < 10) {
-            showToast(
-              `🎉 ${p.name} qua Khởi Hành: ${formatVND(2_000_000, true)}!`,
+          if (salary > 0) {
+            addGameLog(
+              `🎉 ${p.name} qua Khởi Hành: Lãnh lương ${formatVND(salary, true)}!`,
+            );
+            if (simSpeed < 10) {
+              showToast(
+                `🎉 ${p.name} qua Khởi Hành: Lãnh lương ${formatVND(salary, true)}!`,
+              );
+            }
+          } else {
+            addGameLog(
+              `⚠️ ${p.name} qua Khởi Hành nhưng KHÔNG CÓ LƯƠNG (Bão kinh tế)!`,
             );
           }
         },
@@ -1523,10 +1587,51 @@ function initGameApp() {
 
     const endRes = engine.applyAction({ type: "END_TURN" });
     hud.update(engine.state);
+    updateRoundPhaseHeader(engine.state);
 
-    // Kiểm tra ván đấu kết thúc (chỉ còn 1 người trụ lại cuối cùng)
+    // Xử lý thông báo chu kỳ kinh tế Sudden Death khi sang vòng mới
+    if (endRes.roundIncremented) {
+      const curRound = engine.state.round;
+      const curPhase =
+        endRes.phase ||
+        GameRules.getPhase(curRound, engine.state.maxRounds);
+      engine.state.announcedPhases = engine.state.announcedPhases || {};
+
+      // 1. Cảnh báo trước 3 vòng
+      if (
+        curPhase.nextRound &&
+        curPhase.roundsToNext === 3 &&
+        !engine.state.announcedPhases[`warn_${curPhase.nextRound}`]
+      ) {
+        engine.state.announcedPhases[`warn_${curPhase.nextRound}`] = true;
+        const nextStep = GAME_CONSTANTS.SUDDEN_DEATH.find(
+          (s) => s.round === curPhase.nextRound,
+        );
+        const warnMsg = `⚠️ BÃO KINH TẾ ĐANG ĐẾN: Còn 3 vòng nữa (Vòng ${curPhase.nextRound}) lương Khởi Hành giảm còn ${formatVND(nextStep?.salary ?? 0)} và tiền thuê tăng x${nextStep?.rentMult ?? 1}!`;
+        addGameLog(warnMsg);
+        showToast(warnMsg);
+        if (simSpeed < 10) sound.playJail();
+      }
+
+      // 2. Thông báo chính thức bước vào bậc thang mới
+      const stepEntered = GAME_CONSTANTS.SUDDEN_DEATH.find(
+        (s) => s.round === curRound,
+      );
+      if (stepEntered && !engine.state.announcedPhases[`enter_${curRound}`]) {
+        engine.state.announcedPhases[`enter_${curRound}`] = true;
+        const enterMsg = `🚨 ${stepEntered.name.toUpperCase()} (VÒNG ${curRound})! Lương Khởi Hành: ${formatVND(stepEntered.salary)}, Tiền thuê: x${stepEntered.rentMult}!`;
+        addGameLog(enterMsg);
+        showToast(enterMsg);
+        if (simSpeed < 10) sound.playSaigonHorn();
+      }
+    }
+
+    // Kiểm tra ván đấu kết thúc (chỉ còn 1 người trụ lại cuối cùng hoặc hết số vòng tối đa)
     if (engine.state.isGameOver && engine.state.winner) {
-      handleGameOver(engine.state.winner);
+      handleGameOver(
+        engine.state.winner,
+        endRes.event === "GAME_OVER_MAX_ROUNDS",
+      );
       return;
     }
 
@@ -1543,38 +1648,70 @@ function initGameApp() {
   }
 
   /**
-   * Xử lý kết thúc ván đấu khi chỉ còn 1 người chiến thắng
+   * Xử lý kết thúc ván đấu khi có người chiến thắng hoặc hết giờ
    */
-  function handleGameOver(winner) {
-    if (simTimer) clearInterval(simTimer);
+  function handleGameOver(winner, isMaxRounds = false) {
+    stopCurrentGameLoop();
+    if (timerInterval) clearInterval(timerInterval);
     isSimPaused = true;
+    try {
+      localStorage.removeItem("monopoly_saigon_save");
+    } catch (e) {}
+
     sound.playSuccess();
+    const subTitle = isMaxRounds
+      ? `🏁 ĐÃ HẾT ${engine.state.maxRounds || 30} VÒNG ĐẤU!`
+      : `👑 TRẬN ĐẤU KẾT THÚC!`;
     showToast(`🏆 ${winner.name} đã giành CHIẾN THẮNG CHUNG CUỘC!`);
     addGameLog(
-      `👑 TRẬN ĐẤU KẾT THÚC! ${winner.name} trở thành Vua Địa Ốc Sài Gòn!`,
+      `${subTitle} ${winner.name} trở thành Vua Địa Ốc Sài Gòn với tổng tài sản ${formatVND(GameRules.calculateNetWorth(winner, engine.state.properties))}!`,
     );
 
-    matchRecapModal.show({
-      winner,
-      players: engine.state.players,
-      properties: engine.state.properties,
-      boardData: SAIGON_BOARD_DATA,
-      stats: {
-        turnCount,
-        secondsElapsed,
-        netWorthHistory,
-      },
-      onRestartGame: () => {
-        showSetupModal();
-      },
-    });
+    hud.update(engine.state, handleShowPortfolio);
+    updateRoundPhaseHeader(engine.state);
+
+    const openRecap = () => {
+      matchRecapModal.show({
+        winner,
+        players: engine.state.players,
+        properties: engine.state.properties,
+        boardData: SAIGON_BOARD_DATA,
+        stats: {
+          turnCount,
+          secondsElapsed,
+          netWorthHistory,
+        },
+        onRestartGame: () => {
+          gameSetupModal.show(startNewGame, resumeGame);
+        },
+      });
+    };
+
+    if (btnRoll) {
+      btnRoll.disabled = false;
+      btnRoll.querySelector(".roll-label").textContent = `👑 ${winner.name.toUpperCase()} THẮNG! (BẤM XEM KẾT QUẢ)`;
+      btnRoll.onclick = openRecap;
+    }
+    const pauseBtn = document.getElementById("btn-pause-toggle");
+    if (pauseBtn) {
+      pauseBtn.disabled = false;
+      pauseBtn.textContent = "🏆";
+      pauseBtn.title = "Bấm để xem Bảng Vàng kết quả";
+      pauseBtn.onclick = openRecap;
+    }
+
+    try {
+      openRecap();
+    } catch (err) {
+      console.error("Lỗi hiển thị modal tổng kết ván đấu:", err);
+    }
   }
 
   /**
    * Kiểm tra nếu là lượt của Bot hoặc người chơi đang ở trong tù
    */
   function checkBotTurn() {
-    if (isSimPaused) return;
+    if (isSimPaused || engine?.state?.isGameOver) return;
     const curPlayer = engine.getCurrentPlayer();
     if (!curPlayer) return;
 
@@ -1696,24 +1833,7 @@ function initGameApp() {
   }
 
   function showGameOverModal(winner) {
-    try {
-      localStorage.removeItem("monopoly_saigon_save");
-    } catch (e) {}
-
-    matchRecapModal.show({
-      winner,
-      players: engine.state.players,
-      properties: engine.state.properties,
-      boardData: SAIGON_BOARD_DATA,
-      stats: {
-        turnCount,
-        secondsElapsed,
-        netWorthHistory,
-      },
-      onRestartGame: () => {
-        gameSetupModal.show(startNewGame, resumeGame);
-      },
-    });
+    handleGameOver(winner, false);
   }
 
   // Khởi động GameSetupModal ngay khi vào trang (hỗ trợ Tiếp Tục hoặc Ván Mới)

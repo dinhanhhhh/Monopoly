@@ -128,13 +128,49 @@ export const GameRules = {
   },
 
   /**
-   * Tính toán tiền thuê đất chuẩn quốc tế
+   * Lấy trạng thái kinh tế và bậc thang Sudden Death theo vòng đấu hiện tại
+   * @param {number} round - Vòng đấu hiện tại (bắt đầu từ 1)
+   * @param {number} [maxRounds] - Số vòng tối đa của ván đấu
    */
-  calculateRent(tile, owner, propertiesState, diceTotal = 7) {
+  getPhase(round, maxRounds = GAME_CONSTANTS.MAX_ROUNDS) {
+    const r = Math.max(1, Number(round) || 1);
+    const steps = GAME_CONSTANTS.SUDDEN_DEATH;
+    // Bậc hiện tại là bậc có step.round <= r với round lớn nhất
+    const cur = [...steps].reverse().find((s) => r >= s.round) || {
+      round: 1,
+      salary: GAME_CONSTANTS.GO_REWARD,
+      rentMult: 1,
+      taxToBank: false,
+      name: "Khởi nghiệp",
+    };
+
+    const next = steps.find((s) => s.round > r) ?? null;
+    const isGameOver = r > maxRounds;
+
+    return {
+      round: r,
+      maxRounds,
+      salary: cur.salary !== undefined ? cur.salary : GAME_CONSTANTS.GO_REWARD,
+      rentMult: cur.rentMult || 1,
+      taxToBank: !!cur.taxToBank,
+      phaseName: cur.name,
+      nextRound: next?.round ?? null,
+      roundsToNext: next ? next.round - r : null,
+      isNearPhase: next ? next.round - r <= 3 : false,
+      isGameOver,
+    };
+  },
+
+  /**
+   * Tính toán tiền thuê đất chuẩn quốc tế (hỗ trợ hệ số lạm phát rentMult của Sudden Death)
+   */
+  calculateRent(tile, owner, propertiesState, diceTotal = 7, rentMult = 1) {
     if (!tile || !owner) return 0;
 
     const propState = propertiesState[tile.id];
     if (!propState || propState.isMortgaged) return 0;
+
+    let baseRent = 0;
 
     if (tile.type === "property") {
       const houses = propState.houses || 0;
@@ -145,13 +181,11 @@ export const GameRules = {
           owner.id,
           propertiesState,
         );
-        return ownsFullSet ? tile.rent[0] * 2 : tile.rent[0];
+        baseRent = ownsFullSet ? tile.rent[0] * 2 : tile.rent[0];
+      } else {
+        baseRent = tile.rent[houses] || tile.rent[0];
       }
-
-      return tile.rent[houses] || tile.rent[0];
-    }
-
-    if (tile.type === "railroad") {
+    } else if (tile.type === "railroad") {
       const railroadTiles = SAIGON_BOARD_DATA.filter(
         (t) => t.type === "railroad",
       );
@@ -162,10 +196,8 @@ export const GameRules = {
 
       if (ownedCount === 0) return 0;
       const rentIndex = Math.min(ownedCount, 4) - 1;
-      return GAME_CONSTANTS.RAILROAD_RENTS[rentIndex] || 250_000;
-    }
-
-    if (tile.type === "utility") {
+      baseRent = GAME_CONSTANTS.RAILROAD_RENTS[rentIndex] || 250_000;
+    } else if (tile.type === "utility") {
       const utilityTiles = SAIGON_BOARD_DATA.filter(
         (t) => t.type === "utility",
       );
@@ -180,24 +212,52 @@ export const GameRules = {
           ? GAME_CONSTANTS.UTILITY_MULTIPLIERS[1]
           : GAME_CONSTANTS.UTILITY_MULTIPLIERS[0];
       // Tỷ lệ chuẩn: Hệ số x Xúc xắc x 10.000đ (Điện Lực / Cấp Nước)
-      return multiplier * diceTotal * 10_000;
+      baseRent = multiplier * diceTotal * 10_000;
     }
 
-    return 0;
+    const mult = Number(rentMult) > 0 ? Number(rentMult) : 1;
+    return Math.round(baseRent * mult);
   },
 
+  /**
+   * Tính toán tổng tài sản ròng chuẩn:
+   * - Tiền mặt
+   * - Đất chưa thế chấp: 100% giá in
+   * - Đất đang thế chấp: Giá in - (Tiền vay + 10% phí chuộc)
+   * - Nhà/Khách sạn: 100% chi phí xây dựng đã đầu tư
+   */
   calculateNetWorth(player, propertiesState) {
+    if (!player) return 0;
     let total = player.money || 0;
     SAIGON_BOARD_DATA.forEach((tile) => {
       const p = propertiesState[tile.id];
       if (p && p.owner === player.id) {
-        total += tile.price || 0;
+        const price = tile.price || 0;
+        const loan = tile.mortgage || Math.round(price * 0.5);
+        if (p.isMortgaged) {
+          total += Math.max(0, price - Math.round(loan * 1.1));
+        } else {
+          total += price;
+        }
+
         if (p.houses > 0 && tile.houseCost) {
           total += p.houses * tile.houseCost;
         }
       }
     });
     return total;
+  },
+
+  /**
+   * So sánh thứ hạng 2 người chơi theo tài sản ròng (hoà điểm thì so tiền mặt)
+   */
+  comparePlayersNetWorth(a, b, propertiesState) {
+    if (a.isBankrupt && !b.isBankrupt) return 1;
+    if (!a.isBankrupt && b.isBankrupt) return -1;
+    const nwA = GameRules.calculateNetWorth(a, propertiesState);
+    const nwB = GameRules.calculateNetWorth(b, propertiesState);
+    if (nwB !== nwA) return nwB - nwA;
+    return (b.money || 0) - (a.money || 0);
   },
 
   /**

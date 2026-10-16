@@ -59,9 +59,16 @@ export class TitleDeedModal {
       : "rgba(255, 255, 255, 0.9)";
     const colorHeaderStyle = `background-color: ${tileColor} !important; color: ${headerTextColor} !important; border-bottom: 3px solid #2E241B;`;
 
+    const rentMult = Number(opts.rentMult) > 1 ? Number(opts.rentMult) : 1;
+    const multNotice =
+      rentMult > 1
+        ? `<div style="background:#fdedec; border:1px solid #f5b7b1; color:#c0392b; font-weight:700; font-size:0.75rem; padding:4px 6px; border-radius:4px; margin-bottom:6px; text-align:center;">⚡ Bão kinh tế: Tiền thuê thực tế đang tăng ×${rentMult}!</div>`
+        : "";
+
     let rentsHtml = "";
     if (tile.type === "property" && tile.rent) {
       rentsHtml = `
+        ${multNotice}
         <div class="deed-rents">
           <div class="rent-row"><span class="rent-label">Tiền thuê đất:</span> <span class="rent-val">${formatMoney(tile.rent[0])}</span></div>
           <div class="rent-row"><span class="rent-label">Với trọn bộ màu (x2):</span> <span class="rent-val">${formatMoney(tile.rent[0] * 2)}</span></div>

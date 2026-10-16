@@ -19,6 +19,15 @@ export const GAME_CONSTANTS = {
   MAX_HOUSES_PER_PROPERTY: 4, // 4 nhà trước khi lên khách sạn
   MAX_JAIL_TURNS: 3, // Tối đa 3 lượt thử tung đôi ở tù
 
+  // Giới hạn vòng đấu & Lưới An Toàn (Sudden Death)
+  MAX_ROUNDS: 50, // Mặc định 50 vòng cho ván tiêu chuẩn (30 vòng cho ván nhanh)
+  SUDDEN_DEATH: [
+    { round: 20, salary: 1_000_000, rentMult: 1, taxToBank: false, name: "Giai đoạn 2 (Lương giảm 1tr)" },
+    { round: 30, salary: 500_000, rentMult: 1.5, taxToBank: true, name: "Bão kinh tế cấp 1 (Thuê x1.5, Lương 500k)" },
+    { round: 40, salary: 0, rentMult: 2, taxToBank: true, name: "Bão kinh tế cấp 2 (Thuê x2, Cắt lương)" },
+    { round: 50, salary: 0, rentMult: 2, taxToBank: true, name: "Chung kết (Tính điểm tài sản ròng)" },
+  ],
+
   // Bến xe (Railroads) tiền thuê theo số lượng sở hữu: 1, 2, 3, 4
   RAILROAD_RENTS: [250_000, 500_000, 1_000_000, 2_000_000],
 

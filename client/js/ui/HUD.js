@@ -21,9 +21,11 @@ export class HUD {
   }
 
   renderPlayerCard(p, origIdx, rankIdx, state, nextTurnIndex = -1) {
-    const { currentTurnIndex, properties } = state;
-    const isActive = origIdx === currentTurnIndex;
-    const isNext = origIdx === nextTurnIndex && !p.isBankrupt && !isActive;
+    const { currentTurnIndex = 0, properties = {} } = state;
+    const isGameOver = !!state.isGameOver;
+    const isWinner = isGameOver && state.winner?.id === p.id;
+    const isActive = !isGameOver && origIdx === currentTurnIndex;
+    const isNext = !isGameOver && origIdx === nextTurnIndex && !p.isBankrupt && !isActive;
     const netWorth = GameRules.calculateNetWorth(p, properties);
     const ownedTiles = SAIGON_BOARD_DATA.filter(
       (tile) => properties[tile.id]?.owner === p.id,
@@ -93,7 +95,11 @@ export class HUD {
       if (p.inJail) {
         badges.push('<span class="player-badge badge-jail">🚨 Ở tù</span>');
       }
-      if (isActive) {
+      if (isWinner) {
+        badges.push(
+          '<span class="player-badge badge-winner" style="background:#f39c12;color:#fff;">👑 Quán quân</span>',
+        );
+      } else if (isActive) {
         badges.push(
           '<span class="player-badge badge-playing">🎯 Lượt đi</span>',
         );
@@ -206,11 +212,9 @@ export class HUD {
       return { p, origIdx, netWorth };
     });
 
-    rankedPlayers.sort((a, b) => {
-      if (a.p.isBankrupt && !b.p.isBankrupt) return 1;
-      if (!a.p.isBankrupt && b.p.isBankrupt) return -1;
-      return b.netWorth - a.netWorth;
-    });
+    rankedPlayers.sort((a, b) =>
+      GameRules.comparePlayersNetWorth(a.p, b.p, properties),
+    );
 
     const cardsHtml = rankedPlayers
       .map((item, rankIdx) =>

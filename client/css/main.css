@@ -196,6 +196,38 @@ body {
   color: #b7950b;
 }
 
+.stat-pill.warning-pill {
+  background: #fff8e1;
+  border-color: #f39c12;
+  box-shadow: 0 0 6px rgba(243, 156, 18, 0.3);
+}
+
+.stat-pill.warning-pill .pill-val {
+  color: #d35400;
+}
+
+.stat-pill.danger-pill {
+  background: #fdedec;
+  border-color: #e74c3c;
+  animation: pulse-danger-pill 1.5s infinite;
+}
+
+.stat-pill.danger-pill .pill-val {
+  color: #c0392b;
+}
+
+@keyframes pulse-danger-pill {
+  0% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(231, 76, 60, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+  }
+}
+
 /* Cụm Nút Phải */
 .header-right-tools {
   display: flex;
