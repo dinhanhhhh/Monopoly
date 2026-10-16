@@ -8,9 +8,10 @@ class SoundManager {
     this.ctx = null;
     this.isMuted = localStorage.getItem("monopoly_sound_muted") === "true";
 
-    // Nạp sẵn file âm thanh xúc xắc thực tế
+    // Nạp sẵn file âm thanh xúc xắc thực tế (sử dụng import.meta.url để tương thích mọi vị trí index.html)
     try {
-      this.diceAudio = new Audio("js/audio/u_qpfzpydtro-dice-142528.mp3");
+      const audioUrl = new URL("./u_qpfzpydtro-dice-142528.mp3", import.meta.url).href;
+      this.diceAudio = new Audio(audioUrl);
       this.diceAudio.preload = "auto";
     } catch (e) {
       this.diceAudio = null;
