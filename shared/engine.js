@@ -781,13 +781,13 @@ export class GameEngine {
         if (!sender || !receiver || sender.isBankrupt || receiver.isBankrupt) {
           return { success: false, error: "Người chơi không hợp lệ" };
         }
-        if (sender.money < offerMoney) {
+        if (offerMoney > 0 && sender.money < offerMoney) {
           return {
             success: false,
             error: `${sender.name} không đủ tiền để trao đổi`,
           };
         }
-        if (receiver.money < requestMoney) {
+        if (requestMoney > 0 && receiver.money < requestMoney) {
           return {
             success: false,
             error: `${receiver.name} không đủ tiền để trao đổi`,

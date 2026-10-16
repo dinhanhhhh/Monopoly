@@ -568,31 +568,57 @@ export class TradeModal {
           requestTiles: requestTilesArr,
         });
 
-        sound.playSuccess();
+        if (res && res.success) {
+          sound.playSuccess();
 
-        if (pendingCard) {
-          pendingCard.classList.add("is-accepted");
-          pendingCard.innerHTML = `
-            <div class="pending-result-row">
-              <span class="result-icon">✅</span>
-              <div class="result-text">
-                <strong>${partner.name} đã chấp nhận trao đổi!</strong>
-                <small>"${decision.reason || "Kèo hợp lý, bắt tay giao dịch nghen!"}"</small>
+          if (pendingCard) {
+            pendingCard.classList.add("is-accepted");
+            pendingCard.innerHTML = `
+              <div class="pending-result-row">
+                <span class="result-icon">✅</span>
+                <div class="result-text">
+                  <strong>${partner.name} đã chấp nhận trao đổi!</strong>
+                  <small>"${decision.reason || "Kèo hợp lý, bắt tay giao dịch nghen!"}"</small>
+                </div>
               </div>
-            </div>
-          `;
-        }
-
-        setTimeout(() => {
-          this.hide();
-          if (this.onComplete) {
-            this.onComplete({
-              ...res,
-              success: true,
-              message: `🤝 ${sender.name} đã trao đổi thành công với ${partner.name}!`,
-            });
+            `;
           }
-        }, 2200);
+
+          setTimeout(() => {
+            this.hide();
+            if (this.onComplete) {
+              this.onComplete({
+                ...res,
+                success: true,
+                message: `🤝 ${sender.name} đã trao đổi thành công với ${partner.name}!`,
+              });
+            }
+          }, 2200);
+        } else {
+          // Engine từ chối giao dịch (báo lỗi thực tế)
+          if (pendingCard) {
+            pendingCard.classList.add("is-rejected");
+            pendingCard.innerHTML = `
+              <div class="pending-result-row">
+                <span class="result-icon">⚠️</span>
+                <div class="result-text">
+                  <strong>Giao dịch không thể thực hiện!</strong>
+                  <small>${res?.error || "Đã xảy ra lỗi khi trao đổi tài sản."}</small>
+                </div>
+              </div>
+            `;
+          }
+
+          setTimeout(() => {
+            this.hide();
+            if (this.onComplete) {
+              this.onComplete({
+                success: false,
+                message: `⚠️ Giao dịch không thành công: ${res?.error || "Lỗi kiểm tra"}`,
+              });
+            }
+          }, 2600);
+        }
       } else {
         // Bot từ chối
         if (pendingCard) {

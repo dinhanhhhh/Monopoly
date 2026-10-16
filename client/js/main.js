@@ -1631,37 +1631,54 @@ function initGameApp() {
     // Xử lý thông báo chu kỳ kinh tế Sudden Death khi sang vòng mới
     if (endRes.roundIncremented) {
       const curRound = engine.state.round;
-      const curPhase =
-        endRes.phase ||
-        GameRules.getPhase(curRound, engine.state.maxRounds);
+      const isEndless = !!engine.state.isEndless || !engine.state.maxRounds;
       engine.state.announcedPhases = engine.state.announcedPhases || {};
 
-      // 1. Cảnh báo trước 3 vòng
-      if (
-        curPhase.nextRound &&
-        curPhase.roundsToNext === 3 &&
-        !engine.state.announcedPhases[`warn_${curPhase.nextRound}`]
-      ) {
-        engine.state.announcedPhases[`warn_${curPhase.nextRound}`] = true;
-        const nextStep = GAME_CONSTANTS.SUDDEN_DEATH.find(
-          (s) => s.round === curPhase.nextRound,
-        );
-        const warnMsg = `⚠️ BÃO KINH TẾ ĐANG ĐẾN: Còn 3 vòng nữa (Vòng ${curPhase.nextRound}) lương Khởi Hành giảm còn ${formatVND(nextStep?.salary ?? 0)} và tiền thuê tăng x${nextStep?.rentMult ?? 1}!`;
-        addGameLog(warnMsg);
-        showToast(warnMsg);
-        if (simSpeed < 10) sound.playJail();
-      }
+      if (isEndless) {
+        // Trong chế độ Vô Hạn: Không có Sudden Death giảm lương / tăng tiền thuê.
+        // Chỉ thông báo cột mốc khích lệ ở các vòng chẵn lớn (vòng 10, 20, 30...)
+        if (
+          curRound % 10 === 0 &&
+          !engine.state.announcedPhases[`endless_milestone_${curRound}`]
+        ) {
+          engine.state.announcedPhases[`endless_milestone_${curRound}`] = true;
+          const endlessMsg = `♾️ BƯỚC SANG VÒNG ${curRound}: Trận chiến sinh tử vẫn tiếp tục! Lương cố định ${formatVND(GAME_CONSTANTS.GO_REWARD)}!`;
+          addGameLog(endlessMsg);
+          showToast(endlessMsg);
+          if (simSpeed < 10) sound.playSuccess();
+        }
+      } else {
+        const curPhase =
+          endRes.phase ||
+          GameRules.getPhase(curRound, engine.state.maxRounds);
 
-      // 2. Thông báo chính thức bước vào bậc thang mới
-      const stepEntered = GAME_CONSTANTS.SUDDEN_DEATH.find(
-        (s) => s.round === curRound,
-      );
-      if (stepEntered && !engine.state.announcedPhases[`enter_${curRound}`]) {
-        engine.state.announcedPhases[`enter_${curRound}`] = true;
-        const enterMsg = `🚨 ${stepEntered.name.toUpperCase()} (VÒNG ${curRound})! Lương Khởi Hành: ${formatVND(stepEntered.salary)}, Tiền thuê: x${stepEntered.rentMult}!`;
-        addGameLog(enterMsg);
-        showToast(enterMsg);
-        if (simSpeed < 10) sound.playSaigonHorn();
+        // 1. Cảnh báo trước 3 vòng
+        if (
+          curPhase.nextRound &&
+          curPhase.roundsToNext === 3 &&
+          !engine.state.announcedPhases[`warn_${curPhase.nextRound}`]
+        ) {
+          engine.state.announcedPhases[`warn_${curPhase.nextRound}`] = true;
+          const nextStep = GAME_CONSTANTS.SUDDEN_DEATH.find(
+            (s) => s.round === curPhase.nextRound,
+          );
+          const warnMsg = `⚠️ BÃO KINH TẾ ĐANG ĐẾN: Còn 3 vòng nữa (Vòng ${curPhase.nextRound}) lương Khởi Hành giảm còn ${formatVND(nextStep?.salary ?? 0)} và tiền thuê tăng x${nextStep?.rentMult ?? 1}!`;
+          addGameLog(warnMsg);
+          showToast(warnMsg);
+          if (simSpeed < 10) sound.playJail();
+        }
+
+        // 2. Thông báo chính thức bước vào bậc thang mới
+        const stepEntered = GAME_CONSTANTS.SUDDEN_DEATH.find(
+          (s) => s.round === curRound,
+        );
+        if (stepEntered && !engine.state.announcedPhases[`enter_${curRound}`]) {
+          engine.state.announcedPhases[`enter_${curRound}`] = true;
+          const enterMsg = `🚨 ${stepEntered.name.toUpperCase()} (VÒNG ${curRound})! Lương Khởi Hành: ${formatVND(stepEntered.salary)}, Tiền thuê: x${stepEntered.rentMult}!`;
+          addGameLog(enterMsg);
+          showToast(enterMsg);
+          if (simSpeed < 10) sound.playSaigonHorn();
+        }
       }
     }
 
