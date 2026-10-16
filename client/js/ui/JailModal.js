@@ -173,6 +173,10 @@ export class JailModal {
     }
   }
 
+  hide() {
+    this.close();
+  }
+
   close() {
     if (this.overlay) {
       this.overlay.style.display = "none";

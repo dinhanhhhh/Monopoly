@@ -35,10 +35,18 @@
 }
 
 /* Bo góc 4 ô góc khớp với viền bàn cờ khi overflow: visible */
-#tile-20 { border-top-left-radius: 8px; }
-#tile-30 { border-top-right-radius: 8px; }
-#tile-10 { border-bottom-left-radius: 8px; }
-#tile-0 { border-bottom-right-radius: 8px; }
+#tile-20 {
+  border-top-left-radius: 8px;
+}
+#tile-30 {
+  border-top-right-radius: 8px;
+}
+#tile-10 {
+  border-bottom-left-radius: 8px;
+}
+#tile-0 {
+  border-bottom-right-radius: 8px;
+}
 
 /* ================= Ô CỜ CHUNG (Board Tiles): Đường ngăn 1.5px #8A7358 ================= */
 .board-tile {
@@ -1128,7 +1136,6 @@
    DICE & CONTROLS 3D - Bảng Điều Khiển Xúc Xắc 3D & Animation Bước Nhảy
    ========================================================================== */
 
-
 /* Viên xúc xắc 3D */
 .die {
   width: 42px;
@@ -1144,13 +1151,16 @@
 
 @keyframes diceRollAnim {
   0% {
-    transform: var(--die-scale, scale(1)) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+    transform: var(--die-scale, scale(1)) rotateX(0deg) rotateY(0deg)
+      rotateZ(0deg);
   }
   50% {
-    transform: var(--die-scale, scale(1)) rotateX(360deg) rotateY(180deg) rotateZ(180deg);
+    transform: var(--die-scale, scale(1)) rotateX(360deg) rotateY(180deg)
+      rotateZ(180deg);
   }
   100% {
-    transform: var(--die-scale, scale(1)) rotateX(720deg) rotateY(360deg) rotateZ(360deg);
+    transform: var(--die-scale, scale(1)) rotateX(720deg) rotateY(360deg)
+      rotateZ(360deg);
   }
 }
 
@@ -1189,7 +1199,12 @@
 .dot-red {
   width: 12.5px;
   height: 12.5px;
-  background: radial-gradient(circle at 35% 35%, #ff4d5a 0%, #c0392b 70%, #921f14 100%);
+  background: radial-gradient(
+    circle at 35% 35%,
+    #ff4d5a 0%,
+    #c0392b 70%,
+    #921f14 100%
+  );
   box-shadow:
     inset 0 1.5px 2px rgba(0, 0, 0, 0.5),
     0 0.5px 1px rgba(255, 255, 255, 0.6);
@@ -1264,7 +1279,6 @@
   transform: var(--die-scale, scale(1)) rotateX(90deg) rotateY(0deg);
 }
 
-
 /* ================= ANIMATION BƯỚC NHẢY (HOPPING BOUNCE) ================= */
 .token-hopping {
   animation: tokenHopAnim 0.22s ease-in-out;
@@ -1316,7 +1330,6 @@
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
-
 
 /* -------------------------------------------------------------
  * BUILDINGS: NHÀ XANH & KHÁCH SẠN ĐỎ 3D MINIATURE

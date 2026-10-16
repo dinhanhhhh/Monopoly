@@ -14,13 +14,13 @@ export class GameSetupModal {
     }
   }
 
-  show(onStartGame, onResumeGame = null) {
+  show(onStartGame, onResumeGame = null, onCancel = null) {
     let selectedMode = "1v3"; // '1v1', '1v2', '1v3', 'hotseat'
     let selectedTokenIndex = 0;
     let playerName = "Tôi";
     let isFastMode = false;
 
-    // Kiểm tra ván chơi đã lưu từ LocalStorage
+    // Kiểm tra ván chơi đã lưu từ LocalStorage để tự động chọn đúng chế độ đang dở
     let savedData = null;
     try {
       const raw = localStorage.getItem("monopoly_saigon_save");
@@ -32,6 +32,35 @@ export class GameSetupModal {
           );
           if (activePlayers.length > 1) {
             savedData = parsed;
+
+            // Tự động nhận diện đúng chế độ ván đang chơi dở
+            if (savedData.mode) {
+              selectedMode = savedData.mode;
+            } else if (parsed.state.players.every((p) => p.isBot)) {
+              selectedMode = "4bots";
+            } else if (parsed.state.players.every((p) => !p.isBot)) {
+              selectedMode = "hotseat";
+            } else if (parsed.state.players.length === 2) {
+              selectedMode = "1v1";
+            } else if (parsed.state.players.length === 3) {
+              selectedMode = "1v2";
+            } else {
+              selectedMode = "1v3";
+            }
+
+            // Khôi phục tên và quân cờ nếu có người chơi
+            const humanP = parsed.state.players.find((p) => !p.isBot);
+            if (humanP) {
+              playerName = humanP.name || "Tôi";
+              const tokenIdx = GAME_TOKENS.findIndex(
+                (t) => t.id === humanP.token?.id || t.name === humanP.token?.name,
+              );
+              if (tokenIdx >= 0) selectedTokenIndex = tokenIdx;
+            }
+
+            if (savedData.fastMode || savedData.state?.fastMode) {
+              isFastMode = true;
+            }
           }
         }
       }
@@ -76,6 +105,7 @@ export class GameSetupModal {
       <div class="modal-backdrop fade-in" id="setup-backdrop">
         <div class="setup-modal-card pop-in">
           <div class="setup-header">
+            ${onCancel ? `<button id="btn-close-setup-modal" class="setup-close-btn" title="Đóng và tiếp tục ván hiện tại">&times;</button>` : ""}
             <div class="setup-logo">🎲</div>
             <h2>CỜ TỶ PHÚ SÀI GÒN</h2>
             <p class="setup-subtitle">Chọn chế độ chơi & cấu hình người chơi</p>
@@ -107,6 +137,11 @@ export class GameSetupModal {
                   <div class="mode-icon">👥</div>
                   <div class="mode-name">4 Người Cùng Chơi</div>
                   <div class="mode-desc">Chuyền tay trên 1 máy</div>
+                </div>
+                <div class="mode-card mode-spectator ${selectedMode === "4bots" ? "selected" : ""}" data-mode="4bots" style="grid-column: span 2; background: linear-gradient(135deg, #FFF9F2, #F5EEF8); border-color: #D2B4DE;">
+                  <div class="mode-icon">🤖⚔️🤖</div>
+                  <div class="mode-name" style="color: #6C3483;">4 Máy Tự Đấu (Khán Giả / Mô Phỏng)</div>
+                  <div class="mode-desc">Xem 4 Bot đại gia đấu trí tự động với tốc độ tùy chỉnh (1x - Turbo ⚡)</div>
                 </div>
               </div>
             </div>
@@ -150,6 +185,17 @@ export class GameSetupModal {
       this.container.querySelectorAll(".mode-card").forEach((card) => {
         card.classList.toggle("selected", card.getAttribute("data-mode") === selectedMode);
       });
+      const nameSection = this.container.querySelector("#input-player-name")?.closest(".setup-section");
+      const tokenSection = this.container.querySelector(".token-choice-grid")?.closest(".setup-section");
+      const is4Bots = selectedMode === "4bots";
+      if (nameSection) {
+        nameSection.style.opacity = is4Bots ? "0.4" : "1";
+        nameSection.style.pointerEvents = is4Bots ? "none" : "auto";
+      }
+      if (tokenSection) {
+        tokenSection.style.opacity = is4Bots ? "0.4" : "1";
+        tokenSection.style.pointerEvents = is4Bots ? "none" : "auto";
+      }
     };
 
     // Cập nhật DOM cục bộ khi chọn quân cờ (không re-render toàn bộ)
@@ -200,6 +246,28 @@ export class GameSetupModal {
       };
     }
 
+    // Nút Đóng (✕) để quay lại ván đang chơi dở
+    const btnClose = document.getElementById("btn-close-setup-modal");
+    if (btnClose) {
+      btnClose.onclick = () => {
+        this.hide();
+        if (onCancel) onCancel();
+      };
+    }
+
+    const backdropEl = document.getElementById("setup-backdrop");
+    if (backdropEl && onCancel) {
+      backdropEl.onclick = (e) => {
+        if (e.target === backdropEl) {
+          this.hide();
+          onCancel();
+        }
+      };
+    }
+
+    // Đồng bộ trạng thái ban đầu của mode được chọn (đặc biệt cho 4bots)
+    updateModeSelection(selectedMode);
+
     // Nút bắt đầu ván mới
     const btnStart = document.getElementById("btn-start-game");
     if (btnStart) {
@@ -214,7 +282,7 @@ export class GameSetupModal {
           selectedTokenIndex,
         );
         this.hide();
-        if (onStartGame) onStartGame(players, { fastMode: isFastMode });
+        if (onStartGame) onStartGame(players, { fastMode: isFastMode, mode: selectedMode });
       };
     }
   }
@@ -233,6 +301,39 @@ export class GameSetupModal {
       { name: "Tiệm Bánh", personality: "balanced", tag: "⚖️ Cân Bằng" },
       { name: "Sài Gòn Phố", personality: "balanced", tag: "⚖️ Cân Bằng" },
     ];
+
+    if (mode === "4bots") {
+      return [
+        {
+          id: "p1",
+          name: botConfigs[0].name,
+          token: GAME_TOKENS[0],
+          isBot: true,
+          personality: botConfigs[0].personality,
+        },
+        {
+          id: "p2",
+          name: botConfigs[1].name,
+          token: GAME_TOKENS[1],
+          isBot: true,
+          personality: botConfigs[1].personality,
+        },
+        {
+          id: "p3",
+          name: botConfigs[2].name,
+          token: GAME_TOKENS[2],
+          isBot: true,
+          personality: botConfigs[2].personality,
+        },
+        {
+          id: "p4",
+          name: botConfigs[3].name,
+          token: GAME_TOKENS[3],
+          isBot: true,
+          personality: botConfigs[3].personality,
+        },
+      ];
+    }
 
     if (mode === "hotseat") {
       return [

@@ -6,6 +6,15 @@ export class TokenRenderer {
   constructor(boardElement) {
     this.board = boardElement;
     this.isMoving = false;
+    this._abortMovement = false;
+  }
+
+  /**
+   * Dừng và hủy ngay lập tức chuyển động của quân cờ
+   */
+  stopMovement() {
+    this.isMoving = false;
+    this._abortMovement = true;
   }
 
   /**
@@ -78,11 +87,52 @@ export class TokenRenderer {
    * @param {Array} allPlayers - Danh sách tất cả người chơi để duy trì render
    * @param {Function} callbacks - { onStep, onPassedGo, onComplete }
    */
-  async moveStepByStep(player, steps, allPlayers, callbacks = {}) {
+  async moveStepByStep(
+    player,
+    steps,
+    allPlayers,
+    callbacks = {},
+    stepDelay = 220,
+  ) {
     if (this.isMoving) return;
     this.isMoving = true;
+    this._abortMovement = false;
+
+    // Chế độ Siêu Tốc (Turbo): nhảy tức thì không cần delay từng bước
+    if (stepDelay <= 0) {
+      if (this._abortMovement) {
+        this.isMoving = false;
+        return;
+      }
+      const prevPos = player.position ?? 0;
+      const targetPos = (prevPos + steps) % 40;
+      const passedGo = prevPos + steps >= 40;
+
+      player.position = targetPos;
+      this.render(allPlayers);
+
+      if (this._abortMovement) {
+        this.isMoving = false;
+        return;
+      }
+
+      if (passedGo && callbacks.onPassedGo) {
+        callbacks.onPassedGo(player);
+      }
+
+      this.isMoving = false;
+      if (!this._abortMovement && callbacks.onComplete) {
+        callbacks.onComplete(player, targetPos);
+      }
+      return;
+    }
 
     for (let step = 1; step <= steps; step++) {
+      if (this._abortMovement) {
+        this.isMoving = false;
+        return;
+      }
+
       const prevPos = player.position ?? 0;
       const nextPos = (prevPos + 1) % 40;
       player.position = nextPos;
@@ -105,12 +155,16 @@ export class TokenRenderer {
         callbacks.onStep(player, nextPos, step, steps);
       }
 
-      // Chờ 250ms cho mỗi bước chân nhảy
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      // Chờ theo tốc độ bước nhảy
+      await new Promise((resolve) => setTimeout(resolve, stepDelay));
+      if (this._abortMovement) {
+        this.isMoving = false;
+        return;
+      }
     }
 
     this.isMoving = false;
-    if (callbacks.onComplete) {
+    if (!this._abortMovement && callbacks.onComplete) {
       callbacks.onComplete(player, player.position);
     }
   }

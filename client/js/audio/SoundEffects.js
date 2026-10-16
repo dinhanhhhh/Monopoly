@@ -10,7 +10,10 @@ class SoundManager {
 
     // Nạp sẵn file âm thanh xúc xắc thực tế (sử dụng import.meta.url để tương thích mọi vị trí index.html)
     try {
-      const audioUrl = new URL("./u_qpfzpydtro-dice-142528.mp3", import.meta.url).href;
+      const audioUrl = new URL(
+        "./u_qpfzpydtro-dice-142528.mp3",
+        import.meta.url,
+      ).href;
       this.diceAudio = new Audio(audioUrl);
       this.diceAudio.preload = "auto";
     } catch (e) {
@@ -86,10 +89,16 @@ class SoundManager {
         oscHigh.type = "sine";
         const highFreq = isFinalThud ? 1400 : 1800 + Math.random() * 800;
         oscHigh.frequency.setValueAtTime(highFreq, now);
-        oscHigh.frequency.exponentialRampToValueAtTime(250, now + (isFinalThud ? 0.08 : 0.045));
+        oscHigh.frequency.exponentialRampToValueAtTime(
+          250,
+          now + (isFinalThud ? 0.08 : 0.045),
+        );
 
         gainHigh.gain.setValueAtTime(isFinalThud ? 0.38 : 0.22, now);
-        gainHigh.gain.exponentialRampToValueAtTime(0.001, now + (isFinalThud ? 0.08 : 0.045));
+        gainHigh.gain.exponentialRampToValueAtTime(
+          0.001,
+          now + (isFinalThud ? 0.08 : 0.045),
+        );
 
         oscHigh.connect(gainHigh);
         gainHigh.connect(this.ctx.destination);
@@ -101,10 +110,16 @@ class SoundManager {
         oscLow.type = "triangle";
         const lowFreq = isFinalThud ? 180 : 240 + Math.random() * 100;
         oscLow.frequency.setValueAtTime(lowFreq, now);
-        oscLow.frequency.exponentialRampToValueAtTime(50, now + (isFinalThud ? 0.09 : 0.05));
+        oscLow.frequency.exponentialRampToValueAtTime(
+          50,
+          now + (isFinalThud ? 0.09 : 0.05),
+        );
 
         gainLow.gain.setValueAtTime(isFinalThud ? 0.35 : 0.18, now);
-        gainLow.gain.exponentialRampToValueAtTime(0.001, now + (isFinalThud ? 0.09 : 0.05));
+        gainLow.gain.exponentialRampToValueAtTime(
+          0.001,
+          now + (isFinalThud ? 0.09 : 0.05),
+        );
 
         oscLow.connect(gainLow);
         gainLow.connect(this.ctx.destination);

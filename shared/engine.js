@@ -32,6 +32,10 @@ export class GameEngine {
       isBankrupt: false,
       isBot: !!cfg.isBot,
       personality: cfg.personality || (cfg.isBot ? "balanced" : null),
+      // Tâm trạng ván đấu (Bot Mood): 0.9 ~ 1.1 cố định cả ván để tạo tính cách tự nhiên, serialize được
+      mood: cfg.isBot
+        ? Math.round((0.9 + Math.random() * 0.2) * 100) / 100
+        : 1,
     }));
 
     const properties = {};
@@ -558,12 +562,12 @@ export class GameEngine {
 
       case "CONCEDE_BANKRUPTCY": {
         const pending = this.state.pendingAction;
-        const creditor =
-          pending?.creditorId
-            ? this.state.players.find((p) => p.id === pending.creditorId)
-            : null;
+        const creditor = pending?.creditorId
+          ? this.state.players.find((p) => p.id === pending.creditorId)
+          : null;
         this.state.pendingAction = null;
         const bRes = this.declareBankruptcy(player, creditor);
+        this.state.turnState = TURN_STATES.END_TURN;
         return {
           success: true,
           event: "BANKRUPTCY",
@@ -630,6 +634,27 @@ export class GameEngine {
         this.state.auction.currentBid = bidAmount;
         this.state.auction.highestBidder = bidder.id;
 
+        // Nếu chỉ còn 1 người trong cuộc đấu giá mà người đó đặt giá -> Thắng luôn!
+        if (this.state.auction.activePlayerIds.length <= 1) {
+          const winner = bidder;
+          const tile = this.state.auction.tile;
+          const winningBid = bidAmount;
+          winner.money -= winningBid;
+          this.state.properties[tile.id].owner = winner.id;
+          this.state.auction = null;
+          this.state.turnState = TURN_STATES.END_TURN;
+
+          return {
+            success: true,
+            event: "AUCTION_COMPLETED",
+            winner,
+            tile,
+            winningBid,
+            message: `🏆 ${winner.name} đã thắng đấu giá ${tile.name} với giá ${formatVND(winningBid)}!`,
+            state: this.state,
+          };
+        }
+
         // Chuyển lượt sang bidder kế tiếp trong danh sách đang tham gia
         const curIdx = this.state.auction.activePlayerIds.indexOf(bidder.id);
         const nextId =
@@ -652,48 +677,73 @@ export class GameEngine {
           return { success: false, error: "Không có phiên đấu giá" };
         const passer = this.state.players.find((p) => p.id === action.playerId);
         const passerId = passer ? passer.id : action.playerId;
+        const oldIndex = this.state.auction.activePlayerIds.indexOf(passerId);
+
+        // Loại người chơi khỏi danh sách đấu giá
         this.state.auction.activePlayerIds =
           this.state.auction.activePlayerIds.filter((id) => id !== passerId);
 
-        // Nếu chỉ còn tối đa 1 người đấu giá
-        if (this.state.auction.activePlayerIds.length <= 1) {
-          const winnerId = this.state.auction.highestBidder;
-          const tile = this.state.auction.tile;
-          const winningBid = this.state.auction.currentBid;
+        const remainingCount = this.state.auction.activePlayerIds.length;
+        const winnerId = this.state.auction.highestBidder;
+        const tile = this.state.auction.tile;
+        const winningBid = this.state.auction.currentBid;
 
-          if (winnerId) {
-            const winner = this.state.players.find((p) => p.id === winnerId);
-            winner.money -= winningBid;
-            this.state.properties[tile.id].owner = winner.id;
-            this.state.auction = null;
-            this.state.turnState = TURN_STATES.END_TURN;
+        // Trường hợp 1: Không có ai đặt giá và tất cả mọi người đều đã bỏ cuộc
+        if (!winnerId && remainingCount === 0) {
+          this.state.auction = null;
+          this.state.turnState = TURN_STATES.END_TURN;
+          return {
+            success: true,
+            event: "AUCTION_CANCELLED",
+            tile,
+            message: `Không có ai đặt giá cho ${tile.name}.`,
+            state: this.state,
+          };
+        }
 
-            return {
-              success: true,
-              event: "AUCTION_COMPLETED",
-              winner,
-              tile,
-              winningBid,
-              message: `🏆 ${winner.name} đã thắng đấu giá ${tile.name} với giá ${formatVND(winningBid)}!`,
-              state: this.state,
-            };
-          } else {
-            // Không ai bid cả
-            this.state.auction = null;
-            this.state.turnState = TURN_STATES.END_TURN;
-            return {
-              success: true,
-              event: "AUCTION_CANCELLED",
-              tile,
-              message: `Không có ai đặt giá cho ${tile.name}.`,
-              state: this.state,
-            };
-          }
+        // Trường hợp 2: Đã có người đặt giá và những người khác đã bỏ cuộc hết (chỉ còn lại tối đa 1 người đấu giá)
+        if (winnerId && remainingCount <= 1) {
+          const winner = this.state.players.find((p) => p.id === winnerId);
+          winner.money -= winningBid;
+          this.state.properties[tile.id].owner = winner.id;
+          this.state.auction = null;
+          this.state.turnState = TURN_STATES.END_TURN;
+
+          return {
+            success: true,
+            event: "AUCTION_COMPLETED",
+            winner,
+            tile,
+            winningBid,
+            message: `🏆 ${winner.name} đã thắng đấu giá ${tile.name} với giá ${formatVND(winningBid)}!`,
+            state: this.state,
+          };
         }
 
         // Chuyển lượt sang bidder kế tiếp
-        const nextId = this.state.auction.activePlayerIds[0];
+        const nextIdx = oldIndex >= 0 ? oldIndex % remainingCount : 0;
+        const nextId = this.state.auction.activePlayerIds[nextIdx];
         this.state.auction.currentTurnPlayerId = nextId;
+
+        // Nếu người kế tiếp chính là người đang giữ giá cao nhất (highestBidder),
+        // nghĩa là một vòng đấu giá đã hoàn thành mà không có ai trả giá cao hơn!
+        if (winnerId && nextId === winnerId) {
+          const winner = this.state.players.find((p) => p.id === winnerId);
+          winner.money -= winningBid;
+          this.state.properties[tile.id].owner = winner.id;
+          this.state.auction = null;
+          this.state.turnState = TURN_STATES.END_TURN;
+
+          return {
+            success: true,
+            event: "AUCTION_COMPLETED",
+            winner,
+            tile,
+            winningBid,
+            message: `🏆 ${winner.name} đã thắng đấu giá ${tile.name} với giá ${formatVND(winningBid)}!`,
+            state: this.state,
+          };
+        }
 
         return {
           success: true,
@@ -798,7 +848,8 @@ export class GameEngine {
         if (
           this.state.lastRoll &&
           this.state.lastRoll.isDoubles &&
-          !player.inJail
+          !player.inJail &&
+          !player.isBankrupt
         ) {
           this.state.turnState = TURN_STATES.WAIT_ROLL;
           return {
@@ -930,6 +981,7 @@ export class GameEngine {
       );
       if (player.money + maxLiq < taxAmount) {
         const bRes = this.declareBankruptcy(player, null);
+        this.state.turnState = TURN_STATES.END_TURN;
         return {
           success: true,
           event: "BANKRUPTCY",
@@ -1042,6 +1094,7 @@ export class GameEngine {
       );
       if (player.money + maxLiq < rent) {
         const bRes = this.declareBankruptcy(player, owner);
+        this.state.turnState = TURN_STATES.END_TURN;
         return {
           success: true,
           event: "BANKRUPTCY",
@@ -1113,77 +1166,43 @@ export class GameEngine {
    * @returns {Object} { recovered, soldHouses, mortgagedTiles }
    */
   autoLiquidateForDebt(player, neededAmount) {
-    let recovered = 0;
+    const plan = GameRules.getLiquidationPlan(
+      player,
+      neededAmount,
+      this.state.properties,
+    );
     const soldHouses = [];
     const mortgagedTiles = [];
+    let recovered = 0;
 
-    // 1. Bán bớt nhà/khách sạn nếu có (theo luật bán đều tay)
-    let keepSelling = true;
-    while (player.money < neededAmount && keepSelling) {
-      keepSelling = false;
-      const ownedWithHouses = SAIGON_BOARD_DATA.filter((t) => {
-        const prop = this.state.properties[t.id];
-        return prop && prop.owner === player.id && (prop.houses || 0) > 0;
-      });
-      for (const tile of ownedWithHouses) {
-        const check = GameRules.canSellHouse(
-          tile,
-          player,
-          this.state.properties,
-        );
-        if (check.canSell) {
-          const prop = this.state.properties[tile.id];
-          prop.houses = check.nextHouses;
-          player.money += check.refund;
-          recovered += check.refund;
-          soldHouses.push({ tile, refund: check.refund });
-          keepSelling = true;
-          if (player.money >= neededAmount) break;
-        }
+    // 1. Thực hiện bán nhà theo kế hoạch
+    for (const tileId of plan.sells) {
+      const tile = this.getTile(tileId);
+      const prop = this.state.properties[tileId];
+      if (prop && prop.houses > 0) {
+        prop.houses--;
+        const refund = Math.round((tile.houseCost || 0) * 0.5);
+        player.money += refund;
+        recovered += refund;
+        soldHouses.push({ tile, refund });
       }
     }
 
-    // 2. Thế chấp các mảnh đất chưa thế chấp
-    if (player.money < neededAmount) {
-      const ownedTiles = SAIGON_BOARD_DATA.filter((t) => {
-        const prop = this.state.properties[t.id];
-        return prop && prop.owner === player.id && !prop.isMortgaged;
-      });
-
-      // Sắp xếp: Ưu tiên ô đất lẻ loi trước, tránh phá vỡ trọn bộ màu
-      ownedTiles.sort((a, b) => {
-        const aFull = GameRules.hasFullColorSet(
-          a.group,
-          player.id,
-          this.state.properties,
-        );
-        const bFull = GameRules.hasFullColorSet(
-          b.group,
-          player.id,
-          this.state.properties,
-        );
-        if (aFull && !bFull) return 1;
-        if (!aFull && bFull) return -1;
-        return (a.price || 0) - (b.price || 0);
-      });
-
-      for (const tile of ownedTiles) {
-        const check = GameRules.canMortgage(
-          tile,
-          player,
-          this.state.properties,
-        );
-        if (check.canMortgage) {
-          this.state.properties[tile.id].isMortgaged = true;
-          player.money += check.mortgageValue;
-          recovered += check.mortgageValue;
-          mortgagedTiles.push({ tile, mortgageValue: check.mortgageValue });
-          if (player.money >= neededAmount) break;
-        }
+    // 2. Thực hiện thế chấp theo kế hoạch
+    for (const tileId of plan.mortgages) {
+      const tile = this.getTile(tileId);
+      const prop = this.state.properties[tileId];
+      if (prop && !prop.isMortgaged) {
+        prop.isMortgaged = true;
+        const mortgageValue =
+          tile.mortgage || Math.round((tile.price || 0) * 0.5);
+        player.money += mortgageValue;
+        recovered += mortgageValue;
+        mortgagedTiles.push({ tile, mortgageValue });
       }
     }
 
-    return { recovered, soldHouses, mortgagedTiles };
+    return { recovered, soldHouses, mortgagedTiles, enough: plan.enough };
   }
 
   sendToJail(player) {
@@ -1203,6 +1222,10 @@ export class GameEngine {
     if (!player || player.isBankrupt) return null;
     player.isBankrupt = true;
     player.money = 0;
+    this.state.consecutiveDoubles = 0;
+    if (this.state.lastRoll) {
+      this.state.lastRoll.isDoubles = false;
+    }
 
     // Chuyển giao hoặc giải phóng tài sản
     Object.keys(this.state.properties).forEach((tileId) => {

@@ -8,7 +8,21 @@ export class DiceRenderer {
     this.onRollComplete = onRollComplete;
     this.onRollStart = onRollStart;
     this.isRolling = false;
+    this._rollTimer = null;
     this.init();
+  }
+
+  /**
+   * Hủy bỏ ngay lập tức tiến trình lắc xúc xắc
+   */
+  cancelRoll() {
+    if (this._rollTimer) {
+      clearTimeout(this._rollTimer);
+      this._rollTimer = null;
+    }
+    this.isRolling = false;
+    if (this.die1El) this.die1El.classList.remove("rolling");
+    if (this.die2El) this.die2El.classList.remove("rolling");
   }
 
   init() {
@@ -25,12 +39,15 @@ export class DiceRenderer {
 
   /**
    * Kích hoạt tung xúc xắc với hiệu ứng xoay lắc 3D
+   * @param {number|null} customDuration - Thời gian lắc (ms), null để dùng mặc định
    */
-  roll() {
+  roll(customDuration = null) {
     if (this.isRolling) return;
     this.isRolling = true;
 
-    if (this.onRollStart) {
+    const duration = customDuration !== null ? customDuration : 750;
+
+    if (this.onRollStart && duration > 50) {
       this.onRollStart();
     }
 
@@ -47,7 +64,7 @@ export class DiceRenderer {
     const isDoubles = val1 === val2;
     const total = val1 + val2;
 
-    setTimeout(() => {
+    const finalizeRoll = () => {
       // Dừng lắc và hiển thị mặt xúc xắc tương ứng
       if (this.die1El) this.die1El.className = `die show-${val1}`;
       if (this.die2El) this.die2El.className = `die show-${val2}`;
@@ -66,6 +83,12 @@ export class DiceRenderer {
       if (this.onRollComplete) {
         this.onRollComplete({ val1, val2, total, isDoubles });
       }
-    }, 750);
+    };
+
+    if (duration <= 30) {
+      finalizeRoll();
+    } else {
+      this._rollTimer = setTimeout(finalizeRoll, duration);
+    }
   }
 }

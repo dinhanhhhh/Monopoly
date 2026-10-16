@@ -1137,3 +1137,76 @@ body {
     margin-bottom: 0;
   }
 }
+
+/* ================= BỘ ĐIỀU TỐC VÁN ĐẤU (Speed Controller) ================= */
+.speed-control-cluster {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid #d7ccc8;
+  border-radius: 18px;
+  padding: 2px 5px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  height: 32px;
+}
+
+.btn-speed-pause {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #ffcc80;
+  background: #fff8e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.btn-speed-pause:hover {
+  background: #ffe082;
+  transform: scale(1.08);
+}
+
+.speed-pills {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #efebe9;
+  border-radius: 12px;
+  padding: 2px;
+}
+
+.btn-speed-pill {
+  border: none;
+  background: transparent;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #5d4037;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.btn-speed-pill:hover {
+  background: rgba(230, 126, 34, 0.15);
+  color: #d35400;
+}
+
+.btn-speed-pill.active {
+  background: #e67e22;
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(230, 126, 34, 0.4);
+}
+
+.btn-speed-pill.btn-turbo.active {
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+  box-shadow: 0 1px 6px rgba(142, 68, 173, 0.45);
+}
+

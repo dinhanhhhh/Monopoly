@@ -20,7 +20,7 @@ export class AuctionModal {
    * @param {Object} auctionState - engine.state.auction
    * @param {Function} onFinish - Callback khi phiên đấu giá kết thúc
    */
-  render(engine, onFinish = null) {
+  render(engine, onFinish = null, onAction = null) {
     const auction = engine.state.auction;
     if (!auction) {
       this.hide();
@@ -162,7 +162,8 @@ export class AuctionModal {
           if (res.event === "AUCTION_COMPLETED" || !engine.state.auction) {
             this.showResult(res, onFinish);
           } else {
-            this.render(engine, onFinish);
+            if (onAction) onAction();
+            else this.render(engine, onFinish, onAction);
           }
         }
       };
@@ -185,7 +186,8 @@ export class AuctionModal {
           ) {
             this.showResult(res, onFinish);
           } else {
-            this.render(engine, onFinish);
+            if (onAction) onAction();
+            else this.render(engine, onFinish, onAction);
           }
         }
       };

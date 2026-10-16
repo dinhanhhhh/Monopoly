@@ -12,9 +12,10 @@ export const GAME_CONSTANTS = {
   LUXURY_TAX: 1_000_000, // 1 triệu thuế xa xỉ / tiêu thụ đặc biệt
   MORTGAGE_INTEREST_RATE: 0.1, // 10% phí chuộc lại đất thế chấp
 
-  // Giới hạn vật phẩm
-  TOTAL_HOUSES: 32, // Tối đa 32 nhà xanh trên toàn ván
-  TOTAL_HOTELS: 12, // Tối đa 12 khách sạn đỏ
+  // Giới hạn vật phẩm & kho ngân hàng (null = vô hạn; chế độ giải đấu: { houses: 32, hotels: 12 })
+  BANK_LIMITS: { houses: null, hotels: null },
+  TOTAL_HOUSES: 32, // Tối đa 32 nhà xanh (cho mode giải đấu)
+  TOTAL_HOTELS: 12, // Tối đa 12 khách sạn đỏ (cho mode giải đấu)
   MAX_HOUSES_PER_PROPERTY: 4, // 4 nhà trước khi lên khách sạn
   MAX_JAIL_TURNS: 3, // Tối đa 3 lượt thử tung đôi ở tù
 

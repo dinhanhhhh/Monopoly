@@ -86,6 +86,94 @@ function initGameApp() {
   let timerInterval = null;
   let turnCount = 1;
 
+  // Quản lý Tốc độ mô phỏng (Speed Controller) & Tạm dừng
+  let simSpeed = 1; // 1: 1x, 3: 3x, 10: Turbo
+  let isSimPaused = false;
+  let currentGameMode = "1v3"; // '1v1', '1v2', '1v3', 'hotseat', '4bots'
+  let isFastModeEnabled = false;
+
+  // Quản lý Vòng Lặp Ván Đấu & Hủy bỏ triệt để ván cũ
+  let currentSessionId = 0;
+  let activeGameTimers = new Set();
+
+  function safeTimeout(fn, ms) {
+    const mySession = currentSessionId;
+    const timerId = setTimeout(() => {
+      activeGameTimers.delete(timerId);
+      if (mySession === currentSessionId && !isSimPaused) {
+        fn();
+      }
+    }, ms);
+    activeGameTimers.add(timerId);
+    return timerId;
+  }
+
+  function stopCurrentGameLoop() {
+    isSimPaused = true;
+    currentSessionId++; // Vô hiệu hóa toàn bộ promise / callback của ván cũ
+    activeGameTimers.forEach((id) => clearTimeout(id));
+    activeGameTimers.clear();
+    if (diceRenderer) diceRenderer.cancelRoll();
+    if (tokenRenderer) tokenRenderer.stopMovement();
+
+    // Đóng các modal tương tác đang mở dở dang
+    try {
+      if (cardModal?.hide) cardModal.hide();
+      if (titleDeedModal?.hide) titleDeedModal.hide();
+      if (auctionModal?.hide) auctionModal.hide();
+      if (debtResolutionModal?.hide) debtResolutionModal.hide();
+      if (jailModal?.hide) jailModal.hide();
+    } catch (e) {
+      console.warn("Lỗi đóng modal:", e);
+    }
+  }
+
+  function getDelay(baseMs) {
+    if (simSpeed >= 10) return 25;
+    return Math.max(30, Math.round(baseMs / simSpeed));
+  }
+
+  function getDiceDuration() {
+    if (simSpeed >= 10) return 20;
+    if (simSpeed === 3) return 220;
+    return 750;
+  }
+
+  function getTokenStepDelay() {
+    if (simSpeed >= 10) return 0;
+    if (simSpeed === 3) return 60;
+    return 220;
+  }
+
+  function initSpeedControls() {
+    const pauseBtn = document.getElementById("btn-pause-toggle");
+    const speedPills = document.querySelectorAll(".btn-speed-pill");
+
+    if (pauseBtn) {
+      pauseBtn.onclick = () => {
+        isSimPaused = !isSimPaused;
+        pauseBtn.textContent = isSimPaused ? "▶️" : "⏸️";
+        pauseBtn.title = isSimPaused ? "Tiếp tục ván đấu" : "Tạm dừng";
+        showToast(
+          isSimPaused ? "⏸️ Đã tạm dừng ván đấu" : "▶️ Đang tiếp tục ván đấu",
+        );
+        if (!isSimPaused) {
+          checkBotTurn();
+        }
+      };
+    }
+
+    speedPills.forEach((pill) => {
+      pill.onclick = () => {
+        const speedVal = parseInt(pill.dataset.speed, 10) || 1;
+        simSpeed = speedVal;
+        speedPills.forEach((p) => p.classList.toggle("active", p === pill));
+        const label = simSpeed >= 10 ? "⚡ Turbo (Siêu Tốc)" : `${simSpeed}x`;
+        showToast(`🚀 Tốc độ: ${label}`);
+      };
+    });
+  }
+
   function formatMoney(amount, withSign = false) {
     return formatVND(amount, withSign);
   }
@@ -197,6 +285,8 @@ function initGameApp() {
       secondsElapsed,
       netWorthHistory,
       savedLogs,
+      mode: currentGameMode,
+      fastMode: isFastModeEnabled,
       savedAt: Date.now(),
     };
     try {
@@ -514,8 +604,23 @@ function initGameApp() {
     // Nút Tạo Ván Mới trên Header
     const btnRestart = document.getElementById("btn-restart-game");
     if (btnRestart) {
-      btnRestart.onclick = () => gameSetupModal.show(startNewGame, resumeGame);
+      btnRestart.onclick = () => {
+        // Dừng và ngắt triệt để toàn bộ chuyển động, xúc xắc và lượt bot ngầm của ván cũ
+        stopCurrentGameLoop();
+        const pauseBtn = document.getElementById("btn-pause-toggle");
+        if (pauseBtn) pauseBtn.textContent = "▶️";
+
+        gameSetupModal.show(startNewGame, resumeGame, () => {
+          // Khi người dùng bấm đóng modal (hủy tạo ván mới) -> tiếp tục lại ván cũ
+          isSimPaused = false;
+          if (pauseBtn) pauseBtn.textContent = "⏸️";
+          checkBotTurn();
+        });
+      };
     }
+
+    // Khởi tạo cụm điều tốc (1x, 3x, Turbo, Tạm dừng)
+    initSpeedControls();
 
     // Click khay thẻ CƠ HỘI & KHÍ VẬN ở trung tâm bàn cờ -> Mở Bảng tra cứu & Lịch sử
     const slotChance = document.getElementById("slot-chance");
@@ -564,6 +669,16 @@ function initGameApp() {
    * Bắt đầu một ván chơi mới
    */
   function startNewGame(playersConfig, options = {}) {
+    // Hủy bỏ và dọn dẹp sạch sẽ toàn bộ vòng lặp của ván cũ
+    stopCurrentGameLoop();
+    isSimPaused = false;
+    const pauseBtn = document.getElementById("btn-pause-toggle");
+    if (pauseBtn) pauseBtn.textContent = "⏸️";
+
+    currentGameMode =
+      options.mode || (playersConfig.every((p) => p.isBot) ? "4bots" : "1v3");
+    isFastModeEnabled = !!options.fastMode;
+
     engine = new GameEngine(playersConfig, options);
     window.engine = engine;
     window.hud = hud;
@@ -609,6 +724,16 @@ function initGameApp() {
    * Tiếp tục ván chơi từ LocalStorage
    */
   function resumeGame(savedData) {
+    stopCurrentGameLoop();
+    isSimPaused = false;
+    const pauseBtn = document.getElementById("btn-pause-toggle");
+    if (pauseBtn) pauseBtn.textContent = "⏸️";
+
+    currentGameMode =
+      savedData.mode ||
+      (savedData.state?.players?.every((p) => p.isBot) ? "4bots" : "1v3");
+    isFastModeEnabled = !!(savedData.fastMode || savedData.state?.fastMode);
+
     engine = new GameEngine();
     engine.state = savedData.state;
     // Đảm bảo turnState không bị kẹt ở trạng thái chuyển động
@@ -685,6 +810,9 @@ function initGameApp() {
    * Xử lý sau khi xúc xắc hoàn thành lắc
    */
   async function handleDiceRolled(val1, val2, total, isDoubles) {
+    const mySession = currentSessionId;
+    if (mySession !== currentSessionId || isSimPaused) return;
+
     const currentPlayer = engine.getCurrentPlayer();
     const rollResult = engine.applyAction({ type: "ROLL_DICE", val1, val2 });
 
@@ -716,33 +844,42 @@ function initGameApp() {
       });
     }
 
-    // Nhảy từng ô một
+    // Nhảy từng ô một (điều chỉnh tốc độ theo getTokenStepDelay)
     await tokenRenderer.moveStepByStep(
       currentPlayer,
       total,
       engine.state.players,
       {
         onStep: () => {
-          sound.playTokenStep();
+          if (simSpeed < 10 && mySession === currentSessionId && !isSimPaused) {
+            sound.playTokenStep();
+          }
         },
         onPassedGo: (p) => {
+          if (mySession !== currentSessionId || isSimPaused) return;
           p.money += 2_000_000;
           hud.update(engine.state);
-          sound.playCoin();
-          showFloatingCash(p.id, 2_000_000);
-          triggerPlayerEmote(p.id, "🥳", 2400);
-          sound.speakSaigon("Lãnh lương hai triệu nha!");
+          if (simSpeed < 10) {
+            sound.playCoin();
+            showFloatingCash(p.id, 2_000_000);
+            triggerPlayerEmote(p.id, "🥳", 2400);
+            sound.speakSaigon("Lãnh lương hai triệu nha!");
+          }
           addGameLog(
             `🎉 ${p.name} qua Khởi Hành: ${formatVND(2_000_000, true)}!`,
           );
-          showToast(
-            `🎉 ${p.name} qua Khởi Hành: ${formatVND(2_000_000, true)}!`,
-          );
+          if (simSpeed < 10) {
+            showToast(
+              `🎉 ${p.name} qua Khởi Hành: ${formatVND(2_000_000, true)}!`,
+            );
+          }
         },
         onComplete: async (p, landingPos) => {
+          if (mySession !== currentSessionId || isSimPaused) return;
           await resolveLanding(p, landingPos, isDoubles);
         },
       },
+      getTokenStepDelay(),
     );
   }
 
@@ -750,6 +887,9 @@ function initGameApp() {
    * Xử lý giải quyết hiệu ứng ô khi người chơi hạ cánh (dùng chung cho mọi kiểu di chuyển)
    */
   async function resolveLanding(p, landingPos, isDoubles = false) {
+    const mySession = currentSessionId;
+    if (mySession !== currentSessionId || isSimPaused) return;
+
     p.position = landingPos;
     tokenRenderer.render(engine.state.players);
     const landResult = engine.applyAction({
@@ -791,11 +931,17 @@ function initGameApp() {
       };
 
       if (p.isBot) {
-        cardModal.show(landResult.cardType, landResult.card, landResult.result);
-        setTimeout(async () => {
-          cardModal.hide();
+        if (simSpeed < 10) {
+          cardModal.show(
+            landResult.cardType,
+            landResult.card,
+            landResult.result,
+          );
+        }
+        safeTimeout(async () => {
+          if (simSpeed < 10) cardModal.hide();
           await onCardClosed();
-        }, 1800);
+        }, getDelay(1800));
       } else {
         cardModal.show(
           landResult.cardType,
@@ -825,13 +971,15 @@ function initGameApp() {
             engine.state.players,
           );
           hud.update(engine.state);
-          sound.playSuccess();
-          showFloatingCash(p.id, -landResult.tile.price);
-          triggerPlayerEmote(p.id, "😎", 2600);
+          if (simSpeed < 10) {
+            sound.playSuccess();
+            showFloatingCash(p.id, -landResult.tile.price);
+            triggerPlayerEmote(p.id, "😎", 2600);
+            showToast(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
+          }
           addGameLog(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
-          showToast(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
           achievementManager.check(engine.state);
-          setTimeout(() => finishTurn(isDoubles), 1000);
+          safeTimeout(() => finishTurn(isDoubles), getDelay(1000));
         } else {
           addGameLog(`🤖 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
           startAuctionFlow(landResult.tile, isDoubles);
@@ -917,20 +1065,22 @@ function initGameApp() {
           engine.state.players,
         );
       }
-      sound.playCoin();
-      showFloatingCash(p.id, -landResult.rent);
-      if (landResult.owner) {
-        showFloatingCash(landResult.owner.id, landResult.rent);
-        triggerPlayerEmote(landResult.owner.id, "🤑", 2600);
-      }
-      const rentEmote = landResult.rent >= 3_000_000 ? "😡" : "😭";
-      triggerPlayerEmote(p.id, rentEmote, 2800);
-      if (landResult.rent >= 3_000_000) {
-        sound.speakSaigon("Trả tiền mệt xỉu luôn nghen!");
+      if (simSpeed < 10) {
+        sound.playCoin();
+        showFloatingCash(p.id, -landResult.rent);
+        if (landResult.owner) {
+          showFloatingCash(landResult.owner.id, landResult.rent);
+          triggerPlayerEmote(landResult.owner.id, "🤑", 2600);
+        }
+        const rentEmote = landResult.rent >= 3_000_000 ? "😡" : "😭";
+        triggerPlayerEmote(p.id, rentEmote, 2800);
+        if (landResult.rent >= 3_000_000) {
+          sound.speakSaigon("Trả tiền mệt xỉu luôn nghen!");
+        }
+        showToast(landResult.message);
       }
       addGameLog(landResult.message);
-      showToast(landResult.message);
-      setTimeout(() => finishTurn(isDoubles), 1400);
+      safeTimeout(() => finishTurn(isDoubles), getDelay(1400));
     }
     // D. Nổ Hũ Quỹ Trúng Thưởng (Jackpot)
     else if (landResult.event === "JACKPOT_WON") {
@@ -939,25 +1089,27 @@ function initGameApp() {
         `🎰 NỔ HŨ: +${formatMoney(landResult.amount)}!`,
       );
       boardRenderer.updateJackpot(engine.state.jackpotPot);
-      sound.playSuccess();
-      sound.playCoin();
-      showFloatingCash(p.id, landResult.amount);
-      triggerPlayerEmote(p.id, "🤑", 3200);
-      engine.state.players.forEach((other) => {
-        if (other.id !== p.id && !other.isBankrupt) {
-          triggerPlayerEmote(other.id, "😭", 2500);
-        }
-      });
-      sound.speakSaigon("Lụm trọn hũ vàng rồi nghen!");
+      if (simSpeed < 10) {
+        sound.playSuccess();
+        sound.playCoin();
+        showFloatingCash(p.id, landResult.amount);
+        triggerPlayerEmote(p.id, "🤑", 3200);
+        engine.state.players.forEach((other) => {
+          if (other.id !== p.id && !other.isBankrupt) {
+            triggerPlayerEmote(other.id, "😭", 2500);
+          }
+        });
+        sound.speakSaigon("Lụm trọn hũ vàng rồi nghen!");
+        showToast(landResult.message);
+      }
       addGameLog(landResult.message);
-      showToast(landResult.message);
       achievementManager.check(engine.state, {
         event: "JACKPOT_COLLECTED",
         playerId: p.id,
         previousMoney: p.money - landResult.amount,
         jackpotAmount: landResult.amount,
       });
-      setTimeout(() => finishTurn(isDoubles), 1600);
+      safeTimeout(() => finishTurn(isDoubles), getDelay(1600));
     }
     // E. Ô Thuế
     else if (landResult.event === "TAX_PAID") {
@@ -973,24 +1125,28 @@ function initGameApp() {
         );
       }
       boardRenderer.updateJackpot(engine.state.jackpotPot);
-      sound.playCoin();
-      const taxAmt = landResult.taxAmount || currentTile.amount || 1_000_000;
-      showFloatingCash(p.id, -taxAmt);
-      triggerPlayerEmote(p.id, "😭", 2400);
+      if (simSpeed < 10) {
+        sound.playCoin();
+        const taxAmt = landResult.taxAmount || currentTile.amount || 1_000_000;
+        showFloatingCash(p.id, -taxAmt);
+        triggerPlayerEmote(p.id, "😭", 2400);
+        showToast(landResult.message);
+      }
       addGameLog(landResult.message);
-      showToast(landResult.message);
-      setTimeout(() => finishTurn(isDoubles), 1400);
+      safeTimeout(() => finishTurn(isDoubles), getDelay(1400));
     }
     // F. Vào tù
     else if (landResult.event === "GO_TO_JAIL") {
       updateStandingBanner(currentTile, "🚨 Bị bắt vào buồng giam");
-      sound.playJail();
-      sound.speakSaigon("Vô bốt ngồi nghen!");
-      triggerPlayerEmote(p.id, "😭", 3000);
+      if (simSpeed < 10) {
+        sound.playJail();
+        sound.speakSaigon("Vô bốt ngồi nghen!");
+        triggerPlayerEmote(p.id, "😭", 3000);
+        showToast(landResult.message);
+      }
       tokenRenderer.render(engine.state.players);
       addGameLog(landResult.message);
-      showToast(landResult.message);
-      setTimeout(() => finishTurn(false), 1400);
+      safeTimeout(() => finishTurn(false), getDelay(1400));
     }
     // F2. Thiếu tiền mặt nợ tiền (DEBT_REQUIRED)
     else if (landResult.event === "DEBT_REQUIRED") {
@@ -998,6 +1154,42 @@ function initGameApp() {
         currentTile,
         `⚠️ Cảnh báo nợ: Thiếu ${formatMoney(landResult.deficit)}!`,
       );
+
+      // Nếu người thiếu nợ là BOT: Tự động gỡ nợ bằng AUTO_RESOLVE_DEBT
+      if (p.isBot) {
+        const resolveRes = engine.applyAction({ type: "AUTO_RESOLVE_DEBT" });
+        boardRenderer.updateBuildings(
+          engine.state.properties,
+          engine.state.players,
+        );
+        boardRenderer.updateOwners(
+          engine.state.properties,
+          engine.state.players,
+        );
+        hud.update(engine.state, handleShowPortfolio);
+
+        if (resolveRes.success && resolveRes.event === "DEBT_RESOLVED") {
+          addGameLog(`🛡️ ${p.name} đã bán nhà/thế chấp đất để thanh toán nợ.`);
+          safeTimeout(() => finishTurn(isDoubles), getDelay(1000));
+        } else {
+          // Bất khả kháng -> Bot tuyên bố phá sản
+          const concedeRes = engine.applyAction({ type: "CONCEDE_BANKRUPTCY" });
+          boardRenderer.updateOwners(
+            engine.state.properties,
+            engine.state.players,
+          );
+          tokenRenderer.render(engine.state.players);
+          hud.update(engine.state);
+          addGameLog(`💀 ${p.name} kiệt quệ tài chính và đã Phá Sản!`);
+          if (concedeRes.winner) {
+            showGameOverModal(concedeRes.winner);
+          } else {
+            safeTimeout(() => finishTurn(false), getDelay(1000));
+          }
+        }
+        return;
+      }
+
       sound.playJail();
       sound.speakSaigon("Thiếu tiền mặt rồi, mau xoay xở đi nghen!");
       triggerPlayerEmote(p.id, "😭", 3500);
@@ -1034,7 +1226,7 @@ function initGameApp() {
                   }
                   addGameLog(res.message);
                   showToast(res.message);
-                  setTimeout(() => finishTurn(isDoubles), 1400);
+                  safeTimeout(() => finishTurn(isDoubles), getDelay(1400));
                 } else {
                   refreshDebtModal();
                 }
@@ -1092,7 +1284,7 @@ function initGameApp() {
                 hud.update(engine.state, handleShowPortfolio);
                 addGameLog(res.message);
                 showToast(res.message);
-                setTimeout(() => finishTurn(isDoubles), 1400);
+                safeTimeout(() => finishTurn(isDoubles), getDelay(1400));
               } else {
                 showToast(res.error || "Chưa đủ tiền thanh toán!");
               }
@@ -1116,7 +1308,7 @@ function initGameApp() {
                   triggerPlayerEmote(res.winner.id, "😎", 4000);
                   showGameOverModal(res.winner);
                 } else {
-                  setTimeout(() => finishTurn(false), 1600);
+                  safeTimeout(() => finishTurn(false), getDelay(1600));
                 }
               }
             },
@@ -1150,13 +1342,13 @@ function initGameApp() {
         });
         showGameOverModal(landResult.winner);
       } else {
-        setTimeout(() => finishTurn(false), 1400);
+        safeTimeout(() => finishTurn(false), getDelay(1400));
       }
     }
     // H. Ô an toàn
     else {
       updateStandingBanner(currentTile, "Nghỉ chân an toàn");
-      setTimeout(() => finishTurn(isDoubles), 1000);
+      safeTimeout(() => finishTurn(isDoubles), getDelay(1000));
     }
   }
 
@@ -1174,57 +1366,70 @@ function initGameApp() {
       return;
     }
 
-    const processAuctionStep = () => {
-      auctionModal.render(engine, (auctionEndRes) => {
-        boardRenderer.updateOwners(
-          engine.state.properties,
-          engine.state.players,
-        );
-        hud.update(engine.state);
-        if (auctionEndRes.winner) {
-          triggerPlayerEmote(auctionEndRes.winner.id, "😎", 2800);
-        }
-        addGameLog(auctionEndRes.message);
-        showToast(auctionEndRes.message);
-        finishTurn(isDoubles);
-      });
+    const handleAuctionDone = (res) => {
+      auctionModal.hide();
+      boardRenderer.updateOwners(
+        engine.state.properties,
+        engine.state.players,
+      );
+      hud.update(engine.state);
+      if (res && res.winner && simSpeed < 10) {
+        triggerPlayerEmote(res.winner.id, "😎", 2800);
+      }
+      if (res && res.message) {
+        addGameLog(res.message);
+        if (simSpeed < 10) showToast(res.message);
+      }
+      finishTurn(isDoubles);
+    };
 
+    const processAuctionStep = () => {
       const auction = engine.state.auction;
-      if (!auction) return;
+      if (!auction) {
+        handleAuctionDone({ message: "Phiên đấu giá kết thúc." });
+        return;
+      }
+
+      auctionModal.render(
+        engine,
+        (auctionEndRes) => handleAuctionDone(auctionEndRes),
+        () => processAuctionStep(),
+      );
 
       const currentBidder = engine.state.players.find(
         (p) => p.id === auction.currentTurnPlayerId,
       );
       if (currentBidder && currentBidder.isBot) {
-        setTimeout(() => {
-          if (!engine.state.auction) return;
+        safeTimeout(() => {
+          if (!engine.state.auction || isSimPaused) return;
           const decision = BotAI.getAuctionDecision(
             currentBidder,
             engine.state.auction,
             engine.state,
           );
+          const allBots = engine.state.players.every((p) => p.isBot);
+
           if (decision.action === "BID") {
             const bidRes = engine.applyAction({
               type: "BID_AUCTION",
               playerId: currentBidder.id,
               amount: decision.amount,
             });
-            if (bidRes.event === "AUCTION_COMPLETED") {
-              auctionModal.showResult(bidRes, () => {
-                boardRenderer.updateOwners(
-                  engine.state.properties,
-                  engine.state.players,
+
+            if (bidRes.event === "AUCTION_COMPLETED" || !engine.state.auction) {
+              if (allBots || simSpeed >= 3) {
+                auctionModal.hide();
+                safeTimeout(() => handleAuctionDone(bidRes), getDelay(400));
+              } else {
+                auctionModal.showResult(bidRes, () =>
+                  handleAuctionDone(bidRes),
                 );
-                hud.update(engine.state);
-                if (bidRes.winner) {
-                  triggerPlayerEmote(bidRes.winner.id, "😎", 2800);
-                }
-                addGameLog(bidRes.message);
-                showToast(bidRes.message);
-                finishTurn(isDoubles);
-              });
+              }
               return;
             }
+          } else if (decision.action === "WAIT") {
+            // Bot đang dẫn đầu cuộc đấu giá, không cần đặt thêm
+            return;
           } else {
             const passRes = engine.applyAction({
               type: "PASS_AUCTION",
@@ -1232,26 +1437,22 @@ function initGameApp() {
             });
             if (
               passRes.event === "AUCTION_COMPLETED" ||
-              passRes.event === "AUCTION_CANCELLED"
+              passRes.event === "AUCTION_CANCELLED" ||
+              !engine.state.auction
             ) {
-              auctionModal.showResult(passRes, () => {
-                boardRenderer.updateOwners(
-                  engine.state.properties,
-                  engine.state.players,
+              if (allBots || simSpeed >= 3) {
+                auctionModal.hide();
+                safeTimeout(() => handleAuctionDone(passRes), getDelay(400));
+              } else {
+                auctionModal.showResult(passRes, () =>
+                  handleAuctionDone(passRes),
                 );
-                hud.update(engine.state);
-                if (passRes.winner) {
-                  triggerPlayerEmote(passRes.winner.id, "😎", 2800);
-                }
-                addGameLog(passRes.message);
-                showToast(passRes.message);
-                finishTurn(isDoubles);
-              });
+              }
               return;
             }
           }
           processAuctionStep();
-        }, 900);
+        }, getDelay(700));
       }
     };
 
@@ -1262,11 +1463,41 @@ function initGameApp() {
    * Kết thúc lượt
    */
   function finishTurn(isDoubles) {
+    if (isSimPaused) return;
     resetDockActions();
 
-    // Bot kiểm tra xây nhà sau lượt
     const justPlayed = engine.getCurrentPlayer();
-    if (justPlayed.isBot && !justPlayed.isBankrupt) {
+    // Nếu người vừa chơi đã phá sản, tuyệt đối không cho tung đôi thêm lượt
+    if (justPlayed?.isBankrupt) {
+      isDoubles = false;
+    }
+
+    // Bot kiểm tra chuộc đất thế chấp & xây nhà sau lượt
+    if (justPlayed && justPlayed.isBot && !justPlayed.isBankrupt) {
+      // 1. Bot chuộc lại sổ đỏ đất thế chấp khi có tiền
+      const unmortgageDecisions = BotAI.getUnmortgageDecisions(
+        justPlayed,
+        engine.state,
+      );
+      for (const tileId of unmortgageDecisions) {
+        const unmortgageRes = engine.applyAction({
+          type: "UNMORTGAGE_PROPERTY",
+          tileId,
+        });
+        if (unmortgageRes.success) {
+          boardRenderer.updateOwners(
+            engine.state.properties,
+            engine.state.players,
+          );
+          hud.update(engine.state);
+          if (simSpeed < 10) sound.playSuccess();
+          addGameLog(
+            `🔓 ${justPlayed.name} đã chuộc lại sổ đỏ ${unmortgageRes.tile.name}!`,
+          );
+        }
+      }
+
+      // 2. Bot đập tiền nâng cấp Nhà Xanh / Khách Sạn Đỏ liên tục
       const buildDecisions = BotAI.getBuildDecisions(justPlayed, engine.state);
       for (const tileId of buildDecisions) {
         const buildRes = engine.applyAction({ type: "BUILD_HOUSE", tileId });
@@ -1275,10 +1506,16 @@ function initGameApp() {
             engine.state.properties,
             engine.state.players,
           );
-          sound.playBuildHouse();
-          triggerPlayerEmote(justPlayed.id, "😎", 2400);
+          hud.update(engine.state);
+          if (simSpeed < 10) {
+            sound.playBuildHouse();
+            triggerPlayerEmote(justPlayed.id, "😎", 2400);
+          }
+          const bType = buildRes.isHotel
+            ? "Khách Sạn Đỏ 🏨"
+            : `Nhà Xanh (Cấp ${buildRes.houses}) 🏠`;
           addGameLog(
-            `🏗️ ${justPlayed.name} nâng cấp nhà tại ${buildRes.tile.name}!`,
+            `🏗️ ${justPlayed.name} nâng cấp ${bType} tại ${buildRes.tile.name}!`,
           );
         }
       }
@@ -1286,6 +1523,12 @@ function initGameApp() {
 
     const endRes = engine.applyAction({ type: "END_TURN" });
     hud.update(engine.state);
+
+    // Kiểm tra ván đấu kết thúc (chỉ còn 1 người trụ lại cuối cùng)
+    if (engine.state.isGameOver && engine.state.winner) {
+      handleGameOver(engine.state.winner);
+      return;
+    }
 
     if (endRes.event !== "EXTRA_TURN") {
       turnCount++;
@@ -1300,39 +1543,80 @@ function initGameApp() {
   }
 
   /**
+   * Xử lý kết thúc ván đấu khi chỉ còn 1 người chiến thắng
+   */
+  function handleGameOver(winner) {
+    if (simTimer) clearInterval(simTimer);
+    isSimPaused = true;
+    sound.playSuccess();
+    showToast(`🏆 ${winner.name} đã giành CHIẾN THẮNG CHUNG CUỘC!`);
+    addGameLog(
+      `👑 TRẬN ĐẤU KẾT THÚC! ${winner.name} trở thành Vua Địa Ốc Sài Gòn!`,
+    );
+
+    matchRecapModal.show({
+      winner,
+      players: engine.state.players,
+      properties: engine.state.properties,
+      boardData: SAIGON_BOARD_DATA,
+      stats: {
+        turnCount,
+        secondsElapsed,
+        netWorthHistory,
+      },
+      onRestartGame: () => {
+        showSetupModal();
+      },
+    });
+  }
+
+  /**
    * Kiểm tra nếu là lượt của Bot hoặc người chơi đang ở trong tù
    */
   function checkBotTurn() {
+    if (isSimPaused) return;
     const curPlayer = engine.getCurrentPlayer();
+    if (!curPlayer) return;
+
+    // Nếu người chơi hiện tại đã phá sản, lập tức chuyển tiếp sang người còn sống kế tiếp
+    if (curPlayer.isBankrupt) {
+      finishTurn(false);
+      return;
+    }
+
+    const allBots = engine.state.players.every((p) => p.isBot);
 
     if (curPlayer.isBot && !curPlayer.isBankrupt) {
       if (btnRoll) {
         btnRoll.disabled = true;
-        btnRoll.querySelector(".roll-label").textContent = "BOT ĐANG ĐI...";
+        btnRoll.querySelector(".roll-label").textContent = allBots
+          ? `🤖 ${curPlayer.name} đang đi...`
+          : "BOT ĐANG ĐI...";
       }
-      setTimeout(() => {
+      safeTimeout(() => {
+        if (isSimPaused) return;
         if (curPlayer.inJail) {
           if (curPlayer.hasJailCard) {
             const cardRes = engine.applyAction({ type: "USE_JAIL_CARD" });
             tokenRenderer.render(engine.state.players);
             hud.update(engine.state);
             addGameLog(cardRes.message);
-            showToast(cardRes.message);
+            if (simSpeed < 10) showToast(cardRes.message);
           } else if (curPlayer.money > 3_000_000 && curPlayer.jailTurns > 0) {
             const payRes = engine.applyAction({ type: "PAY_JAIL_FINE" });
             if (payRes.success) {
-              sound.playCoin();
+              if (simSpeed < 10) sound.playCoin();
               tokenRenderer.render(engine.state.players);
               hud.update(engine.state);
               addGameLog(payRes.message);
-              showToast(payRes.message);
+              if (simSpeed < 10) showToast(payRes.message);
             }
           }
         }
         if (diceRenderer && !diceRenderer.isRolling) {
-          diceRenderer.roll();
+          diceRenderer.roll(getDiceDuration());
         }
-      }, 1000);
+      }, getDelay(1000));
     } else {
       if (curPlayer.inJail) {
         if (btnRoll) {

@@ -10,15 +10,11 @@ export const GameRules = {
    * Kiểm tra người chơi có sở hữu trọn bộ màu đất không
    */
   hasFullColorSet(group, ownerId, propertiesState) {
-    if (
-      !group ||
-      !ownerId ||
-      !GAME_CONSTANTS.COLOR_GROUPS[group.toUpperCase()]
-    ) {
+    if (!group || ownerId == null || !propertiesState) {
       return false;
     }
-    const groupDef = GAME_CONSTANTS.COLOR_GROUPS[group.toUpperCase()];
-    const groupTiles = SAIGON_BOARD_DATA.filter((t) => t.group === groupDef.id);
+    const groupTiles = SAIGON_BOARD_DATA.filter((t) => t.group === group);
+    if (groupTiles.length === 0) return false;
 
     return groupTiles.every((t) => {
       const prop = propertiesState[t.id];
@@ -32,7 +28,12 @@ export const GameRules = {
    * @param {Object} player - Người chơi
    * @param {Object} propertiesState - Trạng thái tất cả các ô đất
    */
-  canBuildHouse(tile, player, propertiesState) {
+  canBuildHouse(
+    tile,
+    player,
+    propertiesState,
+    bank = GAME_CONSTANTS.BANK_LIMITS,
+  ) {
     if (!tile || tile.type !== "property") {
       return {
         canBuild: false,
@@ -56,7 +57,7 @@ export const GameRules = {
     }
 
     // 1. Phải gom đủ trọn bộ màu
-    if (!this.hasFullColorSet(tile.group, player.id, propertiesState)) {
+    if (!GameRules.hasFullColorSet(tile.group, player.id, propertiesState)) {
       return {
         canBuild: false,
         reason: "Phải sở hữu trọn bộ các ô cùng nhóm màu mới được xây nhà.",
@@ -85,6 +86,17 @@ export const GameRules = {
       };
     }
 
+    // 3b. Kiểm tra kho vật phẩm ngân hàng (null = vô hạn; giải đấu: { houses: 32, hotels: 12 })
+    const isHotel = currentHouses === 4;
+    const stock = isHotel ? bank?.hotels : bank?.houses;
+    if (stock !== null && stock !== undefined && stock <= 0) {
+      return {
+        canBuild: false,
+        code: "NO_STOCK",
+        reason: "Kho ngân hàng đã hết nhà/khách sạn để xây.",
+      };
+    }
+
     // 4. LUẬT XÂY ĐỀU TAY: Không được chênh quá 1 nhà so với các ô khác trong nhóm
     const otherHouses = groupTiles
       .filter((t) => t.id !== tile.id)
@@ -107,7 +119,6 @@ export const GameRules = {
       };
     }
 
-    const isHotel = currentHouses === 4;
     return {
       canBuild: true,
       isHotel,
@@ -129,7 +140,7 @@ export const GameRules = {
       const houses = propState.houses || 0;
 
       if (houses === 0) {
-        const ownsFullSet = this.hasFullColorSet(
+        const ownsFullSet = GameRules.hasFullColorSet(
           tile.group,
           owner.id,
           propertiesState,
@@ -168,7 +179,8 @@ export const GameRules = {
         ownedCount >= 2
           ? GAME_CONSTANTS.UTILITY_MULTIPLIERS[1]
           : GAME_CONSTANTS.UTILITY_MULTIPLIERS[0];
-      return multiplier * diceTotal * 100_000;
+      // Tỷ lệ chuẩn: Hệ số x Xúc xắc x 10.000đ (Điện Lực / Cấp Nước)
+      return multiplier * diceTotal * 10_000;
     }
 
     return 0;
@@ -335,11 +347,14 @@ export const GameRules = {
    * Kiểm tra ô đất có thể đem ra giao dịch (Trade) không
    * (Nghiêm cấm giao dịch đất khi trong nhóm màu còn nhà)
    */
-  canTradeProperty(tile, propertiesState) {
+  canTradeProperty(tile, propertiesState, ownerId = null) {
     if (!tile) return { canTrade: false, reason: "Ô đất không hợp lệ." };
     const prop = propertiesState[tile.id];
-    if (!prop || !prop.owner)
+    if (!prop || prop.owner == null)
       return { canTrade: false, reason: "Chưa có chủ sở hữu." };
+    if (ownerId != null && prop.owner !== ownerId) {
+      return { canTrade: false, reason: "Người chơi không sở hữu ô đất này." };
+    }
 
     if (tile.type === "property" && tile.group) {
       const groupTiles = SAIGON_BOARD_DATA.filter(
@@ -356,5 +371,79 @@ export const GameRules = {
       }
     }
     return { canTrade: true };
+  },
+
+  /**
+   * Lập kế hoạch thanh lý tài sản tối ưu 3 giai đoạn để trả khoản nợ amountOwed
+   * Thứ tự chiến lược chuẩn:
+   * 1. Thế chấp các ô đất lẻ / tiện ích / bến xe trước (không thuộc bộ màu chủ lực).
+   * 2. Bán nhà/khách sạn theo luật bán đều tay (bộ màu rẻ trước).
+   * 3. Cuối cùng mới thế chấp đến các ô đất thuộc bộ màu chủ lực.
+   * @param {Object} player - Người chơi cần thanh lý
+   * @param {number} amountOwed - Tổng số tiền nợ cần thanh toán
+   * @param {Object} propertiesState - Trạng thái các ô đất
+   * @returns {Object} { sells: Array<number>, mortgages: Array<number>, cash: number, enough: boolean }
+   */
+  getLiquidationPlan(player, amountOwed, propertiesState) {
+    if (!player) return { sells: [], mortgages: [], cash: 0, enough: false };
+
+    // Sao chép trạng thái để mô phỏng
+    const props = {};
+    Object.keys(propertiesState).forEach((id) => {
+      props[id] = { ...propertiesState[id] };
+    });
+
+    const plan = {
+      sells: [], // Danh sách tileId cần bán 1 cấp nhà
+      mortgages: [], // Danh sách tileId cần thế chấp
+      cash: player.money || 0,
+    };
+
+    const mine = () =>
+      SAIGON_BOARD_DATA.filter((t) => props[t.id]?.owner === player.id);
+    const done = () => plan.cash >= amountOwed;
+    const byPrice = (a, b) => (a.t.price || 0) - (b.t.price || 0);
+    const isCore = (t) =>
+      t.type === "property" &&
+      GameRules.hasFullColorSet(t.group, player.id, props);
+
+    const mortgageWhere = (pick) => {
+      const options = mine()
+        .filter(pick)
+        .map((t) => ({ t, c: GameRules.canMortgage(t, player, props) }))
+        .filter((o) => o.c.canMortgage)
+        .sort(byPrice);
+
+      for (const { t, c } of options) {
+        if (done()) return;
+        props[t.id].isMortgaged = true;
+        plan.mortgages.push(t.id);
+        plan.cash += c.mortgageValue;
+      }
+    };
+
+    // 1. Ô lẻ, nhà ga, tiện ích (không thuộc bộ màu chủ lực)
+    mortgageWhere((t) => !isCore(t));
+
+    // 2. Bán nhà từng bước (bộ màu rẻ hơn trước theo luật bán đều tay)
+    let loopGuard = 0;
+    while (!done() && loopGuard < 50) {
+      loopGuard++;
+      const options = mine()
+        .map((t) => ({ t, c: GameRules.canSellHouse(t, player, props) }))
+        .filter((o) => o.c.canSell)
+        .sort(byPrice);
+      if (!options.length) break;
+
+      const { t, c } = options[0];
+      props[t.id].houses -= 1;
+      plan.sells.push(t.id);
+      plan.cash += c.refund;
+    }
+
+    // 3. Cuối cùng mới thế chấp đến các ô thuộc bộ màu chủ lực
+    mortgageWhere(isCore);
+
+    return { ...plan, enough: done() };
   },
 };

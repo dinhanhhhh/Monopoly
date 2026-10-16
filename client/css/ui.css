@@ -1177,10 +1177,37 @@
 }
 
 .setup-header {
+  position: relative;
   background: linear-gradient(135deg, #1f6f8b, #165369);
   color: #fff;
   padding: 8px 14px 6px;
   text-align: center;
+}
+
+.setup-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 1.25rem;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.setup-close-btn:hover {
+  background: rgba(231, 76, 60, 0.9);
+  border-color: #c0392b;
+  transform: scale(1.1);
 }
 
 .setup-logo {
