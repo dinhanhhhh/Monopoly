@@ -81,9 +81,10 @@ export class GameEngine {
       pendingAction: null,
       jackpotPot: 1_000_000, // Hũ Quỹ Trúng Thưởng khởi điểm 1.000.000đ
       round: 1, // Vòng đấu hiện tại của bàn cờ
-      maxRounds:
-        options.maxRounds ||
-        (options.fastMode ? 30 : GAME_CONSTANTS.MAX_ROUNDS),
+      isEndless: !!options.isEndless,
+      maxRounds: options.isEndless
+        ? null
+        : (options.maxRounds || (options.fastMode ? 30 : GAME_CONSTANTS.MAX_ROUNDS)),
       announcedPhases: {}, // Tránh thông báo trùng lặp nhiều lần
       history: [],
       cardHistory: [],
@@ -1315,8 +1316,8 @@ export class GameEngine {
    * Phân định người chiến thắng theo tổng tài sản ròng Net Worth (Hòa thì xét tiền mặt)
    */
   checkGameEndByMaxRounds() {
-    if (this.state.isGameOver) return null;
-    const maxR = this.state.maxRounds || GAME_CONSTANTS.MAX_ROUNDS;
+    if (this.state.isGameOver || this.state.isEndless || !this.state.maxRounds) return null;
+    const maxR = this.state.maxRounds;
     if (this.state.round > maxR) {
       const activePlayers = this.state.players.filter((p) => !p.isBankrupt);
       if (activePlayers.length === 0) return null;

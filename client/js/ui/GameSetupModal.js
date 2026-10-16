@@ -170,6 +170,27 @@ export class GameSetupModal {
                 <input type="checkbox" id="check-fast-mode" ${isFastMode ? "checked" : ""} style="width: 18px; height: 18px; accent-color: #E67E22; cursor: pointer;">
               </label>
             </div>
+
+            <!-- Quy tắc kết thúc ván: Giới hạn vòng vs Sinh tử vô hạn -->
+            <div class="setup-section">
+              <label class="setup-section-title">QUY TẮC KẾT THÚC VÁN:</label>
+              <div class="endgame-rule-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div class="endgame-card selected" id="opt-rounds-mode" style="border: 2px solid #E67E22; border-radius: 10px; padding: 8px 10px; background: #FFFDF9; cursor: pointer; transition: all 0.2s;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1rem;">⏱️</span>
+                    <strong style="font-size: 0.78rem; color: #D35400;">Giới Hạn Vòng</strong>
+                  </div>
+                  <div style="font-size: 0.68rem; color: #7F8C8D; margin-top: 3px;">30 vòng (Nhanh) / 50 vòng (Chuẩn). Hết vòng so tài sản Net Worth.</div>
+                </div>
+                <div class="endgame-card" id="opt-endless-mode" style="border: 2px solid #BDC3C7; border-radius: 10px; padding: 8px 10px; background: #FAFAFA; cursor: pointer; transition: all 0.2s; opacity: 0.85;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1rem;">♾️</span>
+                    <strong style="font-size: 0.78rem; color: #2C3E50;">Sinh Tử Vô Hạn</strong>
+                  </div>
+                  <div style="font-size: 0.68rem; color: #7F8C8D; margin-top: 3px;">Không trần số vòng, đấu đến khi đối thủ phá sản hết! Lương 2tr.</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="setup-footer">
@@ -237,6 +258,33 @@ export class GameSetupModal {
       };
     }
 
+    // Toggle Giới Hạn Vòng vs Sinh Tử Vô Hạn
+    let isEndless = false;
+    const optRounds = document.getElementById("opt-rounds-mode");
+    const optEndless = document.getElementById("opt-endless-mode");
+    if (optRounds && optEndless) {
+      const updateEndgameUI = (endless) => {
+        isEndless = endless;
+        if (!isEndless) {
+          optRounds.style.borderColor = "#E67E22";
+          optRounds.style.background = "#FFFDF9";
+          optRounds.style.opacity = "1";
+          optEndless.style.borderColor = "#BDC3C7";
+          optEndless.style.background = "#FAFAFA";
+          optEndless.style.opacity = "0.75";
+        } else {
+          optEndless.style.borderColor = "#16A085";
+          optEndless.style.background = "#E8F8F5";
+          optEndless.style.opacity = "1";
+          optRounds.style.borderColor = "#BDC3C7";
+          optRounds.style.background = "#FAFAFA";
+          optRounds.style.opacity = "0.75";
+        }
+      };
+      optRounds.onclick = () => updateEndgameUI(false);
+      optEndless.onclick = () => updateEndgameUI(true);
+    }
+
     // Nút Tiếp tục ván trước
     const btnResume = document.getElementById("btn-resume-game");
     if (btnResume && savedData) {
@@ -282,7 +330,7 @@ export class GameSetupModal {
           selectedTokenIndex,
         );
         this.hide();
-        if (onStartGame) onStartGame(players, { fastMode: isFastMode, mode: selectedMode });
+        if (onStartGame) onStartGame(players, { fastMode: isFastMode, isEndless, mode: selectedMode });
       };
     }
   }

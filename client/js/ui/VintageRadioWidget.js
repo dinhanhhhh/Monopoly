@@ -61,14 +61,29 @@ export class VintageRadioWidget {
         </button>
       </div>
 
+      <!-- Quai xách cong hình chữ U ngược Boombox Cổ Điển thập niên 80-90 -->
+      <div class="radio-boombox-handle" id="radio-boombox-handle" title="Cầm quai xách kéo để di chuyển đài radio">
+        <div class="handle-hinge hinge-left" title="Khớp nối quai bên trái">
+          <span class="hinge-bolt"></span>
+        </div>
+        <div class="handle-u-arch">
+          <div class="handle-grip-wrap" title="Bọc tay cầm chống trượt">
+            <span class="grip-ridge"></span>
+            <span class="grip-ridge"></span>
+            <span class="grip-ridge"></span>
+            <span class="grip-ridge"></span>
+            <span class="grip-ridge"></span>
+          </div>
+        </div>
+        <div class="handle-hinge hinge-right" title="Khớp nối quai bên phải">
+          <span class="hinge-bolt"></span>
+        </div>
+      </div>
+
       <!-- Thân Máy Cassette Cổ Điển Hoàn Chỉnh -->
       <div class="cassette-radio-body">
-        <!-- Quai xách & Nóc đài (Vùng giữ chuột để kéo di chuyển) -->
-        <div class="radio-top-handle" id="radio-drag-handle" title="Cầm quai xách kéo để di chuyển đài radio tự do">
-          <div class="handle-grip-dots">⋮⋮</div>
-          <div class="handle-bar">
-            <span class="handle-bar-label">QUAI CẦM DI CHUYỂN</span>
-          </div>
+        <!-- Nóc đài & Bảng điều khiển (Vùng giữ chuột để kéo di chuyển) -->
+        <div class="radio-top-handle" id="radio-drag-handle" title="Kéo nóc máy hoặc quai xách để di chuyển đài radio">
           <div class="handle-controls">
             <button class="btn-radio-min" id="btn-minimize-radio" title="Thu nhỏ về góc màn hình">_</button>
             <button class="btn-radio-close" id="btn-close-radio" title="Tắt hẳn đài radio">&times;</button>
@@ -378,6 +393,7 @@ export class VintageRadioWidget {
    */
   initDraggable() {
     const handleMain = document.getElementById("radio-drag-handle");
+    const handleBoombox = document.getElementById("radio-boombox-handle");
     const handleMini = document.getElementById("radio-mini-trigger");
 
     const setupDrag = (handleElement) => {
@@ -480,6 +496,7 @@ export class VintageRadioWidget {
     };
 
     setupDrag(handleMain);
+    setupDrag(handleBoombox);
     setupDrag(handleMini);
   }
 

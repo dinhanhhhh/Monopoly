@@ -263,8 +263,11 @@ function initGameApp() {
    */
   function updateRoundPhaseHeader(state) {
     if (!state) return;
-    const maxRounds = state.maxRounds || GAME_CONSTANTS.MAX_ROUNDS;
-    const round = Math.min(state.round || 1, maxRounds);
+    const isEndless = !!state.isEndless || !state.maxRounds;
+    const maxRounds = state.maxRounds;
+    const round = isEndless
+      ? (state.round || 1)
+      : Math.min(state.round || 1, maxRounds || GAME_CONSTANTS.MAX_ROUNDS);
     const phase = GameRules.getPhase(round, maxRounds);
 
     const pillEl = document.getElementById("round-phase-pill");
@@ -273,7 +276,11 @@ function initGameApp() {
 
     if (valEl) {
       if (state.isGameOver) {
-        valEl.textContent = `Vòng ${round}/${maxRounds} · Kết Thúc`;
+        valEl.textContent = isEndless
+          ? `Vòng ${round} · Kết Thúc (Sinh Tử)`
+          : `Vòng ${round}/${maxRounds} · Kết Thúc`;
+      } else if (isEndless) {
+        valEl.textContent = `Vòng ${round} · Vô Hạn`;
       } else {
         valEl.textContent = `Vòng ${round}/${maxRounds} · Lương ${formatVND(phase.salary)}`;
       }
@@ -284,8 +291,14 @@ function initGameApp() {
       if (state.isGameOver) {
         pillEl.classList.add("danger-pill");
         if (iconEl) iconEl.textContent = "🏁";
-        pillEl.title = `Ván đấu đã hoàn thành trọn vẹn ${round}/${maxRounds} vòng!`;
-      } else if (round >= maxRounds - 3) {
+        pillEl.title = isEndless
+          ? `Trận đấu sinh tử đã kết thúc ở vòng ${round}!`
+          : `Ván đấu đã hoàn thành trọn vẹn ${round}/${maxRounds} vòng!`;
+      } else if (isEndless) {
+        pillEl.classList.add("gold-pill");
+        if (iconEl) iconEl.textContent = "♾️";
+        pillEl.title = `Chế độ Vô Hạn: Đấu sinh tử cho đến khi chỉ còn 1 người trụ lại! Lương: ${formatVND(phase.salary)}`;
+      } else if (maxRounds && round >= maxRounds - 3) {
         pillEl.classList.add("danger-pill");
         if (iconEl) iconEl.textContent = "⚡";
         pillEl.title = `Sắp chạm giới hạn! Vòng ${round}/${maxRounds} sẽ kết thúc ván đấu!`;
@@ -298,6 +311,13 @@ function initGameApp() {
         if (iconEl) iconEl.textContent = "🔄";
         pillEl.title = `Giai đoạn: ${phase.phaseName}. Tiền thuê: x${phase.rentMult}`;
       }
+    }
+
+    if (boardRenderer && typeof boardRenderer.updateGoSalary === "function") {
+      const activeSalary = isEndless
+        ? (GAME_CONSTANTS.GO_REWARD || 2_000_000)
+        : phase.salary;
+      boardRenderer.updateGoSalary(activeSalary);
     }
   }
 
@@ -399,6 +419,20 @@ function initGameApp() {
     if (standingPriceEl) {
       if (tile.id === 20) {
         standingPriceEl.textContent = `Hũ: ${formatMoney(engine?.state?.jackpotPot || 1_000_000)}`;
+        standingPriceEl.style.display = "inline";
+        if (dotEl) dotEl.style.display = "inline";
+      } else if (tile.id === 0) {
+        const isEndless =
+          !!engine?.state?.isEndless || !engine?.state?.maxRounds;
+        const phase = GameRules.getPhase(
+          engine?.state?.round || 1,
+          engine?.state?.maxRounds,
+        );
+        const salary = isEndless
+          ? (GAME_CONSTANTS.GO_REWARD || 2_000_000)
+          : phase.salary;
+        standingPriceEl.textContent =
+          salary > 0 ? `+${formatMoney(salary)}` : "0đ (Cắt lương)";
         standingPriceEl.style.display = "inline";
         if (dotEl) dotEl.style.display = "inline";
       } else if (tile.price) {
@@ -744,7 +778,12 @@ function initGameApp() {
     netWorthHistory = [];
     recordNetWorthSnapshot();
 
-    if (options.fastMode) {
+    if (options.isEndless) {
+      addGameLog(
+        "♾️ Chế độ Sinh Tử Vô Hạn kích hoạt: Không giới hạn vòng, chiến đấu đến khi đối thủ phá sản hết!",
+      );
+      showToast("♾️ Chế độ Sinh Tử Vô Hạn: Chiến đấu đến người sống sót cuối cùng!");
+    } else if (options.fastMode) {
       addGameLog(
         "⚡ Chế độ Chơi Nhanh kích hoạt: Đã phát ngẫu nhiên 3 BĐS cho mỗi người chơi!",
       );

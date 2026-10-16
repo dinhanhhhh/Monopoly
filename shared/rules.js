@@ -134,6 +134,20 @@ export const GameRules = {
    */
   getPhase(round, maxRounds = GAME_CONSTANTS.MAX_ROUNDS) {
     const r = Math.max(1, Number(round) || 1);
+    if (!maxRounds || maxRounds === Infinity) {
+      return {
+        round: r,
+        maxRounds: null,
+        salary: GAME_CONSTANTS.GO_REWARD,
+        rentMult: 1,
+        taxToBank: false,
+        phaseName: "Kinh điển",
+        nextRound: null,
+        roundsToNext: null,
+        isNearPhase: false,
+        isGameOver: false,
+      };
+    }
     const steps = GAME_CONSTANTS.SUDDEN_DEATH;
     // Bậc hiện tại là bậc có step.round <= r với round lớn nhất
     const cur = [...steps].reverse().find((s) => r >= s.round) || {

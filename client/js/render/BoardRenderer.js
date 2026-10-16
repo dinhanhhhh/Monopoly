@@ -222,7 +222,7 @@ export class BoardRenderer {
                 <svg width="34" height="26" viewBox="0 0 24 24" fill="#E11D48"><path d="M3 11h11V7l7 5-7 5v-4H3z"/></svg>
               </div>
               <span class="go-title">KHỞI HÀNH</span>
-              <span class="go-reward">Nhận 2.000k</span>
+              <span class="go-reward" id="go-tile-reward-text">Nhận 2.000k</span>
             </div>
           `;
         } else {
@@ -557,6 +557,29 @@ export class BoardRenderer {
     if (el) {
       el.textContent = this.formatMoney(amount);
       el.title = `Quỹ Trúng Thưởng tích lũy: ${formatVND(amount)}`;
+    }
+  }
+
+  /**
+   * Cập nhật số tiền lương hiển thị trên ô Khởi Hành (Ô 0) theo từng giai đoạn Sudden Death
+   * @param {number} salary
+   */
+  updateGoSalary(salary = 2_000_000) {
+    const el = document.getElementById("go-tile-reward-text");
+    if (!el) return;
+
+    if (salary <= 0) {
+      el.textContent = "0đ (Cắt lương)";
+      el.classList.add("zero");
+      el.title = "Giai đoạn Cắt Lương: Đi qua hoặc dừng lại ở Khởi Hành không còn nhận được tiền!";
+    } else {
+      const formatted =
+        salary >= 1_000
+          ? `${(salary / 1000).toLocaleString("vi-VN")}k`
+          : `${salary}đ`;
+      el.textContent = `Nhận ${formatted}`;
+      el.classList.remove("zero");
+      el.title = `Tiền lương qua ô Khởi Hành: ${formatVND(salary, { full: true })}`;
     }
   }
 }

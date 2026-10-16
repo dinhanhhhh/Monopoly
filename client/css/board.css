@@ -302,6 +302,15 @@
   color: #1f6f8b;
   line-height: 1.1;
   margin-top: 1px;
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+
+.go-reward.zero {
+  color: #e11d48;
+  font-weight: 900;
+  background: rgba(225, 29, 72, 0.12);
+  padding: 1px 4px;
+  border-radius: 4px;
 }
 
 /* ================= NỘI DUNG Ô ĐẤT & Ô ĐẶC BIỆT ================= */

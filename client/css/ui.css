@@ -3807,9 +3807,155 @@
   color: #fff;
 }
 
+/* Quai xách cong hình chữ U ngược kiểu Boombox Cassette thập niên 80-90 */
+.radio-boombox-handle {
+  display: none;
+  position: relative;
+  width: 254px;
+  height: 48px;
+  margin: 0 auto -16px auto;
+  z-index: 1; /* Nằm phía sau thân máy (thân máy z-index: 2) */
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: cassettePop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.vintage-radio-widget.expanded .radio-boombox-handle {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.radio-boombox-handle:active {
+  cursor: grabbing;
+}
+
+.vintage-radio-widget.dragging .radio-boombox-handle {
+  cursor: grabbing !important;
+}
+
+.radio-boombox-handle:hover {
+  transform: translateY(-2px);
+}
+
+/* Vòm quai chữ U ngược kim loại màu đồng cổ điển */
+.handle-u-arch {
+  position: relative;
+  width: 224px;
+  height: 46px;
+  box-sizing: border-box;
+  border: 10px solid #b37d3d;
+  border-top: 10px solid #d49b49;
+  border-bottom: none;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  background: transparent;
+  box-shadow:
+    inset 0 2px 2px rgba(255, 235, 175, 0.75),
+    inset 2px 0 2px rgba(255, 235, 175, 0.35),
+    inset -2px 0 2px rgba(0, 0, 0, 0.5),
+    0 -2px 6px rgba(0, 0, 0, 0.45);
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.45));
+}
+
+/* Bọc tay cầm đệm cao su / nhựa vintage ở giữa đỉnh quai */
+.handle-grip-wrap {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 104px;
+  height: 14px;
+  background: linear-gradient(180deg, #443122, #24180e);
+  border: 1.5px solid #6b4d2e;
+  border-radius: 5px;
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.6),
+    inset 0 1px 2px rgba(255, 220, 150, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 6px;
+  z-index: 3;
+}
+
+/* 2 đai vàng đồng ở 2 đầu bọc tay cầm */
+.handle-grip-wrap::before,
+.handle-grip-wrap::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 5px;
+  background: linear-gradient(180deg, #ffd782, #b8823b 50%, #573715 100%);
+  border: 1px solid #3d230d;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.handle-grip-wrap::before {
+  left: -4px;
+}
+
+.handle-grip-wrap::after {
+  right: -4px;
+}
+
+/* Các gân khía chống trượt */
+.grip-ridge {
+  width: 3px;
+  height: 8px;
+  background: #170e08;
+  border-left: 1px solid rgba(255, 230, 160, 0.25);
+  border-right: 1px solid rgba(0, 0, 0, 0.85);
+  border-radius: 1px;
+}
+
+/* Hai khớp nối / bản lề gắn chân quai vào thân máy */
+.handle-hinge {
+  position: absolute;
+  bottom: 0px;
+  width: 20px;
+  height: 18px;
+  background: linear-gradient(180deg, #d49b49, #9e692c 60%, #573715 100%);
+  border: 1.5px solid #38210d;
+  border-radius: 4px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 240, 190, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.handle-hinge.hinge-left {
+  left: 8px;
+}
+
+.handle-hinge.hinge-right {
+  right: 8px;
+}
+
+/* Đinh tán / ốc xoay kim loại ở giữa bản lề */
+.hinge-bolt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffeaa7 30%, #a87234 70%, #4a2f13 100%);
+  border: 0.5px solid #2e1a0b;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.7),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
 /* 2. Trạng Thái Mở Rộng Thân Máy Cassette Hoàn Chỉnh */
 .cassette-radio-body {
   display: none;
+  position: relative;
+  z-index: 2;
   width: 330px;
   background: linear-gradient(145deg, #423223, #2a1f15);
   border: 3px solid #7d5931;
@@ -3836,12 +3982,13 @@
   }
 }
 
-/* Quai xách nóc đài - Cho phép cầm chuột kéo thả */
+/* Nóc đài máy cassette - Cho phép cầm chuột kéo thả */
 .radio-top-handle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 6px 12px;
+  justify-content: flex-end;
+  padding: 5px 12px;
+  min-height: 26px;
   background: linear-gradient(180deg, #57412e, #3a2a1d);
   border-bottom: 2px solid #23180f;
   cursor: grab;
@@ -3850,35 +3997,6 @@
 
 .radio-top-handle:active {
   cursor: grabbing;
-}
-
-.handle-grip-dots {
-  color: #d4ac0d;
-  font-weight: 900;
-  font-size: 0.95rem;
-  letter-spacing: -2px;
-  opacity: 0.8;
-}
-
-.handle-bar {
-  background: linear-gradient(180deg, #b88b56, #8c6436);
-  border: 1px solid #5a3d1c;
-  border-radius: 6px;
-  padding: 2px 10px;
-  box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.2),
-    0 1px 3px rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.handle-bar-label {
-  font-size: 0.55rem;
-  font-weight: 800;
-  color: #fff4d9;
-  letter-spacing: 0.6px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .handle-controls {
