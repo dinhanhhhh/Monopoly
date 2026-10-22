@@ -134,6 +134,33 @@
   .retro-sub-ribbon {
     font-size: 0.65rem;
   }
+
+  /* Ô Thăm tù trên mobile */
+  .jail-inmate-box {
+    width: 58% !important;
+    height: 58% !important;
+    padding: 1px 2px !important;
+  }
+
+  .jail-inmate-header {
+    font-size: 0.48rem !important;
+    gap: 2px !important;
+  }
+
+  .jail-inmate-header svg {
+    width: 9px !important;
+    height: 9px !important;
+  }
+
+  .jail-visiting-strip {
+    bottom: 2px !important;
+    left: 3px !important;
+  }
+
+  .jail-visiting-strip .corner-title {
+    font-size: 0.52rem !important;
+    letter-spacing: 0.2px !important;
+  }
 }
 
 @media (max-width: 380px) {
@@ -841,8 +868,8 @@
   position: absolute;
   top: 2px;
   right: 2px;
-  width: 65%;
-  height: 65%;
+  width: 60%;
+  height: 60%;
   background: #efebe4;
   border: 1.5px solid #78281f;
   border-radius: 6px;
@@ -863,6 +890,7 @@
   font-weight: 800;
   color: #78281f;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .jail-inmate-tokens {
@@ -891,10 +919,11 @@
 
 .jail-visiting-strip .corner-title {
   font-family: var(--font-retro);
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   font-weight: 900;
   color: var(--color-teal);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 /* ================= DẢI MÀU CHỦ SỞ HỮU DÀY 7PX Ở CẠNH NGOÀI CỦA Ô & CHẤM MÀU CẠNH GIÁ ================= */

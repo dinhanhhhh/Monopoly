@@ -206,7 +206,7 @@ export class BoardRenderer {
               <div class="jail-inmate-box" id="jail-inmates-area">
                 <div class="jail-inmate-header">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#78281F" stroke-width="2.6"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
-                  <span>Đang ngồi tù</span>
+                  <span>Ở TÙ</span>
                 </div>
                 <div class="jail-inmate-tokens" id="jail-inmate-tokens-slot"></div>
               </div>
