@@ -11,7 +11,10 @@
     "start": "node server/server.mjs",
     "test": "node tests/test-client-imports.mjs && node tests/test-deterministic.mjs",
     "test:server": "node tests/test-server.mjs",
-    "test:all": "node tests/test-client-imports.mjs && node tests/test-deterministic.mjs && node tests/test-server.mjs && node tests/test-audit-fixes.mjs && node tests/test-online-simulation.mjs && node tests/test-turn-skip-fix.mjs && node tests/test-card-effects.mjs"
+    "test:fuzz": "node tests/test-fuzzing-engine.mjs",
+    "test:chaos": "node tests/test-chaos-network.mjs",
+    "test:load": "node tests/test-server-load.mjs",
+    "test:all": "node tests/test-client-imports.mjs && node tests/test-deterministic.mjs && node tests/test-fuzzing-engine.mjs && node tests/test-card-effects.mjs && node tests/test-audit-fixes.mjs && node tests/test-server.mjs && node tests/test-turn-skip-fix.mjs && node tests/test-online-simulation.mjs && node tests/test-chaos-network.mjs && node tests/test-server-load.mjs"
   },
   "repository": {
     "type": "git",
