@@ -1,6 +1,6 @@
 import WebSocket from "ws";
 
-const WS_URL = "ws://localhost:3000";
+const WS_URL = "ws://127.0.0.1:3000";
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,7 +17,7 @@ async function runTest() {
   console.log("=== BẮT ĐẦU TEST TÍCH HỢP WEBSOCKET SERVER (2 CLIENTS) ===");
 
   // 1. Kiểm tra HTTP Health
-  const res = await fetch("http://localhost:3000/health");
+  const res = await fetch("http://127.0.0.1:3000/health");
   const health = await res.json();
   assert(health.status === "ok", "Server health check phải trả về ok");
   console.log("✅ 1. HTTP Server & Health Check: PASS");
