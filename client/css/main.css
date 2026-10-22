@@ -292,6 +292,16 @@ body {
   color: #fff;
 }
 
+/* Wrapper Menu Tiện Ích Trên Mobile (mặc định ẩn trên màn hình máy tính) */
+.mobile-more-menu-wrapper {
+  display: none;
+  position: relative;
+}
+
+.more-menu-popover {
+  display: none;
+}
+
 /* ================= 2. BỐ CỤC 3 CỘT (Arena Grid: Leaderboard | Center Arena & Cockpit | Right Timeline) ================= */
 .game-arena-grid {
   flex: 1;
@@ -1490,29 +1500,55 @@ body {
   }
 }
 
-@media (max-width: 1350px) {
-  .header-center-stats {
-    gap: 4px;
-  }
-  .stat-pill {
-    padding: 1px 5px;
-    font-size: 0.64rem;
-  }
-  .btn-tool {
-    padding: 2px 5px;
-  }
-}
-
-@media (max-width: 1100px) {
+/* Nấc 1: Màn hình Laptop & Desktop nhỏ (<= 1440px) - Ẩn chữ các nút phụ để tránh tràn mép phải */
+@media (max-width: 1440px) {
   .header-illustration {
     display: none !important;
   }
   .stat-pill .pill-label {
     display: none;
   }
+  .header-center-stats {
+    gap: 4px;
+  }
+  .stat-pill {
+    padding: 1px 6px;
+    font-size: 0.68rem;
+  }
+
+  /* Thu gọn chữ các nút công cụ phụ (Test Luật, Luật Chơi, Thành Tựu, Đài Radio) thành Icon */
+  #btn-quick-test .btn-tool-label,
+  #btn-open-rulebook .btn-tool-label,
+  #btn-open-achievements .btn-tool-label,
+  #btn-open-radio .btn-tool-label {
+    display: none !important;
+  }
+  #btn-quick-test,
+  #btn-open-rulebook,
+  #btn-open-achievements,
+  #btn-open-radio {
+    padding: 2px 7px;
+    min-width: 28px;
+    justify-content: center;
+  }
 }
 
-@media (max-width: 768px) {
+/* Nấc 2: Màn hình Tablet ngang & Cửa sổ hẹp (<= 1150px) - Thu gọn tiếp nút Đấu Online & Ván Mới */
+@media (max-width: 1150px) {
+  #btn-online-lobby .btn-tool-label,
+  #btn-restart-game .btn-tool-label {
+    display: none !important;
+  }
+  #btn-online-lobby,
+  #btn-restart-game {
+    padding: 2px 7px;
+    min-width: 28px;
+    justify-content: center;
+  }
+}
+
+/* Nấc 3: Giao diện Mobile & Tablet dọc (<= 900px, đồng bộ chuẩn xác với .mobile-view-nav) */
+@media (max-width: 900px) {
   .game-header {
     height: auto;
     min-height: 42px;
@@ -1542,12 +1578,11 @@ body {
   }
   .header-right-tools {
     width: 100%;
-    overflow-x: auto;
+    overflow: visible;
     padding-bottom: 2px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    gap: 3px;
+    gap: 4px;
     justify-content: flex-start;
+    align-items: center;
   }
   .header-right-tools::-webkit-scrollbar {
     display: none;
@@ -1560,6 +1595,96 @@ body {
     min-width: 28px;
     height: 28px;
     font-size: 0.82rem;
+  }
+
+  /* Cụm điều tốc ván đấu nhỏ gọn chuẩn 28px đồng bộ với các icon */
+  .speed-control-cluster {
+    height: 28px;
+    padding: 1px 4px;
+    gap: 2px;
+  }
+  .btn-speed-pause {
+    width: 22px;
+    height: 22px;
+    font-size: 0.65rem;
+  }
+  .speed-pills {
+    padding: 1px;
+    gap: 1px;
+  }
+  .btn-speed-pill {
+    padding: 1px 5px;
+    font-size: 0.65rem;
+  }
+
+  /* Thu gọn các nút phụ trên Mobile vào Nút ⚙️ More Menu (Cách 2) */
+  #btn-open-rulebook,
+  #btn-open-achievements,
+  #btn-open-radio,
+  #btn-quick-test {
+    display: none !important;
+  }
+
+  .mobile-more-menu-wrapper {
+    display: inline-flex !important;
+    position: relative;
+    align-items: center;
+  }
+
+  .more-menu-popover {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 200px;
+    background: var(--color-tile-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 8px 24px rgba(46, 36, 27, 0.3), 0 2px 6px rgba(0, 0, 0, 0.12);
+    flex-direction: column;
+    gap: 4px;
+    z-index: 1000;
+    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .more-menu-popover.open {
+    display: flex !important;
+  }
+
+  .more-menu-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-main);
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .more-menu-item:hover,
+  .more-menu-item:active {
+    background: #f4ebdd;
+    border-color: #d7ccc8;
+    color: var(--color-teal);
+    transform: translateX(2px);
+  }
+
+  .more-menu-item .item-icon {
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
   }
 }
 

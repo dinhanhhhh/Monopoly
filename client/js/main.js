@@ -847,6 +847,53 @@ function initGameApp() {
       btnAchievements.onclick = () => achievementManager.showModal();
     }
 
+    // Menu Cài đặt & Tiện ích trên Mobile (Cách 2)
+    const btnToggleMoreMenu = document.getElementById("btn-toggle-more-menu");
+    const moreMenuPopover = document.getElementById("more-menu-popover");
+
+    if (btnToggleMoreMenu && moreMenuPopover) {
+      btnToggleMoreMenu.onclick = (e) => {
+        e.stopPropagation();
+        moreMenuPopover.classList.toggle("open");
+      };
+
+      document.addEventListener("click", (e) => {
+        if (!moreMenuPopover.contains(e.target) && !btnToggleMoreMenu.contains(e.target)) {
+          moreMenuPopover.classList.remove("open");
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && moreMenuPopover.classList.contains("open")) {
+          moreMenuPopover.classList.remove("open");
+        }
+      });
+
+      const menuItemRulebook = document.getElementById("menu-item-rulebook");
+      if (menuItemRulebook) {
+        menuItemRulebook.onclick = () => {
+          moreMenuPopover.classList.remove("open");
+          rulebookModal.show();
+        };
+      }
+
+      const menuItemAchievements = document.getElementById("menu-item-achievements");
+      if (menuItemAchievements) {
+        menuItemAchievements.onclick = () => {
+          moreMenuPopover.classList.remove("open");
+          achievementManager.showModal();
+        };
+      }
+
+      const menuItemRadio = document.getElementById("menu-item-radio");
+      if (menuItemRadio) {
+        menuItemRadio.onclick = () => {
+          moreMenuPopover.classList.remove("open");
+          if (vintageRadio) vintageRadio.toggleOpen();
+        };
+      }
+    }
+
     // Nút Đấu Online trên Header
     const btnOnlineLobby = document.getElementById("btn-online-lobby");
     if (btnOnlineLobby) {
