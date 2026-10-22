@@ -42,6 +42,134 @@
   }
 }
 
+@media (max-width: 600px) {
+  .monopoly-board {
+    width: min(96vw, calc(100dvh - 195px), 480px);
+    height: min(96vw, calc(100dvh - 195px), 480px);
+    padding: 3px;
+    border-width: 3px;
+    border-radius: 8px;
+  }
+
+  /* Tối ưu typography ô đất trên mobile để không tràn hay đè chữ */
+  .tile-name {
+    font-size: clamp(7.5px, 15cqw, 10.5px);
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  .edge-left .tile-name,
+  .edge-right .tile-name {
+    font-size: clamp(7px, 12cqw, 9px);
+    line-height: 1;
+  }
+
+  .tile-price {
+    font-size: clamp(7.5px, 14cqw, 10px);
+    padding-bottom: 1px;
+  }
+
+  .edge-left .tile-price,
+  .edge-right .tile-price {
+    font-size: clamp(7px, 11cqw, 9px);
+  }
+
+  .tile-icon-box {
+    height: 18px;
+    min-height: 18px;
+    margin: 0;
+  }
+
+  .tile-icon-box svg {
+    max-width: 18px;
+    max-height: 16px;
+  }
+
+  /* Tối ưu quân cờ khi đứng chung ô */
+  .tile-tokens-grid {
+    grid-template-columns: repeat(2, 13px);
+    grid-auto-rows: 13px;
+    gap: 1px;
+  }
+
+  .player-token {
+    width: 13px;
+    height: 13px;
+    border-width: 1.2px !important;
+  }
+
+  .token-badge {
+    font-size: 8px;
+  }
+
+  .token-svg svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  /* Thu nhỏ khay thẻ Cơ hội / Khí vận giữa bàn cờ */
+  .deck-slot {
+    width: 68px;
+    height: 48px;
+    padding: 2px;
+  }
+
+  .deck-title {
+    font-size: 0.62rem;
+  }
+
+  .deck-bottom-label {
+    font-size: 0.5rem;
+  }
+
+  .deck-count-tag {
+    font-size: 0.5rem;
+    padding: 0 3px;
+  }
+
+  .retro-main-title {
+    font-size: 1.1rem;
+  }
+
+  .retro-sub-ribbon {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .monopoly-board {
+    padding: 2px;
+    border-width: 2.5px;
+  }
+
+  .tile-name {
+    font-size: clamp(6.8px, 13cqw, 9.5px);
+  }
+
+  .edge-left .tile-name,
+  .edge-right .tile-name {
+    font-size: clamp(6.5px, 10cqw, 8px);
+  }
+
+  .tile-price {
+    font-size: clamp(6.8px, 12cqw, 8.5px);
+  }
+
+  .edge-left .tile-price,
+  .edge-right .tile-price {
+    font-size: clamp(6.5px, 10cqw, 8px);
+  }
+
+  .deck-slot {
+    width: 56px;
+    height: 42px;
+  }
+
+  .retro-main-title {
+    font-size: 0.95rem;
+  }
+}
+
 /* Bo góc 4 ô góc khớp với viền bàn cờ khi overflow: visible */
 #tile-20 {
   border-top-left-radius: 8px;

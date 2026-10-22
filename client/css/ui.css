@@ -5108,3 +5108,95 @@
     box-shadow: 0 4px 26px rgba(46, 204, 113, 0.85);
   }
 }
+
+/* ==========================================================================
+   RESPONSIVE TOÀN DIỆN CHO TẤT CẢ CÁC MODAL TRÊN MOBILE (< 600px & < 420px)
+   ========================================================================== */
+@media (max-width: 600px) {
+  .modal-backdrop {
+    padding: 8px 6px;
+    align-items: center;
+  }
+
+  .title-deed-card,
+  .auction-modal-card,
+  .portfolio-modal-card,
+  .deck-viewer-container,
+  .setup-modal-card,
+  .debt-modal-card,
+  .recap-modal-card,
+  .rules-modal-card,
+  .lobby-modal-card {
+    width: 96% !important;
+    max-width: 480px !important;
+    max-height: 90dvh !important;
+    margin: 0 auto !important;
+    border-radius: 16px !important;
+  }
+
+  .card-visual {
+    width: 90vw !important;
+    max-width: 310px !important;
+    padding: 18px 14px !important;
+  }
+
+  /* Trade Modal: Cuộn dọc 2 bên hoặc stack 2 cột */
+  .trade-modal-window {
+    width: 96% !important;
+    max-width: 480px !important;
+    max-height: 90dvh !important;
+    padding: 14px 12px !important;
+    border-radius: 16px !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .trade-modal-body {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
+
+  .trade-cards-scroll {
+    max-height: 130px;
+  }
+
+  /* Debt Resolution Modal */
+  .debt-modal-card {
+    padding: 12px;
+  }
+
+  .debt-properties-list {
+    max-height: 42dvh;
+  }
+
+  .debt-actions-row {
+    flex-direction: column-reverse;
+    gap: 6px;
+  }
+
+  .btn-debt-concede,
+  .btn-debt-pay {
+    width: 100%;
+    flex: none;
+    min-height: 40px;
+  }
+
+  /* Nút đóng modal và các nút bấm cảm ứng */
+  .btn-modal-close,
+  .trade-close-x {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-modal {
+    min-height: 38px;
+  }
+}
+

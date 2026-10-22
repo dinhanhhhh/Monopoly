@@ -96,6 +96,37 @@ function initGameApp() {
   const logContainer = document.getElementById("game-log-messages");
   let savedLogs = [];
 
+  // Quản lý Điều Hướng View Trên Mobile (< 900px)
+  const mobileNav = document.getElementById("mobile-view-nav");
+  const arenaGrid = document.getElementById("game-arena-grid");
+  const logBadge = document.getElementById("log-unread-badge");
+  let unreadLogsCount = 0;
+
+  function switchMobileTab(tabName) {
+    if (!arenaGrid) return;
+    arenaGrid.dataset.activeTab = tabName;
+    const tabBtns = document.querySelectorAll(".mobile-nav-btn");
+    tabBtns.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.tab === tabName);
+    });
+    if (tabName === "log") {
+      unreadLogsCount = 0;
+      if (logBadge) {
+        logBadge.style.display = "none";
+        logBadge.textContent = "0";
+      }
+    }
+  }
+
+  if (mobileNav) {
+    mobileNav.addEventListener("click", (e) => {
+      const btn = e.target.closest(".mobile-nav-btn");
+      if (!btn) return;
+      const tab = btn.dataset.tab;
+      if (tab) switchMobileTab(tab);
+    });
+  }
+
   // Timer
   let secondsElapsed = 0;
   let timerInterval = null;
@@ -260,6 +291,13 @@ function initGameApp() {
     logContainer.prepend(item);
     while (logContainer.children.length > 35) {
       logContainer.removeChild(logContainer.lastChild);
+    }
+
+    // Cập nhật số thông báo chưa đọc trên tab Nhật Ký của mobile
+    if (arenaGrid && arenaGrid.dataset.activeTab !== "log" && logBadge) {
+      unreadLogsCount++;
+      logBadge.textContent = unreadLogsCount > 99 ? "99+" : String(unreadLogsCount);
+      logBadge.style.display = "inline-block";
     }
   }
 
@@ -452,6 +490,51 @@ function initGameApp() {
     }
   }
 
+  /**
+   * Kích hoạt hiệu ứng tiền bay, âm thanh & biểu cảm khi nhận/mất tiền từ Thẻ Cơ Hội / Khí Vận
+   * @param {Object} player
+   * @param {Object} cardResult
+   */
+  function triggerCardMoneyEffects(player, cardResult) {
+    if (!cardResult || !player) return;
+    const { amount, actionType } = cardResult;
+
+    if (actionType === "ADD_MONEY" && amount > 0) {
+      showFloatingCash(player.id, amount);
+      sound.playSuccess();
+      triggerPlayerEmote(player.id, "💰", 2500);
+    } else if (actionType === "SUB_MONEY" && amount !== undefined) {
+      const absAmount = Math.abs(amount);
+      if (absAmount > 0) {
+        showFloatingCash(player.id, -absAmount);
+        sound.playCoin();
+        triggerPlayerEmote(player.id, "💸", 2500);
+      }
+    } else if (actionType === "PAY_ALL_PLAYERS" && amount > 0) {
+      const activeOthers = (engine.state.players || []).filter(
+        (p) => p.id !== player.id && !p.isBankrupt,
+      );
+      showFloatingCash(player.id, -amount * activeOthers.length);
+      sound.playCoin();
+      triggerPlayerEmote(player.id, "💸", 2500);
+      activeOthers.forEach((other) => {
+        showFloatingCash(other.id, amount);
+        triggerPlayerEmote(other.id, "🧧", 2200);
+      });
+    } else if (actionType === "RECEIVE_FROM_ALL" && amount > 0) {
+      const activeOthers = (engine.state.players || []).filter(
+        (p) => p.id !== player.id && !p.isBankrupt,
+      );
+      showFloatingCash(player.id, amount * activeOthers.length);
+      sound.playSuccess();
+      triggerPlayerEmote(player.id, "🤑", 2500);
+      activeOthers.forEach((other) => {
+        showFloatingCash(other.id, -amount);
+        triggerPlayerEmote(other.id, "😭", 2200);
+      });
+    }
+  }
+
   function updateStandingBanner(tile, statusText = "") {
     if (!tile) return;
     if (standingNameEl) standingNameEl.textContent = tile.name;
@@ -519,7 +602,11 @@ function initGameApp() {
    */
   function inspectTileDeed(tile, targetPlayer = null) {
     if (!["property", "railroad", "utility"].includes(tile.type)) return;
-    const currentPlayer = targetPlayer || engine.getCurrentPlayer();
+    const myOnlineP =
+      isOnlineMode && myOnlinePlayerId
+        ? engine.state.players.find((p) => p.id === myOnlinePlayerId)
+        : null;
+    const currentPlayer = targetPlayer || myOnlineP || engine.getCurrentPlayer();
     const owner = engine.getOwner(tile.id);
     const propState = engine.state.properties[tile.id] || {};
     const isOwner = owner && owner.id === currentPlayer.id;
@@ -772,6 +859,20 @@ function initGameApp() {
         stopCurrentGameLoop();
         const pauseBtn = document.getElementById("btn-pause-toggle");
         if (pauseBtn) pauseBtn.textContent = "▶️";
+
+        if (isOnlineMode && networkClient) {
+          try {
+            networkClient.disconnect();
+          } catch (e) {}
+          isOnlineMode = false;
+        }
+        try {
+          sessionStorage.removeItem("monopoly_reconnect_token");
+          sessionStorage.removeItem("monopoly_room_id");
+          sessionStorage.removeItem("monopoly_player_id");
+        } catch (e) {}
+        const btnOnlineLobby = document.getElementById("btn-online-lobby");
+        if (btnOnlineLobby) btnOnlineLobby.style.display = "";
 
         gameSetupModal.show(
           startNewGame,
@@ -1133,6 +1234,172 @@ function initGameApp() {
   }
 
   /**
+   * Mở hoặc cập nhật Modal giải quyết nợ (bán nhà / thế chấp / phá sản)
+   */
+  function openDebtModal(debtInfo) {
+    if (!debtInfo) return;
+    const curPlayer = engine.getCurrentPlayer();
+    if (isOnlineMode && curPlayer.id !== myOnlinePlayerId) {
+      if (debtResolutionModal?.hide) debtResolutionModal.hide();
+      return;
+    }
+    const tile =
+      (debtInfo.tileId ? SAIGON_BOARD_DATA.find((t) => t.id === debtInfo.tileId) : null) ||
+      debtInfo.tile ||
+      SAIGON_BOARD_DATA[curPlayer.position] ||
+      {};
+    const creditor = debtInfo.creditorId
+      ? engine.state.players.find((pl) => pl.id === debtInfo.creditorId)
+      : debtInfo.creditor;
+
+    try {
+      debtResolutionModal.show({
+        player: curPlayer,
+        amount: debtInfo.amount,
+        debtType: debtInfo.debtType,
+        creditor,
+        tile,
+        state: engine.state,
+        onAutoLiquidate: () => {
+          if (isOnlineMode) {
+            networkClient.sendAction({ type: "AUTO_RESOLVE_DEBT" });
+            return;
+          }
+          const res = engine.applyAction({ type: "AUTO_RESOLVE_DEBT" });
+          if (res.success) {
+            boardRenderer.updateBuildings(
+              engine.state.properties,
+              engine.state.players,
+            );
+            boardRenderer.updateOwners(
+              engine.state.properties,
+              engine.state.players,
+            );
+            hud.update(engine.state, handleShowPortfolio);
+            if (res.event === "DEBT_RESOLVED") {
+              debtResolutionModal.hide();
+              sound.playSuccess();
+              showFloatingCash(curPlayer.id, -debtInfo.amount);
+              if (creditor) {
+                showFloatingCash(creditor.id, debtInfo.amount);
+              }
+              addGameLog(res.message);
+              showToast(res.message);
+              safeTimeout(() => finishTurn(debtInfo.isDoubles || false), getDelay(1400));
+            } else {
+              openDebtModal(debtInfo);
+            }
+          } else {
+            showToast(res.error || "Không thể tự động giải cứu");
+          }
+        },
+        onMortgage: (tId) => {
+          if (isOnlineMode) {
+            networkClient.sendAction({
+              type: "MORTGAGE_PROPERTY",
+              tileId: tId,
+            });
+            return;
+          }
+          const res = engine.applyAction({
+            type: "MORTGAGE_PROPERTY",
+            tileId: tId,
+          });
+          if (res.success) {
+            boardRenderer.updateOwners(
+              engine.state.properties,
+              engine.state.players,
+            );
+            hud.update(engine.state, handleShowPortfolio);
+            sound.playCoin();
+            addGameLog(res.message);
+            showToast(res.message);
+            openDebtModal(debtInfo);
+          } else {
+            showToast(res.error || "Không thể thế chấp ô đất");
+          }
+        },
+        onSellHouse: (tId) => {
+          if (isOnlineMode) {
+            networkClient.sendAction({
+              type: "SELL_HOUSE",
+              tileId: tId,
+            });
+            return;
+          }
+          const res = engine.applyAction({
+            type: "SELL_HOUSE",
+            tileId: tId,
+          });
+          if (res.success) {
+            boardRenderer.updateBuildings(
+              engine.state.properties,
+              engine.state.players,
+            );
+            hud.update(engine.state, handleShowPortfolio);
+            sound.playCoin();
+            addGameLog(res.message);
+            showToast(res.message);
+            openDebtModal(debtInfo);
+          } else {
+            showToast(res.error || "Không thể bán nhà");
+          }
+        },
+        onPayDebt: () => {
+          if (isOnlineMode) {
+            networkClient.sendAction({ type: "PAY_DEBT" });
+            return;
+          }
+          const res = engine.applyAction({ type: "PAY_DEBT" });
+          if (res.success) {
+            debtResolutionModal.hide();
+            sound.playSuccess();
+            showFloatingCash(curPlayer.id, -debtInfo.amount);
+            if (creditor) {
+              showFloatingCash(creditor.id, debtInfo.amount);
+            }
+            hud.update(engine.state, handleShowPortfolio);
+            addGameLog(res.message);
+            showToast(res.message);
+            safeTimeout(() => finishTurn(debtInfo.isDoubles || false), getDelay(1400));
+          } else {
+            showToast(res.error || "Chưa đủ tiền thanh toán!");
+          }
+        },
+        onConcede: () => {
+          debtResolutionModal.hide();
+          if (isOnlineMode) {
+            networkClient.sendAction({ type: "CONCEDE_BANKRUPTCY" });
+            return;
+          }
+          const res = engine.applyAction({ type: "CONCEDE_BANKRUPTCY" });
+          if (res.success) {
+            updateStandingBanner(tile, `💀 ${curPlayer.name} đã Phá Sản!`);
+            boardRenderer.updateOwners(
+              engine.state.properties,
+              engine.state.players,
+            );
+            tokenRenderer.render(engine.state.players);
+            hud.update(engine.state);
+            sound.playJail();
+            triggerPlayerEmote(curPlayer.id, "😭", 3500);
+            addGameLog(res.message);
+            showToast(res.message);
+            if (res.winner) {
+              triggerPlayerEmote(res.winner.id, "😎", 4000);
+              showGameOverModal(res.winner);
+            } else {
+              safeTimeout(() => finishTurn(false), getDelay(1600));
+            }
+          }
+        },
+      });
+    } catch (e) {
+      console.warn("Lỗi mở DebtResolutionModal:", e);
+    }
+  }
+
+  /**
    * Hàm dùng chung renderLandingResult: tái sử dụng cho COMPLETE_MOVEMENT và CLOSE_CARD (Offline & Online)
    */
   async function renderLandingResult(p, landResult, isDoubles = false) {
@@ -1149,6 +1416,12 @@ function initGameApp() {
       updateStandingBanner(
         currentTile,
         `Rút thẻ ${landResult.cardType === "chance" ? "Cơ Hội" : "Khí Vận"}`,
+      );
+
+      const cardDeckTitle =
+        landResult.cardType === "chance" ? "Cơ Hội" : "Khí Vận";
+      addGameLog(
+        `📜 ${p.name} rút thẻ ${cardDeckTitle}: "${landResult.card?.title || ""}" - ${landResult.card?.desc || ""}`,
       );
 
       const onCardClosed = async () => {
@@ -1169,6 +1442,9 @@ function initGameApp() {
         if (landResult.result?.message) {
           addGameLog(landResult.result.message);
           showToast(landResult.result.message);
+        }
+        if (simSpeed < 10 && landResult.result) {
+          triggerCardMoneyEffects(p, landResult.result);
         }
 
         // Nếu thẻ di chuyển người chơi sang ô mới (tiến/lùi/ô gần nhất/vào tù)
@@ -1194,6 +1470,10 @@ function initGameApp() {
           if (simSpeed < 10) cardModal.hide();
           await onCardClosed();
         }, getDelay(1800));
+      } else if (isOnlineMode && p.id !== myOnlinePlayerId) {
+        // Đối thủ trong phòng online rút thẻ: Không bật modal có nút bấm chặn màn hình
+        if (cardModal?.hide) cardModal.hide();
+        showToast(`📜 ${p.name} rút thẻ ${landResult.cardType === "chance" ? "Cơ Hội" : "Khí Vận"}: ${landResult.card?.title || ""}`);
       } else {
         cardModal.show(
           landResult.cardType,
@@ -1476,129 +1756,21 @@ function initGameApp() {
       addGameLog(landResult.message);
       showToast(landResult.message);
 
-      const refreshDebtModal = () => {
-        try {
-          debtResolutionModal.show({
-            player: engine.getCurrentPlayer(),
-            amount: landResult.amount,
-            debtType: landResult.debtType,
-            creditor: landResult.creditor,
-            tile: landResult.tile,
-            state: engine.state,
-            onAutoLiquidate: () => {
-              const res = engine.applyAction({ type: "AUTO_RESOLVE_DEBT" });
-              if (res.success) {
-                boardRenderer.updateBuildings(
-                  engine.state.properties,
-                  engine.state.players,
-                );
-                boardRenderer.updateOwners(
-                  engine.state.properties,
-                  engine.state.players,
-                );
-                hud.update(engine.state, handleShowPortfolio);
-                if (res.event === "DEBT_RESOLVED") {
-                  debtResolutionModal.hide();
-                  sound.playSuccess();
-                  showFloatingCash(p.id, -landResult.amount);
-                  if (landResult.creditor) {
-                    showFloatingCash(landResult.creditor.id, landResult.amount);
-                  }
-                  addGameLog(res.message);
-                  showToast(res.message);
-                  safeTimeout(() => finishTurn(isDoubles), getDelay(1400));
-                } else {
-                  refreshDebtModal();
-                }
-              } else {
-                showToast(res.error || "Không thể tự động giải cứu");
-              }
-            },
-            onMortgage: (tId) => {
-              const res = engine.applyAction({
-                type: "MORTGAGE_PROPERTY",
-                tileId: tId,
-              });
-              if (res.success) {
-                boardRenderer.updateOwners(
-                  engine.state.properties,
-                  engine.state.players,
-                );
-                hud.update(engine.state, handleShowPortfolio);
-                sound.playCoin();
-                addGameLog(res.message);
-                showToast(res.message);
-                refreshDebtModal();
-              } else {
-                showToast(res.error || "Không thể thế chấp ô đất");
-              }
-            },
-            onSellHouse: (tId) => {
-              const res = engine.applyAction({
-                type: "SELL_HOUSE",
-                tileId: tId,
-              });
-              if (res.success) {
-                boardRenderer.updateBuildings(
-                  engine.state.properties,
-                  engine.state.players,
-                );
-                hud.update(engine.state, handleShowPortfolio);
-                sound.playCoin();
-                addGameLog(res.message);
-                showToast(res.message);
-                refreshDebtModal();
-              } else {
-                showToast(res.error || "Không thể bán nhà");
-              }
-            },
-            onPayDebt: () => {
-              const res = engine.applyAction({ type: "PAY_DEBT" });
-              if (res.success) {
-                debtResolutionModal.hide();
-                sound.playSuccess();
-                showFloatingCash(p.id, -landResult.amount);
-                if (landResult.creditor) {
-                  showFloatingCash(landResult.creditor.id, landResult.amount);
-                }
-                hud.update(engine.state, handleShowPortfolio);
-                addGameLog(res.message);
-                showToast(res.message);
-                safeTimeout(() => finishTurn(isDoubles), getDelay(1400));
-              } else {
-                showToast(res.error || "Chưa đủ tiền thanh toán!");
-              }
-            },
-            onConcede: () => {
-              debtResolutionModal.hide();
-              const res = engine.applyAction({ type: "CONCEDE_BANKRUPTCY" });
-              if (res.success) {
-                updateStandingBanner(currentTile, `💀 ${p.name} đã Phá Sản!`);
-                boardRenderer.updateOwners(
-                  engine.state.properties,
-                  engine.state.players,
-                );
-                tokenRenderer.render(engine.state.players);
-                hud.update(engine.state);
-                sound.playJail();
-                triggerPlayerEmote(p.id, "😭", 3500);
-                addGameLog(res.message);
-                showToast(res.message);
-                if (res.winner) {
-                  triggerPlayerEmote(res.winner.id, "😎", 4000);
-                  showGameOverModal(res.winner);
-                } else {
-                  safeTimeout(() => finishTurn(false), getDelay(1600));
-                }
-              }
-            },
-          });
-        } catch (err) {
-          console.error("Lỗi khi mở modal nợ:", err);
-        }
-      };
+      if (isOnlineMode && p.id !== myOnlinePlayerId) {
+        if (debtResolutionModal?.hide) debtResolutionModal.hide();
+        showToast(`⏳ ${p.name} không đủ tiền mặt và đang xử lý nợ nần...`);
+        return;
+      }
 
-      refreshDebtModal();
+      openDebtModal({
+        amount: landResult.amount,
+        debtType: landResult.debtType,
+        creditorId: landResult.creditor?.id,
+        creditor: landResult.creditor,
+        tileId: landResult.tile?.id,
+        tile: landResult.tile,
+        isDoubles,
+      });
     }
     // G. Phá sản
     else if (landResult.event === "BANKRUPTCY") {
@@ -1900,6 +2072,9 @@ function initGameApp() {
     isSimPaused = true;
     try {
       localStorage.removeItem("monopoly_saigon_save");
+      sessionStorage.removeItem("monopoly_reconnect_token");
+      sessionStorage.removeItem("monopoly_room_id");
+      sessionStorage.removeItem("monopoly_player_id");
     } catch (e) {}
 
     sound.playSuccess();
@@ -2000,6 +2175,10 @@ function initGameApp() {
         }
       }, getDelay(1000));
     } else {
+      // Khi tới lượt người chơi điều khiển: tự chuyển về tab Bàn Cờ nếu đang ở tab khác trên mobile
+      if (arenaGrid && arenaGrid.dataset.activeTab !== "board" && window.innerWidth < 900) {
+        switchMobileTab("board");
+      }
       if (curPlayer.inJail) {
         if (btnRoll) {
           btnRoll.disabled = false;
@@ -2107,6 +2286,10 @@ function initGameApp() {
     const curPlayer = engine.getCurrentPlayer();
     const isMyTurn = curPlayer && curPlayer.id === myOnlinePlayerId;
 
+    if (isMyTurn && arenaGrid && arenaGrid.dataset.activeTab !== "board" && window.innerWidth < 900) {
+      switchMobileTab("board");
+    }
+
     if (btnRoll) {
       btnRoll.disabled = !isMyTurn;
       const label = btnRoll.querySelector(".roll-label");
@@ -2129,6 +2312,13 @@ function initGameApp() {
 
     if (!isMyTurn) {
       resetDockActions();
+      if (diceRenderer?.reset) {
+        diceRenderer.reset();
+      }
+    } else {
+      if (diceRenderer) {
+        diceRenderer.isRolling = false;
+      }
     }
   }
 
@@ -2141,6 +2331,7 @@ function initGameApp() {
     myOnlinePlayerId = myPlayerId;
     const btnOnlineLobby = document.getElementById("btn-online-lobby");
     if (btnOnlineLobby) btnOnlineLobby.style.display = "none";
+    if (gameSetupModal?.hide) gameSetupModal.hide();
 
     currentGameMode = "online";
     isFastModeEnabled = !!gameData.state.fastMode;
@@ -2170,7 +2361,7 @@ function initGameApp() {
     } catch (err) {
       console.error("Lỗi cập nhật HUD:", err);
     }
-    turnCount = 1;
+    turnCount = engine.state.round || 1;
     const turnCountEl = document.getElementById("game-turn-count");
     if (turnCountEl) turnCountEl.textContent = turnCount;
 
@@ -2191,10 +2382,17 @@ function initGameApp() {
     boardRenderer.updateOwners(engine.state.properties, engine.state.players);
     boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
     boardRenderer.updateJackpot(engine.state.jackpotPot);
+    if (tokenRenderer && engine.state.players) {
+      tokenRenderer.render(engine.state.players);
+    }
 
     updateDeckCounts();
     updateRoundPhaseHeader(engine.state);
     updateTurnControls();
+
+    if (engine.state.pendingAction?.type === "DEBT_PROMPT" && engine.getCurrentPlayer().id === myOnlinePlayerId) {
+      openDebtModal(engine.state.pendingAction);
+    }
 
     setupOnlineEventHandlers();
   }
@@ -2208,9 +2406,13 @@ function initGameApp() {
         const cur = engine.getCurrentPlayer();
         if (cur.id === myOnlinePlayerId) {
           jailModal.hide();
-          networkClient.sendAction({ type: "ROLL_DICE" });
+          const sent = networkClient.sendAction({ type: "ROLL_DICE" });
+          if (!sent) {
+            showToast("⚠️ Mất kết nối tới máy chủ! Đang thử kết nối lại...");
+            networkClient.connect().catch(() => {});
+          }
         } else {
-          showToast(`Chưa tới lượt của bạn! Đang chờ ${cur.name}...`);
+          showToast(`⏳ Chưa tới lượt của bạn! Đang chờ ${cur.name}...`);
         }
       };
     }
@@ -2288,6 +2490,11 @@ function initGameApp() {
           addGameLog(result.message);
           showToast(result.message);
         }
+        if (engine.state.pendingAction?.type === "DEBT_PROMPT" && engine.getCurrentPlayer().id === myOnlinePlayerId) {
+          openDebtModal(engine.state.pendingAction);
+        } else if (engine.getCurrentPlayer().id !== myOnlinePlayerId) {
+          if (debtResolutionModal?.hide) debtResolutionModal.hide();
+        }
       } else if (action.type === "MORTGAGE_PROPERTY" || action.type === "UNMORTGAGE_PROPERTY") {
         engine.state = state;
         hud.update(engine.state, handleShowPortfolio);
@@ -2297,18 +2504,93 @@ function initGameApp() {
           addGameLog(result.message);
           showToast(result.message);
         }
+        if (engine.state.pendingAction?.type === "DEBT_PROMPT" && engine.getCurrentPlayer().id === myOnlinePlayerId) {
+          openDebtModal(engine.state.pendingAction);
+        } else if (engine.getCurrentPlayer().id !== myOnlinePlayerId) {
+          if (debtResolutionModal?.hide) debtResolutionModal.hide();
+        }
+      } else if (action.type === "AUTO_RESOLVE_DEBT") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        boardRenderer.updateJackpot(engine.state.jackpotPot);
+        tokenRenderer.render(engine.state.players);
+        if (result?.message) {
+          addGameLog(result.message);
+          showToast(result.message);
+        }
+        if (result?.event === "DEBT_RESOLVED" || !engine.state.pendingAction) {
+          if (debtResolutionModal?.hide) debtResolutionModal.hide();
+          sound.playSuccess();
+          if (engine.getCurrentPlayer().id === myOnlinePlayerId) {
+            scheduleFinishTurn(engine.getCurrentPlayer(), false, 1000);
+          }
+        } else if (engine.state.pendingAction?.type === "DEBT_PROMPT" && engine.getCurrentPlayer().id === myOnlinePlayerId) {
+          openDebtModal(engine.state.pendingAction);
+        } else {
+          if (debtResolutionModal?.hide) debtResolutionModal.hide();
+        }
+      } else if (action.type === "PAY_DEBT") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        boardRenderer.updateJackpot(engine.state.jackpotPot);
+        tokenRenderer.render(engine.state.players);
+        if (debtResolutionModal?.hide) debtResolutionModal.hide();
+        sound.playSuccess();
+        if (result?.message) {
+          addGameLog(result.message);
+          showToast(result.message);
+        }
+        if (engine.getCurrentPlayer().id === myOnlinePlayerId) {
+          scheduleFinishTurn(engine.getCurrentPlayer(), false, 1000);
+        }
+      } else if (action.type === "CONCEDE_BANKRUPTCY") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        tokenRenderer.render(engine.state.players);
+        if (debtResolutionModal?.hide) debtResolutionModal.hide();
+        sound.playJail();
+        if (result?.message) {
+          addGameLog(result.message);
+          showToast(result.message);
+        }
+        if (result?.winner) {
+          handleGameOver(result.winner, false);
+        } else if (engine.getCurrentPlayer().id === myOnlinePlayerId) {
+          scheduleFinishTurn(engine.getCurrentPlayer(), false, 800);
+        }
       } else if (action.type === "CLOSE_CARD") {
         engine.state = state;
         hud.update(engine.state, handleShowPortfolio);
         tokenRenderer.render(engine.state.players);
         cardModal.hide();
 
-        if (result) {
-          const curPlayer = engine.getCurrentPlayer();
+        const curPlayer = engine.getCurrentPlayer();
+        const cardRes = result?.result;
+        const msg = result?.message || cardRes?.message;
+        if (msg) {
+          addGameLog(msg);
+          showToast(msg);
+        }
+        if (cardRes) {
+          triggerCardMoneyEffects(curPlayer, cardRes);
+        }
+
+        if (result && result.event !== "CARD_PROCESSED") {
           await renderLandingResult(curPlayer, result, false);
+        } else if (engine.getCurrentPlayer().id === myOnlinePlayerId) {
+          scheduleFinishTurn(engine.getCurrentPlayer(), false, 800);
         }
       } else if (action.type === "END_TURN") {
         clearEndTurnTimer();
+        if (debtResolutionModal?.hide) debtResolutionModal.hide();
+        if (cardModal?.hide) cardModal.hide();
+        if (diceRenderer?.reset) diceRenderer.reset();
         engine.state = state;
         hud.update(engine.state, handleShowPortfolio);
         tokenRenderer.render(engine.state.players);
@@ -2334,18 +2616,81 @@ function initGameApp() {
     });
 
     networkClient.on("gameOver", ({ winner }) => {
+      if (debtResolutionModal?.hide) debtResolutionModal.hide();
+      try {
+        sessionStorage.removeItem("monopoly_reconnect_token");
+        sessionStorage.removeItem("monopoly_room_id");
+        sessionStorage.removeItem("monopoly_player_id");
+      } catch (e) {}
       handleGameOver(winner, false);
+    });
+
+    networkClient.on("actionFailed", ({ action, error }) => {
+      const errMsg = error || "Thao tác không hợp lệ";
+      showToast(`⚠️ Không thể thực hiện: ${errMsg}`);
+      addGameLog(`⚠️ Lỗi thao tác: ${errMsg}`);
+      if (action?.type === "ROLL_DICE") {
+        if (diceRenderer) {
+          diceRenderer.isRolling = false;
+        }
+        updateTurnControls();
+      }
     });
 
     networkClient.on("error", (msg) => {
       showToast(`⚠️ Lỗi mạng: ${msg}`);
     });
+
+    networkClient.on("disconnected", () => {
+      if (isOnlineMode) {
+        showToast("⚠️ Mất kết nối tới máy chủ! Hệ thống đang tự động kết nối lại...");
+      }
+    });
+
+    networkClient.on("connected", () => {
+      if (isOnlineMode) {
+        showToast("🌐 Đã kết nối lại máy chủ thành công!");
+      }
+    });
+
+    networkClient.on("joined", (data) => {
+      if (data.isReconnect && data.gameState && isOnlineMode) {
+        engine.loadState(data.gameState);
+        hud.update(engine.state, handleShowPortfolio);
+        tokenRenderer.render(engine.state.players);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        boardRenderer.updateJackpot(engine.state.jackpotPot);
+        updateTurnControls();
+        showToast("🔄 Trạng thái ván đấu đã được đồng bộ lại!");
+      }
+    });
   }
 
-  // Khởi động GameSetupModal ngay khi vào trang (hỗ trợ Tiếp Tục hoặc Ván Mới)
-  gameSetupModal.show(startNewGame, resumeGame, null, (preset) =>
-    onlineLobbyModal.show(startOnlineGame, null, preset),
-  );
+  // Kiểm tra session phòng online nếu vừa F5 / tải lại trang
+  const onlineRoomId = sessionStorage.getItem("monopoly_room_id");
+  const onlineReconnectToken = sessionStorage.getItem("monopoly_reconnect_token");
+
+  if (onlineRoomId && onlineReconnectToken) {
+    showToast("🌐 Đang khôi phục ván đấu trực tuyến...");
+    onlineLobbyModal.tryAutoReconnect(startOnlineGame).then((success) => {
+      if (!success) {
+        try {
+          sessionStorage.removeItem("monopoly_reconnect_token");
+          sessionStorage.removeItem("monopoly_room_id");
+          sessionStorage.removeItem("monopoly_player_id");
+        } catch (e) {}
+        gameSetupModal.show(startNewGame, resumeGame, null, (preset) =>
+          onlineLobbyModal.show(startOnlineGame, null, preset),
+        );
+      }
+    });
+  } else {
+    // Khởi động GameSetupModal ngay khi vào trang (hỗ trợ Tiếp Tục hoặc Ván Mới)
+    gameSetupModal.show(startNewGame, resumeGame, null, (preset) =>
+      onlineLobbyModal.show(startOnlineGame, null, preset),
+    );
+  }
 }
 
 if (document.readyState === "loading") {

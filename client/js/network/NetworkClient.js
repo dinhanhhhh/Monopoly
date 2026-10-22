@@ -78,6 +78,7 @@ export class NetworkClient {
         this.ws.onclose = () => {
           this.isConnected = false;
           this.emit("disconnected");
+          this.attemptReconnect();
         };
 
         this.ws.onerror = (err) => {
@@ -157,16 +158,51 @@ export class NetworkClient {
       this.ws.send(JSON.stringify(payload));
       return true;
     }
+    this.attemptReconnect();
     return false;
   }
 
+  attemptReconnect() {
+    if (this.isReconnecting) return;
+    const rId =
+      this.roomId ||
+      (typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("monopoly_room_id")
+        : null);
+    const rToken =
+      this.reconnectToken ||
+      (typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("monopoly_reconnect_token")
+        : null);
+    if (!rId || !rToken) return;
+
+    this.isReconnecting = true;
+    setTimeout(async () => {
+      try {
+        await this.connect();
+        const pName =
+          (typeof localStorage !== "undefined"
+            ? localStorage.getItem("monopoly_player_name")
+            : null) || "Cậu Ba";
+        this.joinRoom(rId, pName, null);
+      } catch (e) {
+        this.isReconnecting = false;
+      }
+    }, 1200);
+  }
+
   joinRoom(roomId, playerName, token) {
+    const rToken =
+      this.reconnectToken ||
+      (typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("monopoly_reconnect_token")
+        : null);
     return this.send({
       type: "JOIN_ROOM",
       roomId,
       playerName,
       token,
-      reconnectToken: this.reconnectToken,
+      reconnectToken: rToken,
     });
   }
 
@@ -195,6 +231,9 @@ export class NetworkClient {
   }
 
   disconnect() {
+    this.isReconnecting = false;
+    this.roomId = null;
+    this.reconnectToken = null;
     if (this.ws) {
       try {
         this.ws.close();

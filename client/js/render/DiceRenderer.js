@@ -25,6 +25,15 @@ export class DiceRenderer {
     if (this.die2El) this.die2El.classList.remove("rolling");
   }
 
+  /**
+   * Reset hiển thị điểm xúc xắc về trạng thái rỗng khi hết lượt
+   */
+  reset() {
+    this.cancelRoll();
+    if (this.sumTextEl) this.sumTextEl.textContent = "";
+    if (this.subTextEl) this.subTextEl.textContent = "";
+  }
+
   init() {
     this.die1El = document.getElementById("die-1");
     this.die2El = document.getElementById("die-2");

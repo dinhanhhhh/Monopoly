@@ -505,6 +505,9 @@ export class GameRoom {
     // Timeout fallback action
     if (pending && pending.defaultAction) {
       this.handleAction(curPlayer.id, pending.defaultAction);
+      if (this.engine.state.turnState === TURN_STATES.END_TURN) {
+        this.handleAction(curPlayer.id, { type: "END_TURN", turnId: this.turnId });
+      }
     } else if (this.engine.state.turnState === TURN_STATES.WAIT_ROLL) {
       this.handleAction(curPlayer.id, { type: "ROLL_DICE" });
     } else if (
@@ -519,8 +522,19 @@ export class GameRoom {
         type: "COMPLETE_MOVEMENT",
         position: targetPos,
       });
+    } else if (this.engine.state.turnState === TURN_STATES.ACTION_REQUIRED) {
+      if (pending?.type === "BUY_PROMPT") {
+        this.handleAction(curPlayer.id, { type: "DECLINE_BUY" });
+      } else if (pending?.type === "DEBT_PROMPT") {
+        this.handleAction(curPlayer.id, { type: "AUTO_RESOLVE_DEBT" });
+      } else if (pending?.type === "CARD_PROMPT") {
+        this.handleAction(curPlayer.id, { type: "CLOSE_CARD" });
+      }
+      if (this.engine.state.turnState === TURN_STATES.END_TURN) {
+        this.handleAction(curPlayer.id, { type: "END_TURN", turnId: this.turnId });
+      }
     } else if (this.engine.state.turnState === TURN_STATES.END_TURN) {
-      this.handleAction(curPlayer.id, { type: "END_TURN" });
+      this.handleAction(curPlayer.id, { type: "END_TURN", turnId: this.turnId });
     }
   }
 

@@ -32,6 +32,7 @@ export class OnlineLobbyModal {
     this.onGameStartedCallback = null;
     this.onCancelCallback = null;
     this.isReady = false;
+    this.isAutoReconnecting = false;
 
     this.setupNetworkListeners();
   }
@@ -79,7 +80,60 @@ export class OnlineLobbyModal {
     });
 
     this.client.on("error", (err) => {
+      if (this.isAutoReconnecting) return;
       alert(`⚠️ ${err}`);
+    });
+  }
+
+  /**
+   * Thử tự động kết nối lại phòng online nếu có session hợp lệ trong sessionStorage
+   * @param {Function} onGameStarted
+   * @returns {Promise<boolean>} true nếu tái kết nối thành công, false nếu thất bại
+   */
+  async tryAutoReconnect(onGameStarted) {
+    const roomId = sessionStorage.getItem("monopoly_room_id");
+    const reconnectToken = sessionStorage.getItem("monopoly_reconnect_token");
+    if (!roomId || !reconnectToken) return false;
+
+    this.onGameStartedCallback = onGameStarted;
+    this.isAutoReconnecting = true;
+
+    return new Promise(async (resolve) => {
+      let resolved = false;
+
+      const finish = (result) => {
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(timer);
+        this.isAutoReconnecting = false;
+        cleanUp();
+        resolve(result);
+      };
+
+      const timer = setTimeout(() => {
+        finish(false);
+      }, 3500);
+
+      const unJoined = this.client.on("joined", () => {
+        finish(true);
+      });
+
+      const unError = this.client.on("error", () => {
+        finish(false);
+      });
+
+      const cleanUp = () => {
+        if (typeof unJoined === "function") unJoined();
+        if (typeof unError === "function") unError();
+      };
+
+      try {
+        await this.client.connect();
+        const playerName = localStorage.getItem("monopoly_player_name") || "Cậu Ba Sài Gòn";
+        this.client.joinRoom(roomId, playerName, null);
+      } catch (err) {
+        finish(false);
+      }
     });
   }
 

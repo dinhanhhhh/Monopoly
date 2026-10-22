@@ -164,12 +164,18 @@ export class GameEngine {
       case "ADD_MONEY":
         player.money += act.amount;
         return {
+          amount: act.amount,
+          actionType: "ADD_MONEY",
           message: `${player.name} nhận được +${formatVND(act.amount)}!`,
         };
 
       case "SUB_MONEY":
         player.money -= act.amount;
-        return { message: `${player.name} bị trừ -${formatVND(act.amount)}!` };
+        return {
+          amount: -act.amount,
+          actionType: "SUB_MONEY",
+          message: `${player.name} bị trừ -${formatVND(act.amount)}!`,
+        };
 
       case "PAY_ALL_PLAYERS": {
         let totalPaid = 0;
@@ -181,6 +187,8 @@ export class GameEngine {
           }
         });
         return {
+          amount: act.amount,
+          actionType: "PAY_ALL_PLAYERS",
           message: `${player.name} đã trả ${formatVND(act.amount)} cho mỗi người chơi!`,
         };
       }
@@ -193,7 +201,35 @@ export class GameEngine {
           }
         });
         return {
+          amount: act.amount,
+          actionType: "RECEIVE_FROM_ALL",
           message: `${player.name} đã thu ${formatVND(act.amount)} từ mỗi người chơi!`,
+        };
+      }
+
+      case "REPAIR_HOUSES": {
+        let totalCost = 0;
+        let housesCount = 0;
+        let hotelsCount = 0;
+        Object.entries(this.state.properties || {}).forEach(([tId, prop]) => {
+          if (prop.ownerId === player.id) {
+            if (prop.houses === 5) {
+              hotelsCount += 1;
+              totalCost += act.hotelFee || 1_000_000;
+            } else if (prop.houses > 0) {
+              housesCount += prop.houses;
+              totalCost += prop.houses * (act.houseFee || 250_000);
+            }
+          }
+        });
+        player.money -= totalCost;
+        return {
+          amount: -totalCost,
+          actionType: "SUB_MONEY",
+          message:
+            totalCost > 0
+              ? `${player.name} nộp ${formatVND(totalCost)} phí bảo trì (${housesCount} nhà, ${hotelsCount} khách sạn)!`
+              : `${player.name} không có công trình cần bảo trì!`,
         };
       }
 
@@ -953,6 +989,8 @@ export class GameEngine {
           doubleRent: pending?.result?.doubleRent,
           utility10x: pending?.result?.utility10x,
         };
+        const card = pending?.card;
+        const cardResult = pending?.result;
         this.state.pendingAction = null;
 
         if (player.inJail) {
@@ -960,19 +998,33 @@ export class GameEngine {
           return {
             success: true,
             event: "CARD_PROCESSED",
+            card,
+            result: cardResult,
+            message: cardResult?.message,
             state: this.state,
           };
         }
 
         if (moveTarget !== undefined && moveTarget !== null) {
           player.position = moveTarget;
-          return this.evaluateLanding(player, moveTarget, { ...action, ...cardBonus });
+          const landing = this.evaluateLanding(player, moveTarget, {
+            ...action,
+            ...cardBonus,
+          });
+          return {
+            ...landing,
+            card,
+            result: cardResult,
+          };
         }
 
         this.state.turnState = TURN_STATES.END_TURN;
         return {
           success: true,
           event: "CARD_PROCESSED",
+          card,
+          result: cardResult,
+          message: cardResult?.message,
           state: this.state,
         };
       }
