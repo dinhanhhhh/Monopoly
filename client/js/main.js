@@ -448,30 +448,34 @@ function initGameApp() {
     const absVal = Math.abs(amount);
     const text = `${sign}${formatMoney(absVal)}`;
 
-    // 1. Bay lên từ thẻ người chơi ở Cột Trái (HUD)
+    // 1. Bay lên từ thẻ người chơi ở Cột Trái (HUD) - chỉ kích hoạt khi thẻ đang thực sự hiển thị (không bị ẩn trên mobile)
     const hudCard = document.getElementById(`hud-player-${playerId}`);
-    if (hudCard) {
+    if (hudCard && hudCard.offsetParent !== null) {
       const rect = hudCard.getBoundingClientRect();
-      const badge = document.createElement("div");
-      badge.className = `floating-cash-badge ${isGain ? "gain" : "loss"}`;
-      badge.textContent = text;
-      badge.style.left = `${rect.left + rect.width / 2 - 40}px`;
-      badge.style.top = `${rect.top + 8}px`;
-      document.body.appendChild(badge);
-      setTimeout(() => badge.remove(), 1600);
+      if (rect.width > 0 && rect.height > 0) {
+        const badge = document.createElement("div");
+        badge.className = `floating-cash-badge ${isGain ? "gain" : "loss"}`;
+        badge.textContent = text;
+        badge.style.left = `${rect.left + rect.width / 2 - 40}px`;
+        badge.style.top = `${rect.top + 8}px`;
+        document.body.appendChild(badge);
+        setTimeout(() => badge.remove(), 1600);
+      }
     }
 
     // 2. Bay lên từ quân cờ trên bàn cờ
     const tokenEl = tokenRenderer?.tokenElements?.[playerId];
-    if (tokenEl) {
+    if (tokenEl && tokenEl.offsetParent !== null) {
       const tRect = tokenEl.getBoundingClientRect();
-      const tBadge = document.createElement("div");
-      tBadge.className = `floating-cash-badge ${isGain ? "gain" : "loss"}`;
-      tBadge.textContent = text;
-      tBadge.style.left = `${tRect.left + tRect.width / 2 - 40}px`;
-      tBadge.style.top = `${tRect.top - 12}px`;
-      document.body.appendChild(tBadge);
-      setTimeout(() => tBadge.remove(), 1600);
+      if (tRect.width > 0 && tRect.height > 0) {
+        const tBadge = document.createElement("div");
+        tBadge.className = `floating-cash-badge ${isGain ? "gain" : "loss"}`;
+        tBadge.textContent = text;
+        tBadge.style.left = `${tRect.left + tRect.width / 2 - 40}px`;
+        tBadge.style.top = `${tRect.top - 12}px`;
+        document.body.appendChild(tBadge);
+        setTimeout(() => tBadge.remove(), 1600);
+      }
     }
   }
 

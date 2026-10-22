@@ -44,8 +44,8 @@
 
 @media (max-width: 600px) {
   .monopoly-board {
-    width: min(96vw, calc(100dvh - 195px), 480px);
-    height: min(96vw, calc(100dvh - 195px), 480px);
+    width: min(95vw, calc(100dvh - 245px), 440px);
+    height: min(95vw, calc(100dvh - 245px), 440px);
     padding: 3px;
     border-width: 3px;
     border-radius: 8px;
@@ -53,25 +53,34 @@
 
   /* Tối ưu typography ô đất trên mobile để không tràn hay đè chữ */
   .tile-name {
-    font-size: clamp(7.5px, 15cqw, 10.5px);
-    line-height: 1.05;
+    font-size: clamp(6.2px, 12cqw, 8.5px);
+    line-height: 1;
     letter-spacing: 0;
+    padding: 0 1px;
   }
 
   .edge-left .tile-name,
   .edge-right .tile-name {
-    font-size: clamp(7px, 12cqw, 9px);
-    line-height: 1;
+    font-size: clamp(6px, 11cqw, 8px);
+    line-height: 0.95;
+    padding: 0;
   }
 
   .tile-price {
-    font-size: clamp(7.5px, 14cqw, 10px);
-    padding-bottom: 1px;
+    font-size: clamp(7px, 13cqw, 9.5px);
+    padding-bottom: 0;
   }
 
   .edge-left .tile-price,
   .edge-right .tile-price {
-    font-size: clamp(7px, 11cqw, 9px);
+    font-size: clamp(6.8px, 11cqw, 9px);
+    padding: 0;
+  }
+
+  /* Ẩn chữ 'THUÊ' khi đang hiển thị tiền thuê để số tiền không bị tràn làm mất chữ T */
+  .tile-price.tile-rent-active .rent-label,
+  .tile-price.tile-rent-hotel .rent-label {
+    display: none !important;
   }
 
   .tile-icon-box {
@@ -160,6 +169,21 @@
   .jail-visiting-strip .corner-title {
     font-size: 0.52rem !important;
     letter-spacing: 0.2px !important;
+  }
+
+  /* Ô Vào Tù trên mobile */
+  .tile-corner-gotojail .corner-icon-box {
+    height: 18px !important;
+    min-height: 18px !important;
+  }
+
+  .tile-corner-gotojail .corner-icon-box svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .tile-corner-gotojail .corner-title {
+    font-size: 0.52rem !important;
   }
 }
 
@@ -375,6 +399,42 @@
   padding: 0 !important;
   text-align: center !important;
   letter-spacing: -0.2px !important;
+}
+
+/* ================= Ô 30: VÀO TÙ ================= */
+.tile-corner-gotojail {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 2px !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+.tile-corner-gotojail .corner-icon-box {
+  height: 22px !important;
+  min-height: 22px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.tile-corner-gotojail .corner-icon-box svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.tile-corner-gotojail .corner-title {
+  font-size: clamp(8px, 12cqw, 10px) !important;
+  line-height: 1.1 !important;
+  font-weight: 900 !important;
+  margin: 2px 0 0 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  color: #78281f !important;
 }
 
 /* Badge số tiền hũ Quỹ Trúng Thưởng Jackpot trên ô 20 */

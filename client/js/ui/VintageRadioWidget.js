@@ -581,11 +581,11 @@ export class VintageRadioWidget {
     if (this.isOpen && isPlaying) {
       btnHeaderRadio.classList.add("radio-playing");
       btnHeaderRadio.title = `Đang phát: FM ${station.freq} - ${station.name} (Nhấn để tắt hẳn)`;
-      btnHeaderRadio.innerHTML = `<span class="btn-tool-icon animate-pulse">📻</span> <span class="radio-header-freq">FM ${station.freq}</span>`;
+      btnHeaderRadio.innerHTML = `<span class="btn-tool-icon animate-pulse">📻</span> <span class="btn-tool-label radio-header-freq">FM ${station.freq}</span>`;
     } else {
       btnHeaderRadio.classList.remove("radio-playing");
       btnHeaderRadio.title = "Mở Đài Radio Cát-xét Sài Gòn";
-      btnHeaderRadio.innerHTML = `<span class="btn-tool-icon">📻</span> Đài Radio`;
+      btnHeaderRadio.innerHTML = `<span class="btn-tool-icon">📻</span> <span class="btn-tool-label">Đài Radio</span>`;
     }
   }
 }
