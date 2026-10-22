@@ -1,6 +1,7 @@
 import { formatVND } from "../../../shared/constants.js";
 import { GameRules } from "../../../shared/rules.js";
 import { getPlayerAvatar } from "./AvatarsData.js";
+import { resolveToken } from "./TokensData.js";
 
 export class BoardRenderer {
   constructor(boardElement) {
@@ -375,7 +376,8 @@ export class BoardRenderer {
           (p) => p.id === prop.owner,
         );
         if (owner) {
-          const ownerColor = owner.token?.color || "#7B4BD8";
+          const tokenInfo = resolveToken(owner.token);
+          const ownerColor = tokenInfo.color || "#7B4BD8";
 
           // 1. Nền ô tô nhạt 12% màu người chơi
           const softBg = this.hexToRgba(ownerColor, 0.12);
@@ -389,8 +391,8 @@ export class BoardRenderer {
           const tokenBadge = document.createElement("div");
           tokenBadge.className = "tile-owner-token-badge";
           tokenBadge.style.backgroundColor = ownerColor;
-          tokenBadge.innerHTML = owner.token?.svg || "";
-          tokenBadge.title = `Chủ sở hữu: ${owner.name} (${owner.token?.name || "Quân cờ"})`;
+          tokenBadge.innerHTML = tokenInfo.svg || "";
+          tokenBadge.title = `Chủ sở hữu: ${owner.name} (${tokenInfo.name || "Quân cờ"})`;
 
           const houses = prop.houses || 0;
           if (houses > 0) {
@@ -529,7 +531,17 @@ export class BoardRenderer {
         return;
       }
 
-      const rent = GameRules.calculateRent(tile, owner, propertiesState, 7);
+      const phase = GameRules.getPhase(
+        window.engine?.state?.round || 1,
+        window.engine?.state?.maxRounds,
+      );
+      const rent = GameRules.calculateRent(
+        tile,
+        owner,
+        propertiesState,
+        7,
+        phase.rentMult,
+      );
       const houses = prop.houses || 0;
 
       priceEl.innerHTML = `<span class="rent-label">Thuê</span><span class="rent-val">${this.formatMoney(rent)}</span>`;

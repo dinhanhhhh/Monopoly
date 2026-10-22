@@ -87,6 +87,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .header-illustration {
@@ -155,7 +156,8 @@ body {
 .header-center-stats {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .stat-pill {
@@ -170,6 +172,8 @@ body {
   align-items: center;
   gap: 4px;
   box-shadow: 0 1px 3px rgba(46, 36, 27, 0.05);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .stat-pill .pill-icon {
@@ -233,6 +237,7 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
+  flex-shrink: 0;
 }
 
 .btn-tool {
@@ -249,6 +254,8 @@ body {
   display: flex;
   align-items: center;
   gap: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-tool:hover {
@@ -745,34 +752,34 @@ body {
 .cockpit-tile-section {
   flex: 0 1 auto;
   min-width: 0;
-  max-width: 155px;
+  max-width: 250px;
   height: 30px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(212, 175, 55, 0.4);
   border-radius: 6px;
-  padding: 0 6px;
+  padding: 0 8px;
   box-sizing: border-box;
   white-space: nowrap;
   overflow: hidden;
 }
 
 .standing-pin-icon {
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   flex-shrink: 0;
 }
 
 .cockpit-tile-name {
   font-family: var(--font-retro);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 900;
   color: #ffd875;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100px;
+  max-width: 170px;
 }
 
 .cockpit-tile-dot {
@@ -960,6 +967,7 @@ body {
   cursor: not-allowed;
   background: #ede8dc;
   border-color: rgba(46, 36, 27, 0.3);
+  box-shadow: none;
 }
 
 .btn-dock-action .act-icon {
@@ -971,9 +979,32 @@ body {
   line-height: 1;
 }
 
+.btn-dock-action.btn-buy:not(:disabled) {
+  background: linear-gradient(135deg, #27ae60 0%, #1e824c 100%);
+  color: #fff;
+  border-color: #1e824c;
+}
+
+.btn-dock-action.btn-build:not(:disabled) {
+  background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+  color: #fff;
+  border-color: #1f618d;
+}
+
+.btn-dock-action.btn-trade:not(:disabled) {
+  background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+  color: #fff;
+  border-color: #d68910;
+}
+
 .btn-dock-action.btn-pass {
   color: #c0392b;
-  border-color: rgba(231, 76, 60, 0.4);
+}
+
+.btn-dock-action.btn-pass:not(:disabled) {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: #fff;
+  border-color: #c0392b;
 }
 
 /* ================= 5. CỘT PHẢI: TOÀN BỘ CHO NHẬT KÝ TRẬN ĐẤU ================= */
@@ -1058,6 +1089,8 @@ body {
   flex-direction: column;
   gap: 7px;
   padding-right: 4px;
+  padding-bottom: 14px;
+  scrollbar-gutter: stable;
 }
 
 .recent-log-messages::-webkit-scrollbar {
@@ -1240,5 +1273,86 @@ body {
 .btn-speed-pill.btn-turbo.active {
   background: linear-gradient(135deg, #8e44ad, #9b59b6);
   box-shadow: 0 1px 6px rgba(142, 68, 173, 0.45);
+}
+
+/* ================= RESPONSIVE CHO THANH HEADER ================= */
+@media (max-width: 1680px) {
+  .vintage-slogan {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1350px) {
+  .header-center-stats {
+    gap: 4px;
+  }
+  .stat-pill {
+    padding: 1px 5px;
+    font-size: 0.64rem;
+  }
+  .btn-tool {
+    padding: 2px 5px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .header-illustration {
+    display: none !important;
+  }
+  .stat-pill .pill-label {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-header {
+    height: auto;
+    min-height: 42px;
+    padding: 4px 6px;
+    flex-wrap: wrap;
+    gap: 4px;
+    overflow: visible;
+  }
+  .header-left {
+    gap: 4px;
+  }
+  .vintage-signboard {
+    padding: 1px 5px;
+  }
+  .signboard-top {
+    font-size: 0.75rem;
+  }
+  .signboard-bottom {
+    font-size: 0.55rem;
+  }
+  .header-center-stats {
+    gap: 3px;
+  }
+  .stat-pill {
+    padding: 1px 4px;
+    font-size: 0.62rem;
+  }
+  .header-right-tools {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+  }
+  .header-right-tools::-webkit-scrollbar {
+    display: none;
+  }
+  .speed-control-cluster {
+    height: 28px;
+  }
+  .btn-speed-pause {
+    width: 22px;
+    height: 22px;
+  }
+  .btn-tool {
+    padding: 2px 6px;
+    font-size: 0.65rem;
+  }
 }
 

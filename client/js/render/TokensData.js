@@ -136,4 +136,38 @@ export const GAME_TOKENS = [
       <path d="M6 38C12 40 18 36 24 38C30 40 36 36 42 38" stroke="#0284C7" stroke-width="2" stroke-linecap="round"/>
     </svg>`,
   },
+  {
+    id: "token_benthanh",
+    name: "Tháp Bến Thành",
+    color: "#C0392B",
+    bgColor: "#FEF2F2",
+    svg: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 18L24 8L34 18H14Z" fill="#E74C3C" stroke="#922B21" stroke-width="2"/>
+      <rect x="18" y="18" width="12" height="14" fill="#FFFDF8" stroke="#2C3E50" stroke-width="2"/>
+      <circle cx="24" cy="25" r="3.5" fill="#F4D03F" stroke="#7D6608" stroke-width="1.2"/>
+      <path d="M24 23V25H25.5" stroke="#2C3E50" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M10 32H38V42H10V32Z" fill="#FADBD8" stroke="#922B21" stroke-width="2"/>
+      <path d="M20 42V35C20 33 28 33 28 35V42" fill="#78281F"/>
+    </svg>`,
+  },
 ];
+
+/**
+ * Phân giải chuỗi ID hoặc Object quân cờ thành đối tượng Token đầy đủ { id, name, color, bgColor, svg }
+ */
+export function resolveToken(tokenRef, fallbackIndex = 0) {
+  if (tokenRef && typeof tokenRef === "object" && tokenRef.svg && tokenRef.name) {
+    return tokenRef;
+  }
+  const id = typeof tokenRef === "string" ? tokenRef : tokenRef?.id;
+  const legacyMap = {
+    car: "token_motorbike",
+    hat: "token_nonla",
+    dog: "token_coffee",
+    ship: "token_boat",
+  };
+  const targetId = legacyMap[id] || id;
+  const found = GAME_TOKENS.find((t) => t.id === targetId);
+  if (found) return found;
+  return GAME_TOKENS[fallbackIndex % GAME_TOKENS.length];
+}

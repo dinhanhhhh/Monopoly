@@ -1,0 +1,31 @@
+{
+  "name": "monopoly",
+  "version": "1.0.0",
+  "description": "> Trò chơi Cờ Tỷ Phú mang đậm phong cách văn hóa Sài Gòn hoài cổ, xây dựng hoàn toàn bằng **Vanilla JavaScript (ES Modules)**, **HTML5** và **CSS3** không phụ thuộc thư viện ngoài, chuẩn xác 100% luật thi đấu quốc tế.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "dev": "node --watch server/server.mjs",
+    "start": "node server/server.mjs",
+    "test": "node tests/test-client-imports.mjs && node tests/test-deterministic.mjs",
+    "test:server": "node tests/test-server.mjs",
+    "test:all": "node tests/test-client-imports.mjs && node tests/test-deterministic.mjs && node tests/test-server.mjs && node tests/test-audit-fixes.mjs && node tests/test-online-simulation.mjs && node tests/test-turn-skip-fix.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dinhanhhhh/Monopoly.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/dinhanhhhh/Monopoly/issues"
+  },
+  "homepage": "https://github.com/dinhanhhhh/Monopoly#readme",
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
+}

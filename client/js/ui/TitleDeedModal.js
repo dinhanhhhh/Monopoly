@@ -26,11 +26,20 @@ export class TitleDeedModal {
       sellCheck = null,
       onBuy = null,
       onDecline = null,
+      onPass = null,
       onBuild = null,
       onSell = null,
       onMortgage = null,
       onUnmortgage = null,
     } = opts;
+
+    const handleDecline = onDecline || onPass;
+    const canAfford =
+      opts.canAfford !== undefined
+        ? opts.canAfford
+        : player
+          ? player.money >= tile.price
+          : true;
 
     const isBuyMode = isBuyPrompt || buyable;
     const isMortgaged = !!propState.isMortgaged;
@@ -128,7 +137,7 @@ export class TitleDeedModal {
     if (isBuyMode) {
       actionsHtml = `
         <div class="deed-actions">
-          <button id="btn-buy-property" class="btn-modal btn-buy-property">MUA NGAY (${formatMoney(tile.price)})</button>
+          <button id="btn-buy-property" class="btn-modal btn-buy-property" ${canAfford ? "" : "disabled"}>MUA NGAY (${formatMoney(tile.price)})</button>
           <button id="btn-decline-property" class="btn-modal btn-decline-property">BỎ QUA / ĐẤU GIÁ</button>
         </div>
       `;
@@ -227,7 +236,7 @@ export class TitleDeedModal {
     if (btnDecline) {
       btnDecline.onclick = () => {
         this.hide();
-        if (onDecline) onDecline();
+        if (handleDecline) handleDecline();
       };
     }
     if (btnClose) {

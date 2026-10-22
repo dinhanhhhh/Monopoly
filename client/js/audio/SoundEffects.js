@@ -11,7 +11,7 @@ class SoundManager {
     // Nạp sẵn file âm thanh xúc xắc thực tế (sử dụng import.meta.url để tương thích mọi vị trí index.html)
     try {
       const audioUrl = new URL(
-        "./u_qpfzpydtro-dice-142528.mp3",
+        "./dice-roll.mp3",
         import.meta.url,
       ).href;
       this.diceAudio = new Audio(audioUrl);
@@ -322,25 +322,9 @@ class SoundManager {
     osc.stop(now + 0.35);
   }
 
-  // Gia vị giọng thoại vui nhộn đậm chất Sài Gòn
-  speakSaigon(text) {
-    if (this.isMuted) return;
-    if (!("speechSynthesis" in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "vi-VN";
-      utterance.rate = 1.08;
-      utterance.pitch = 1.12;
-      const voices = window.speechSynthesis.getVoices();
-      const viVoice = voices.find(
-        (v) => v.lang.includes("vi") || v.lang.includes("VN"),
-      );
-      if (viVoice) utterance.voice = viVoice;
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {
-      console.warn("SpeechSynthesis:", e);
-    }
+  // Đã gỡ bỏ SpeechSynthesis theo yêu cầu để giữ chuẩn âm thanh boardgame hiện đại, không dùng giọng đọc robot tổng hợp
+  speakSaigon(_text) {
+    // No-op
   }
 }
 

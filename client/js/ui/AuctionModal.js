@@ -15,9 +15,17 @@ export class AuctionModal {
   }
 
   /**
+   * Alias tương thích cho show()
+   */
+  show(engine, onFinish = null, onAction = null) {
+    if (engine && engine.state) {
+      return this.render(engine, onFinish, onAction);
+    }
+  }
+
+  /**
    * Mở hoặc cập nhật giao diện Đấu Giá
    * @param {Object} engine - GameEngine instance
-   * @param {Object} auctionState - engine.state.auction
    * @param {Function} onFinish - Callback khi phiên đấu giá kết thúc
    */
   render(engine, onFinish = null, onAction = null) {

@@ -8,7 +8,7 @@ import { GameRules } from "../../shared/rules.js";
 import { GAME_CONSTANTS, formatVND } from "../../shared/constants.js";
 import { BotAI } from "../../shared/BotAI.js";
 import { BoardRenderer } from "./render/BoardRenderer.js";
-import { GAME_TOKENS } from "./render/TokensData.js";
+import { GAME_TOKENS, resolveToken } from "./render/TokensData.js";
 import { TokenRenderer } from "./render/TokenRenderer.js";
 import { DiceRenderer } from "./render/DiceRenderer.js";
 import { HUD } from "./ui/HUD.js";
@@ -25,8 +25,18 @@ import { AchievementManager } from "./ui/AchievementManager.js";
 import { MatchRecapModal } from "./ui/MatchRecapModal.js";
 import { VintageRadioWidget } from "./ui/VintageRadioWidget.js";
 import { DebtResolutionModal } from "./ui/DebtResolutionModal.js";
+import { OnlineLobbyModal } from "./ui/OnlineLobbyModal.js";
 import { sound } from "./audio/SoundEffects.js";
 import { getPlayerAvatar } from "./render/AvatarsData.js";
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 function initGameApp() {
   const boardElement = document.getElementById("monopoly-board");
@@ -50,6 +60,11 @@ function initGameApp() {
   const achievementManager = new AchievementManager({ sound });
   const matchRecapModal = new MatchRecapModal();
   const vintageRadio = new VintageRadioWidget();
+  const onlineLobbyModal = new OnlineLobbyModal();
+
+  let isOnlineMode = false;
+  let networkClient = null;
+  let myOnlinePlayerId = null;
 
   let netWorthHistory = [];
 
@@ -95,6 +110,29 @@ function initGameApp() {
   // Quản lý Vòng Lặp Ván Đấu & Hủy bỏ triệt để ván cũ
   let currentSessionId = 0;
   let activeGameTimers = new Set();
+  let endTurnTimer = null;
+
+  function clearEndTurnTimer() {
+    if (endTurnTimer) {
+      clearTimeout(endTurnTimer);
+      endTurnTimer = null;
+    }
+  }
+
+  function scheduleFinishTurn(p, isDoubles = false, delayMs = 1200) {
+    clearEndTurnTimer();
+    // Trong chế độ Online, tuyệt đối chỉ có tab của chính người chơi đang có lượt mới được hẹn giờ kết thúc lượt
+    if (isOnlineMode && p && p.id !== myOnlinePlayerId) {
+      return;
+    }
+    const turnAtSchedule = engine?.state?.turnId || turnCount;
+    endTurnTimer = setTimeout(() => {
+      endTurnTimer = null;
+      const currentTurn = engine?.state?.turnId || turnCount;
+      if (currentTurn !== turnAtSchedule) return; // Nếu lượt đã đổi thì hủy bỏ
+      finishTurn(isDoubles);
+    }, delayMs);
+  }
 
   function safeTimeout(fn, ms) {
     const mySession = currentSessionId;
@@ -109,6 +147,7 @@ function initGameApp() {
   }
 
   function stopCurrentGameLoop() {
+    clearEndTurnTimer();
     isSimPaused = true;
     currentSessionId++; // Vô hiệu hóa toàn bộ promise / callback của ván cũ
     activeGameTimers.forEach((id) => clearTimeout(id));
@@ -213,8 +252,8 @@ function initGameApp() {
         ${avatarInfo.svg}
       </div>
       <div class="log-entry-content">
-        <div class="log-entry-text">${cleanMsg}</div>
-        <div class="log-entry-time">${timeStr}</div>
+        <div class="log-entry-text">${escapeHtml(cleanMsg)}</div>
+        <div class="log-entry-time">${escapeHtml(timeStr)}</div>
       </div>
     `;
 
@@ -325,6 +364,7 @@ function initGameApp() {
    * Tự động lưu trạng thái ván cờ vào LocalStorage
    */
   function autoSaveGame() {
+    if (isOnlineMode) return;
     if (!engine || !engine.state) return;
     const activePlayers = (engine.state.players || []).filter(
       (p) => !p.isBankrupt,
@@ -512,6 +552,14 @@ function initGameApp() {
       mortgageCheck,
       unmortgageCheck,
       onBuild: () => {
+        if (isOnlineMode) {
+          titleDeedModal.hide();
+          networkClient.sendAction({
+            type: "BUILD_HOUSE",
+            tileId: tile.id,
+          });
+          return;
+        }
         const res = engine.applyAction({
           type: "BUILD_HOUSE",
           tileId: tile.id,
@@ -531,6 +579,14 @@ function initGameApp() {
         }
       },
       onSell: () => {
+        if (isOnlineMode) {
+          titleDeedModal.hide();
+          networkClient.sendAction({
+            type: "SELL_HOUSE",
+            tileId: tile.id,
+          });
+          return;
+        }
         const res = engine.applyAction({ type: "SELL_HOUSE", tileId: tile.id });
         if (res.success) {
           boardRenderer.updateBuildings(
@@ -545,6 +601,14 @@ function initGameApp() {
         }
       },
       onMortgage: () => {
+        if (isOnlineMode) {
+          titleDeedModal.hide();
+          networkClient.sendAction({
+            type: "MORTGAGE_PROPERTY",
+            tileId: tile.id,
+          });
+          return;
+        }
         const res = engine.applyAction({
           type: "MORTGAGE_PROPERTY",
           tileId: tile.id,
@@ -561,6 +625,14 @@ function initGameApp() {
         }
       },
       onUnmortgage: () => {
+        if (isOnlineMode) {
+          titleDeedModal.hide();
+          networkClient.sendAction({
+            type: "UNMORTGAGE_PROPERTY",
+            tileId: tile.id,
+          });
+          return;
+        }
         const res = engine.applyAction({
           type: "UNMORTGAGE_PROPERTY",
           tileId: tile.id,
@@ -684,6 +756,14 @@ function initGameApp() {
       btnAchievements.onclick = () => achievementManager.showModal();
     }
 
+    // Nút Đấu Online trên Header
+    const btnOnlineLobby = document.getElementById("btn-online-lobby");
+    if (btnOnlineLobby) {
+      btnOnlineLobby.onclick = () => {
+        onlineLobbyModal.show(startOnlineGame);
+      };
+    }
+
     // Nút Tạo Ván Mới trên Header
     const btnRestart = document.getElementById("btn-restart-game");
     if (btnRestart) {
@@ -693,12 +773,19 @@ function initGameApp() {
         const pauseBtn = document.getElementById("btn-pause-toggle");
         if (pauseBtn) pauseBtn.textContent = "▶️";
 
-        gameSetupModal.show(startNewGame, resumeGame, () => {
-          // Khi người dùng bấm đóng modal (hủy tạo ván mới) -> tiếp tục lại ván cũ
-          isSimPaused = false;
-          if (pauseBtn) pauseBtn.textContent = "⏸️";
-          checkBotTurn();
-        });
+        gameSetupModal.show(
+          startNewGame,
+          resumeGame,
+          () => {
+            // Khi người dùng bấm đóng modal (hủy tạo ván mới) -> tiếp tục lại ván cũ
+            isSimPaused = false;
+            if (pauseBtn) pauseBtn.textContent = "⏸️";
+            checkBotTurn();
+          },
+          (preset) => {
+            onlineLobbyModal.show(startOnlineGame, null, preset);
+          },
+        );
       };
     }
 
@@ -755,17 +842,34 @@ function initGameApp() {
     // Hủy bỏ và dọn dẹp sạch sẽ toàn bộ vòng lặp của ván cũ
     stopCurrentGameLoop();
     isSimPaused = false;
+    isOnlineMode = false;
+    networkClient = null;
+    myOnlinePlayerId = null;
+    if (diceRenderer) diceRenderer.onRollRequested = null;
     const pauseBtn = document.getElementById("btn-pause-toggle");
     if (pauseBtn) pauseBtn.textContent = "⏸️";
+    const btnOnlineLobby = document.getElementById("btn-online-lobby");
+    if (btnOnlineLobby) btnOnlineLobby.style.display = "";
 
     currentGameMode =
       options.mode || (playersConfig.every((p) => p.isBot) ? "4bots" : "1v3");
     isFastModeEnabled = !!options.fastMode;
 
+    playersConfig.forEach((p, idx) => {
+      p.token = resolveToken(p.token, idx);
+    });
+
     engine = new GameEngine(playersConfig, options);
+    engine.state.players.forEach((p, idx) => {
+      p.token = resolveToken(p.token, idx);
+    });
     window.engine = engine;
     window.hud = hud;
-    hud.update(engine.state, handleShowPortfolio);
+    try {
+      hud.update(engine.state, handleShowPortfolio);
+    } catch (err) {
+      console.error("Lỗi cập nhật HUD:", err);
+    }
     turnCount = 1;
     const turnCountEl = document.getElementById("game-turn-count");
     if (turnCountEl) turnCountEl.textContent = turnCount;
@@ -815,8 +919,14 @@ function initGameApp() {
   function resumeGame(savedData) {
     stopCurrentGameLoop();
     isSimPaused = false;
+    isOnlineMode = false;
+    networkClient = null;
+    myOnlinePlayerId = null;
+    if (diceRenderer) diceRenderer.onRollRequested = null;
     const pauseBtn = document.getElementById("btn-pause-toggle");
     if (pauseBtn) pauseBtn.textContent = "⏸️";
+    const btnOnlineLobby = document.getElementById("btn-online-lobby");
+    if (btnOnlineLobby) btnOnlineLobby.style.display = "";
 
     currentGameMode =
       savedData.mode ||
@@ -825,6 +935,11 @@ function initGameApp() {
 
     engine = new GameEngine();
     engine.state = savedData.state;
+    if (engine.state && engine.state.players) {
+      engine.state.players.forEach((p, idx) => {
+        p.token = resolveToken(p.token, idx);
+      });
+    }
     // Đảm bảo turnState không bị kẹt ở trạng thái chuyển động
     if (
       engine.state.turnState === "ROLLING" ||
@@ -834,7 +949,11 @@ function initGameApp() {
     }
     window.engine = engine;
     window.hud = hud;
-    hud.update(engine.state, handleShowPortfolio);
+    try {
+      hud.update(engine.state, handleShowPortfolio);
+    } catch (err) {
+      console.error("Lỗi cập nhật HUD:", err);
+    }
 
     turnCount = savedData.turnCount || 1;
     const turnCountEl = document.getElementById("game-turn-count");
@@ -952,14 +1071,13 @@ function initGameApp() {
             engine.state.maxRounds,
           );
           const salary = phase.salary;
-          p.money += salary;
+          // Tiền lương đã được cộng trong GameEngine (COMPLETE_MOVEMENT), client chỉ hiển thị hiệu ứng
           hud.update(engine.state);
           if (simSpeed < 10) {
             sound.playCoin();
             if (salary > 0) {
               showFloatingCash(p.id, salary);
               triggerPlayerEmote(p.id, "🥳", 2400);
-              sound.speakSaigon(`Lãnh lương ${formatVND(salary)} nha!`);
             }
           }
           if (salary > 0) {
@@ -995,13 +1113,34 @@ function initGameApp() {
 
     p.position = landingPos;
     tokenRenderer.render(engine.state.players);
+
+    if (isOnlineMode) {
+      if (p.id === myOnlinePlayerId) {
+        networkClient.sendAction({
+          type: "COMPLETE_MOVEMENT",
+          position: landingPos,
+        });
+      }
+      return;
+    }
+
     const landResult = engine.applyAction({
       type: "COMPLETE_MOVEMENT",
       position: landingPos,
     });
     hud.update(engine.state);
+    await renderLandingResult(p, landResult, isDoubles);
+  }
 
-    const currentTile = SAIGON_BOARD_DATA[landingPos];
+  /**
+   * Hàm dùng chung renderLandingResult: tái sử dụng cho COMPLETE_MOVEMENT và CLOSE_CARD (Offline & Online)
+   */
+  async function renderLandingResult(p, landResult, isDoubles = false) {
+    if (!landResult || !p) return;
+    const mySession = currentSessionId;
+    if (mySession !== currentSessionId || isSimPaused) return;
+
+    const currentTile = landResult.tile || SAIGON_BOARD_DATA[p.position] || {};
 
     // A. Ô Cơ Hội / Khí Vận
     if (landResult.event === "CARD_DRAWN") {
@@ -1013,7 +1152,18 @@ function initGameApp() {
       );
 
       const onCardClosed = async () => {
-        engine.applyAction({ type: "CLOSE_CARD" });
+        if (isOnlineMode) {
+          cardModal.hide();
+          if (landResult.result && landResult.result.moveTarget !== undefined) {
+            p.position = landResult.result.moveTarget;
+            tokenRenderer.render(engine.state.players);
+          }
+          if (p.id === myOnlinePlayerId) {
+            networkClient.sendAction({ type: "CLOSE_CARD" });
+          }
+          return;
+        }
+        const closeRes = engine.applyAction({ type: "CLOSE_CARD" });
         tokenRenderer.render(engine.state.players);
         hud.update(engine.state);
         if (landResult.result?.message) {
@@ -1023,9 +1173,8 @@ function initGameApp() {
 
         // Nếu thẻ di chuyển người chơi sang ô mới (tiến/lùi/ô gần nhất/vào tù)
         if (landResult.result && landResult.result.moveTarget !== undefined) {
-          const newPos = landResult.result.moveTarget;
           tokenRenderer.render(engine.state.players);
-          await resolveLanding(p, newPos, isDoubles);
+          await renderLandingResult(p, closeRes, isDoubles);
         } else if (p.inJail) {
           finishTurn(false);
         } else {
@@ -1082,11 +1231,13 @@ function initGameApp() {
           }
           addGameLog(`🤖 ${p.name} đã mua ${landResult.tile.name}!`);
           achievementManager.check(engine.state);
-          safeTimeout(() => finishTurn(isDoubles), getDelay(1000));
+          scheduleFinishTurn(p, isDoubles, getDelay(1000));
         } else {
           addGameLog(`🤖 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
           startAuctionFlow(landResult.tile, isDoubles);
         }
+      } else if (isOnlineMode && p.id !== myOnlinePlayerId) {
+        showToast(`⏳ Đang chờ ${p.name} quyết định mua ${currentTile.name}...`);
       } else {
         // Kích hoạt nút Mua Đất & Bỏ Qua ngay trên thanh Dock!
         if (btnBuy) {
@@ -1094,6 +1245,12 @@ function initGameApp() {
           btnBuy.querySelector(".act-title").textContent =
             `Mua (${formatMoney(currentTile.price)})`;
           btnBuy.onclick = () => {
+            if (isOnlineMode) {
+              resetDockActions();
+              titleDeedModal.hide();
+              networkClient.sendAction({ type: "BUY_PROPERTY" });
+              return;
+            }
             const buyRes = engine.applyAction({ type: "BUY_PROPERTY" });
             resetDockActions();
             if (buyRes.success) {
@@ -1114,8 +1271,14 @@ function initGameApp() {
         }
         if (btnPass) {
           btnPass.disabled = false;
-          btnPass.querySelector(".act-title").textContent = "Đấu Giá";
+          btnPass.querySelector(".act-title").textContent = "Bỏ Qua";
           btnPass.onclick = () => {
+            if (isOnlineMode) {
+              resetDockActions();
+              titleDeedModal.hide();
+              networkClient.sendAction({ type: "DECLINE_BUY" });
+              return;
+            }
             resetDockActions();
             addGameLog(`🔨 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
             startAuctionFlow(landResult.tile, isDoubles);
@@ -1128,6 +1291,11 @@ function initGameApp() {
           player: p,
           onBuy: () => {
             resetDockActions();
+            titleDeedModal.hide();
+            if (isOnlineMode) {
+              networkClient.sendAction({ type: "BUY_PROPERTY" });
+              return;
+            }
             const buyRes = engine.applyAction({ type: "BUY_PROPERTY" });
             if (buyRes.success) {
               boardRenderer.updateOwners(
@@ -1146,6 +1314,21 @@ function initGameApp() {
           },
           onDecline: () => {
             resetDockActions();
+            titleDeedModal.hide();
+            if (isOnlineMode) {
+              networkClient.sendAction({ type: "DECLINE_BUY" });
+              return;
+            }
+            addGameLog(`🔨 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
+            startAuctionFlow(landResult.tile, isDoubles);
+          },
+          onPass: () => {
+            resetDockActions();
+            titleDeedModal.hide();
+            if (isOnlineMode) {
+              networkClient.sendAction({ type: "DECLINE_BUY" });
+              return;
+            }
             addGameLog(`🔨 ${p.name} bỏ qua mua đất. Bắt đầu đấu giá!`);
             startAuctionFlow(landResult.tile, isDoubles);
           },
@@ -1177,13 +1360,10 @@ function initGameApp() {
         }
         const rentEmote = landResult.rent >= 3_000_000 ? "😡" : "😭";
         triggerPlayerEmote(p.id, rentEmote, 2800);
-        if (landResult.rent >= 3_000_000) {
-          sound.speakSaigon("Trả tiền mệt xỉu luôn nghen!");
-        }
         showToast(landResult.message);
       }
       addGameLog(landResult.message);
-      safeTimeout(() => finishTurn(isDoubles), getDelay(1400));
+      scheduleFinishTurn(p, isDoubles, getDelay(1400));
     }
     // D. Nổ Hũ Quỹ Trúng Thưởng (Jackpot)
     else if (landResult.event === "JACKPOT_WON") {
@@ -1202,7 +1382,6 @@ function initGameApp() {
             triggerPlayerEmote(other.id, "😭", 2500);
           }
         });
-        sound.speakSaigon("Lụm trọn hũ vàng rồi nghen!");
         showToast(landResult.message);
       }
       addGameLog(landResult.message);
@@ -1212,7 +1391,7 @@ function initGameApp() {
         previousMoney: p.money - landResult.amount,
         jackpotAmount: landResult.amount,
       });
-      safeTimeout(() => finishTurn(isDoubles), getDelay(1600));
+      scheduleFinishTurn(p, isDoubles, getDelay(1600));
     }
     // E. Ô Thuế
     else if (landResult.event === "TAX_PAID") {
@@ -1236,20 +1415,19 @@ function initGameApp() {
         showToast(landResult.message);
       }
       addGameLog(landResult.message);
-      safeTimeout(() => finishTurn(isDoubles), getDelay(1400));
+      scheduleFinishTurn(p, isDoubles, getDelay(1400));
     }
     // F. Vào tù
     else if (landResult.event === "GO_TO_JAIL") {
       updateStandingBanner(currentTile, "🚨 Bị bắt vào buồng giam");
       if (simSpeed < 10) {
         sound.playJail();
-        sound.speakSaigon("Vô bốt ngồi nghen!");
         triggerPlayerEmote(p.id, "😭", 3000);
         showToast(landResult.message);
       }
       tokenRenderer.render(engine.state.players);
       addGameLog(landResult.message);
-      safeTimeout(() => finishTurn(false), getDelay(1400));
+      scheduleFinishTurn(p, false, getDelay(1400));
     }
     // F2. Thiếu tiền mặt nợ tiền (DEBT_REQUIRED)
     else if (landResult.event === "DEBT_REQUIRED") {
@@ -1294,7 +1472,6 @@ function initGameApp() {
       }
 
       sound.playJail();
-      sound.speakSaigon("Thiếu tiền mặt rồi, mau xoay xở đi nghen!");
       triggerPlayerEmote(p.id, "😭", 3500);
       addGameLog(landResult.message);
       showToast(landResult.message);
@@ -1433,7 +1610,6 @@ function initGameApp() {
       tokenRenderer.render(engine.state.players);
       hud.update(engine.state);
       sound.playJail();
-      sound.speakSaigon("Cháy túi rồi bà con ơi!");
       triggerPlayerEmote(landResult.bankruptPlayer.id, "😭", 3500);
       addGameLog(landResult.message);
       showToast(landResult.message);
@@ -1445,13 +1621,13 @@ function initGameApp() {
         });
         showGameOverModal(landResult.winner);
       } else {
-        safeTimeout(() => finishTurn(false), getDelay(1400));
+        scheduleFinishTurn(p, false, getDelay(1400));
       }
     }
     // H. Ô an toàn
     else {
       updateStandingBanner(currentTile, "Nghỉ chân an toàn");
-      safeTimeout(() => finishTurn(isDoubles), getDelay(1000));
+      scheduleFinishTurn(p, isDoubles, getDelay(1000));
     }
   }
 
@@ -1566,8 +1742,20 @@ function initGameApp() {
    * Kết thúc lượt
    */
   function finishTurn(isDoubles) {
+    clearEndTurnTimer();
     if (isSimPaused) return;
     resetDockActions();
+
+    if (isOnlineMode) {
+      const cur = engine.getCurrentPlayer();
+      if (cur.id === myOnlinePlayerId) {
+        networkClient.sendAction({
+          type: "END_TURN",
+          turnId: engine?.state?.turnId,
+        });
+      }
+      return;
+    }
 
     const justPlayed = engine.getCurrentPlayer();
     // Nếu người vừa chơi đã phá sản, tuyệt đối không cho tung đôi thêm lượt
@@ -1767,6 +1955,7 @@ function initGameApp() {
    * Kiểm tra nếu là lượt của Bot hoặc người chơi đang ở trong tù
    */
   function checkBotTurn() {
+    if (isOnlineMode) return;
     if (isSimPaused || engine?.state?.isGameOver) return;
     const curPlayer = engine.getCurrentPlayer();
     if (!curPlayer) return;
@@ -1832,37 +2021,58 @@ function initGameApp() {
   function showJailOptions(player) {
     jailModal.show(player, {
       onRollDoubles: () => {
-        if (diceRenderer && !diceRenderer.isRolling) {
-          diceRenderer.roll();
+        jailModal.hide();
+        if (isOnlineMode) {
+          if (networkClient) {
+            networkClient.sendAction({ type: "ROLL_DICE" });
+          }
+        } else {
+          if (diceRenderer && !diceRenderer.isRolling) {
+            diceRenderer.roll();
+          }
         }
       },
       onPayFine: () => {
-        const payRes = engine.applyAction({ type: "PAY_JAIL_FINE" });
-        if (payRes.success) {
-          sound.playCoin();
-          showFloatingCash(player.id, -500_000);
-          tokenRenderer.render(engine.state.players);
-          hud.update(engine.state);
-          boardRenderer.updateJackpot(engine.state.jackpotPot);
-          addGameLog(payRes.message);
-          showToast(payRes.message);
-          autoSaveGame();
-          if (btnRoll) {
-            btnRoll.disabled = false;
-            btnRoll.querySelector(".roll-label").textContent = "TUNG XÚC XẮC";
+        jailModal.hide();
+        if (isOnlineMode) {
+          if (networkClient) {
+            networkClient.sendAction({ type: "PAY_JAIL_FINE" });
+          }
+        } else {
+          const payRes = engine.applyAction({ type: "PAY_JAIL_FINE" });
+          if (payRes.success) {
+            sound.playCoin();
+            showFloatingCash(player.id, -500_000);
+            tokenRenderer.render(engine.state.players);
+            hud.update(engine.state);
+            boardRenderer.updateJackpot(engine.state.jackpotPot);
+            addGameLog(payRes.message);
+            showToast(payRes.message);
+            autoSaveGame();
+            if (btnRoll) {
+              btnRoll.disabled = false;
+              btnRoll.querySelector(".roll-label").textContent = "TUNG XÚC XẮC";
+            }
           }
         }
       },
       onUseCard: () => {
-        const cardRes = engine.applyAction({ type: "USE_JAIL_CARD" });
-        if (cardRes.success) {
-          tokenRenderer.render(engine.state.players);
-          hud.update(engine.state);
-          addGameLog(cardRes.message);
-          showToast(cardRes.message);
-          if (btnRoll) {
-            btnRoll.disabled = false;
-            btnRoll.querySelector(".roll-label").textContent = "TUNG XÚC XẮC";
+        jailModal.hide();
+        if (isOnlineMode) {
+          if (networkClient) {
+            networkClient.sendAction({ type: "USE_JAIL_CARD" });
+          }
+        } else {
+          const cardRes = engine.applyAction({ type: "USE_JAIL_CARD" });
+          if (cardRes.success) {
+            tokenRenderer.render(engine.state.players);
+            hud.update(engine.state);
+            addGameLog(cardRes.message);
+            showToast(cardRes.message);
+            if (btnRoll) {
+              btnRoll.disabled = false;
+              btnRoll.querySelector(".roll-label").textContent = "TUNG XÚC XẮC";
+            }
           }
         }
       },
@@ -1892,8 +2102,250 @@ function initGameApp() {
     handleGameOver(winner, false);
   }
 
+  function updateTurnControls() {
+    if (!isOnlineMode) return;
+    const curPlayer = engine.getCurrentPlayer();
+    const isMyTurn = curPlayer && curPlayer.id === myOnlinePlayerId;
+
+    if (btnRoll) {
+      btnRoll.disabled = !isMyTurn;
+      const label = btnRoll.querySelector(".roll-label");
+      if (label) {
+        if (!isMyTurn) {
+          label.textContent = `⏳ LƯỢT: ${curPlayer ? curPlayer.name.toUpperCase() : ""}`;
+        } else if (curPlayer && curPlayer.inJail) {
+          label.textContent = "🎲 LẮC ĐÔI RA TÙ";
+        } else {
+          label.textContent = "🎲 TUNG XÚC XẮC";
+        }
+      }
+    }
+
+    if (isMyTurn && curPlayer && curPlayer.inJail) {
+      showJailOptions(curPlayer);
+    } else {
+      jailModal.hide();
+    }
+
+    if (!isMyTurn) {
+      resetDockActions();
+    }
+  }
+
+  function startOnlineGame({ client, gameData, myPlayerId }) {
+    clearEndTurnTimer();
+    stopCurrentGameLoop();
+    isSimPaused = false;
+    isOnlineMode = true;
+    networkClient = client;
+    myOnlinePlayerId = myPlayerId;
+    const btnOnlineLobby = document.getElementById("btn-online-lobby");
+    if (btnOnlineLobby) btnOnlineLobby.style.display = "none";
+
+    currentGameMode = "online";
+    isFastModeEnabled = !!gameData.state.fastMode;
+
+    if (gameData.state && gameData.state.players) {
+      gameData.state.players.forEach((p, idx) => {
+        p.token = resolveToken(p.token, idx);
+      });
+    }
+
+    engine = new GameEngine(gameData.state.players, {
+      seed: gameData.seed,
+      fastMode: isFastModeEnabled,
+      isEndless: gameData.state.isEndless,
+    });
+    engine.loadState(gameData.state);
+    if (engine.state && engine.state.players) {
+      engine.state.players.forEach((p, idx) => {
+        p.token = resolveToken(p.token, idx);
+      });
+    }
+    window.engine = engine;
+    window.hud = hud;
+
+    try {
+      hud.update(engine.state, handleShowPortfolio);
+    } catch (err) {
+      console.error("Lỗi cập nhật HUD:", err);
+    }
+    turnCount = 1;
+    const turnCountEl = document.getElementById("game-turn-count");
+    if (turnCountEl) turnCountEl.textContent = turnCount;
+
+    startTimer(0);
+    savedLogs = [];
+    if (logContainer) logContainer.innerHTML = "";
+
+    achievementManager.resetProgress();
+    netWorthHistory = [];
+    recordNetWorthSnapshot();
+
+    addGameLog(`🌐 Ván đấu trực tuyến bắt đầu tại phòng #${client.roomId.toUpperCase()}!`);
+    const myPlayer = engine.state.players.find((p) => p.id === myPlayerId);
+    showToast(`🌐 Bạn là: ${myPlayer ? myPlayer.name : myPlayerId}!`);
+
+    initGameInfrastructure();
+
+    boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+    boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+    boardRenderer.updateJackpot(engine.state.jackpotPot);
+
+    updateDeckCounts();
+    updateRoundPhaseHeader(engine.state);
+    updateTurnControls();
+
+    setupOnlineEventHandlers();
+  }
+
+  function setupOnlineEventHandlers() {
+    if (!networkClient) return;
+
+    if (diceRenderer) {
+      diceRenderer.onRollRequested = () => {
+        if (!isOnlineMode) return;
+        const cur = engine.getCurrentPlayer();
+        if (cur.id === myOnlinePlayerId) {
+          jailModal.hide();
+          networkClient.sendAction({ type: "ROLL_DICE" });
+        } else {
+          showToast(`Chưa tới lượt của bạn! Đang chờ ${cur.name}...`);
+        }
+      };
+    }
+
+    networkClient.on("actionResult", async ({ action, result, state }) => {
+      if (!isOnlineMode) return;
+
+      if (state && state.players) {
+        state.players.forEach((p, idx) => {
+          p.token = resolveToken(p.token, idx);
+        });
+      }
+
+      if (action.type === "ROLL_DICE") {
+        clearEndTurnTimer();
+        const curPlayer = engine.getCurrentPlayer();
+        diceRenderer.roll(getDiceDuration(), { val1: result.val1, val2: result.val2 });
+      } else if (action.type === "PAY_JAIL_FINE" || action.type === "USE_JAIL_CARD") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        tokenRenderer.render(engine.state.players);
+        boardRenderer.updateJackpot(engine.state.jackpotPot);
+        jailModal.hide();
+        sound.playCoin();
+        if (result?.fineAmount) {
+          showFloatingCash(engine.getCurrentPlayer().id, -result.fineAmount);
+        }
+        if (result?.message) {
+          addGameLog(result.message);
+          showToast(result.message);
+        }
+        updateTurnControls();
+      } else if (action.type === "COMPLETE_MOVEMENT") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        tokenRenderer.render(engine.state.players);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        boardRenderer.updateJackpot(engine.state.jackpotPot);
+        if (result) {
+          const curPlayer = engine.getCurrentPlayer();
+          await renderLandingResult(curPlayer, result, false);
+        }
+      } else if (action.type === "BUY_PROPERTY") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        sound.playSuccess();
+        if (result.message) {
+          addGameLog(result.message);
+          showToast(result.message);
+        }
+        titleDeedModal.hide();
+        resetDockActions();
+        if (engine.getCurrentPlayer().id === myOnlinePlayerId) {
+          scheduleFinishTurn(engine.getCurrentPlayer(), false, 800);
+        }
+      } else if (action.type === "DECLINE_BUY") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        if (result.message) {
+          addGameLog(result.message);
+        }
+        titleDeedModal.hide();
+        resetDockActions();
+        if (engine.getCurrentPlayer().id === myOnlinePlayerId) {
+          scheduleFinishTurn(engine.getCurrentPlayer(), false, 600);
+        }
+      } else if (action.type === "BUILD_HOUSE" || action.type === "SELL_HOUSE") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        if (action.type === "BUILD_HOUSE") sound.playBuildHouse();
+        if (result?.message) {
+          addGameLog(result.message);
+          showToast(result.message);
+        }
+      } else if (action.type === "MORTGAGE_PROPERTY" || action.type === "UNMORTGAGE_PROPERTY") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        if (result?.message) {
+          addGameLog(result.message);
+          showToast(result.message);
+        }
+      } else if (action.type === "CLOSE_CARD") {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        tokenRenderer.render(engine.state.players);
+        cardModal.hide();
+
+        if (result) {
+          const curPlayer = engine.getCurrentPlayer();
+          await renderLandingResult(curPlayer, result, false);
+        }
+      } else if (action.type === "END_TURN") {
+        clearEndTurnTimer();
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        tokenRenderer.render(engine.state.players);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        updateRoundPhaseHeader(engine.state);
+        turnCount = engine.state.round || (turnCount + 1);
+        const turnCountEl = document.getElementById("game-turn-count");
+        if (turnCountEl) turnCountEl.textContent = turnCount;
+        updateTurnControls();
+        const nextP = engine.getCurrentPlayer();
+        addGameLog(`➡️ Đến lượt của ${nextP.name}`);
+      } else {
+        engine.state = state;
+        hud.update(engine.state, handleShowPortfolio);
+        boardRenderer.updateOwners(engine.state.properties, engine.state.players);
+        boardRenderer.updateBuildings(engine.state.properties, engine.state.players);
+        if (result?.message) {
+          addGameLog(result.message);
+          showToast(result.message);
+        }
+      }
+    });
+
+    networkClient.on("gameOver", ({ winner }) => {
+      handleGameOver(winner, false);
+    });
+
+    networkClient.on("error", (msg) => {
+      showToast(`⚠️ Lỗi mạng: ${msg}`);
+    });
+  }
+
   // Khởi động GameSetupModal ngay khi vào trang (hỗ trợ Tiếp Tục hoặc Ván Mới)
-  gameSetupModal.show(startNewGame, resumeGame);
+  gameSetupModal.show(startNewGame, resumeGame, null, (preset) =>
+    onlineLobbyModal.show(startOnlineGame, null, preset),
+  );
 }
 
 if (document.readyState === "loading") {

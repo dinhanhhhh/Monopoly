@@ -436,14 +436,14 @@ export class BotAI {
         const senderStatus = BotAI.groupStatus(tile.group, sender?.id, state);
 
         if (senderStatus.owned === senderStatus.total - 1) {
-          // Bác Xích Lô cẩn trọng: Tuyệt đối không bao giờ trao độc quyền cho đối thủ trừ khi Bot cũng gom đủ bộ
-          if (bot.personality === "cautious" && !botCompletesFullSet) {
+          // Tuyệt đối không bao giờ trao độc quyền cho đối thủ trừ khi Bot cũng gom đủ bộ
+          if (!botCompletesFullSet) {
             return {
               accept: false,
               reason: `Tôi không thể đổi ${tile.name} vì sẽ giúp bạn gom trọn bộ màu độc quyền!`,
             };
           }
-          // Các Bot khác: Đòi giá phạt cực đắt (3.8x giá trị ô đất)
+          // Nếu cả hai cùng hoàn thành bộ: Đòi giá phạt cực đắt (3.8x giá trị ô đất)
           tileVal = Math.round(tileVal * 3.8);
         }
       }

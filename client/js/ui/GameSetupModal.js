@@ -14,7 +14,7 @@ export class GameSetupModal {
     }
   }
 
-  show(onStartGame, onResumeGame = null, onCancel = null) {
+  show(onStartGame, onResumeGame = null, onCancel = null, onSelectOnline = null) {
     let selectedMode = "1v3"; // '1v1', '1v2', '1v3', 'hotseat'
     let selectedTokenIndex = 0;
     let playerName = "Tôi";
@@ -138,10 +138,17 @@ export class GameSetupModal {
                   <div class="mode-name">4 Người Cùng Chơi</div>
                   <div class="mode-desc">Chuyền tay trên 1 máy</div>
                 </div>
-                <div class="mode-card mode-spectator ${selectedMode === "4bots" ? "selected" : ""}" data-mode="4bots" style="grid-column: span 2; background: linear-gradient(135deg, #FFF9F2, #F5EEF8); border-color: #D2B4DE;">
+                <div class="mode-card mode-spectator ${selectedMode === "4bots" ? "selected" : ""}" data-mode="4bots">
+                  <span class="mode-badge badge-spectator">⚡ AI BATTLE</span>
                   <div class="mode-icon">🤖⚔️🤖</div>
-                  <div class="mode-name" style="color: #6C3483;">4 Máy Tự Đấu (Khán Giả / Mô Phỏng)</div>
+                  <div class="mode-name">4 Máy Tự Đấu (Khán Giả / Mô Phỏng)</div>
                   <div class="mode-desc">Xem 4 Bot đại gia đấu trí tự động với tốc độ tùy chỉnh (1x - Turbo ⚡)</div>
+                </div>
+                <div class="mode-card mode-online ${selectedMode === "online" ? "selected" : ""}" data-mode="online">
+                  <span class="mode-badge badge-online"><span class="pulse-dot"></span> LIVE P2P</span>
+                  <div class="mode-icon">🌐⚔️🌐</div>
+                  <div class="mode-name">Chơi Online Trực Tuyến (Multiplayer)</div>
+                  <div class="mode-desc">Tạo hoặc vào phòng chơi cùng bạn bè qua mạng nội bộ hoặc Internet!</div>
                 </div>
               </div>
             </div>
@@ -217,7 +224,24 @@ export class GameSetupModal {
         tokenSection.style.opacity = is4Bots ? "0.4" : "1";
         tokenSection.style.pointerEvents = is4Bots ? "none" : "auto";
       }
+
+      const btnStart = document.getElementById("btn-start-game");
+      if (btnStart) {
+        if (selectedMode === "online") {
+          btnStart.textContent = "🌐 TIẾP TỤC: VÀO SẢNH TẠO PHÒNG ONLINE";
+          btnStart.style.background = "linear-gradient(135deg, #1E824C, #27AE60)";
+        } else if (selectedMode === "4bots") {
+          btnStart.textContent = "🍿 VÀO XEM 4 MÁY TỰ ĐẤU";
+          btnStart.style.background = "linear-gradient(135deg, #8E44AD, #9B59B6)";
+        } else {
+          btnStart.textContent = "🚀 BẮT ĐẦU VÁN ĐẤU MỚI";
+          btnStart.style.background = "";
+        }
+      }
     };
+
+    // Khởi tạo trạng thái ban đầu cho mode được chọn
+    updateModeSelection(selectedMode);
 
     // Cập nhật DOM cục bộ khi chọn quân cờ (không re-render toàn bộ)
     const updateTokenSelection = (newIdx) => {
@@ -231,7 +255,8 @@ export class GameSetupModal {
     // Event chọn mode
     this.container.querySelectorAll(".mode-card").forEach((card) => {
       card.onclick = () => {
-        updateModeSelection(card.getAttribute("data-mode"));
+        const mode = card.getAttribute("data-mode");
+        updateModeSelection(mode);
       };
     });
 
@@ -320,10 +345,24 @@ export class GameSetupModal {
     const btnStart = document.getElementById("btn-start-game");
     if (btnStart) {
       btnStart.onclick = () => {
+        const finalName = inputName?.value.trim() || playerName || "Tôi";
+
+        if (selectedMode === "online") {
+          this.hide();
+          if (typeof onSelectOnline === "function") {
+            onSelectOnline({
+              name: finalName,
+              tokenIndex: selectedTokenIndex,
+              fastMode: isFastMode,
+              isEndless,
+            });
+          }
+          return;
+        }
+
         try {
           localStorage.removeItem("monopoly_saigon_save");
         } catch (e) {}
-        const finalName = inputName?.value.trim() || playerName || "Tôi";
         const players = this.buildPlayersConfig(
           selectedMode,
           finalName,

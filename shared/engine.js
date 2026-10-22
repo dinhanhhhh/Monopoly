@@ -13,9 +13,41 @@ export const TURN_STATES = {
   GAME_OVER: "GAME_OVER",
 };
 
+/**
+ * 32-bit FNV-1a like string hashing
+ */
+export function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = Math.imul(31, hash) + str.charCodeAt(i) | 0;
+  }
+  return hash >>> 0;
+}
+
+/**
+ * 32-bit Mulberry32 PRNG (deterministic seeded random generator)
+ */
+export function createMulberry32(seed) {
+  let s = (typeof seed === "number" ? Math.floor(seed) : hashString(String(seed))) >>> 0;
+  return function mulberry32() {
+    s |= 0;
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 export class GameEngine {
   constructor(playerConfigs = [], options = {}) {
     this.options = options;
+    const seed =
+      options.seed !== undefined && options.seed !== null
+        ? options.seed
+        : Math.floor(Math.random() * 0xffffffff);
+    this.seed = seed;
+    this.rng =
+      typeof options.rng === "function" ? options.rng : createMulberry32(seed);
     this.state = this.createInitialState(playerConfigs, options);
   }
 
@@ -35,7 +67,7 @@ export class GameEngine {
       personality: cfg.personality || (cfg.isBot ? "balanced" : null),
       // Tâm trạng ván đấu (Bot Mood): 0.9 ~ 1.1 cố định cả ván để tạo tính cách tự nhiên, serialize được
       mood: cfg.isBot
-        ? Math.round((0.9 + Math.random() * 0.2) * 100) / 100
+        ? Math.round((0.9 + this.rng() * 0.2) * 100) / 100
         : 1,
     }));
 
@@ -70,6 +102,7 @@ export class GameEngine {
     const chestDeck = this.shuffleArray([...CHEST_CARDS]);
 
     return {
+      seed: this.seed,
       players,
       properties,
       chanceDeck,
@@ -93,7 +126,7 @@ export class GameEngine {
 
   shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(this.rng() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
@@ -178,12 +211,16 @@ export class GameEngine {
       case "MOVE_TO": {
         const prevPos = player.position;
         player.position = act.target;
-        if (act.passGoReward && player.position < prevPos) {
+        if (act.passGoReward && (act.target === 0 || player.position < prevPos)) {
+          const isEndless = !!this.state.isEndless || !this.state.maxRounds;
           const phase = GameRules.getPhase(
             this.state.round,
             this.state.maxRounds,
           );
-          player.money += phase.salary;
+          const salary = isEndless
+            ? GAME_CONSTANTS.GO_REWARD || 2_000_000
+            : phase.salary;
+          player.money += salary;
         }
         return {
           message: `${player.name} di chuyển đến ${this.getTile(act.target).name}!`,
@@ -201,23 +238,49 @@ export class GameEngine {
 
       case "MOVE_NEAREST_RAILROAD": {
         const railroads = [5, 15, 25, 35];
+        const prevPos = player.position;
         let target = railroads.find((r) => r > player.position);
         if (!target) target = railroads[0];
         player.position = target;
+        if (player.position < prevPos) {
+          const isEndless = !!this.state.isEndless || !this.state.maxRounds;
+          const phase = GameRules.getPhase(
+            this.state.round,
+            this.state.maxRounds,
+          );
+          const salary = isEndless
+            ? GAME_CONSTANTS.GO_REWARD || 2_000_000
+            : phase.salary;
+          player.money += salary;
+        }
         return {
           message: `${player.name} đi đến Bến xe gần nhất: ${this.getTile(target).name}!`,
           moveTarget: target,
+          doubleRent: !!act.doubleRent,
         };
       }
 
       case "MOVE_NEAREST_UTILITY": {
         const utilities = [12, 28];
+        const prevPos = player.position;
         let target = utilities.find((u) => u > player.position);
         if (!target) target = utilities[0];
         player.position = target;
+        if (player.position < prevPos) {
+          const isEndless = !!this.state.isEndless || !this.state.maxRounds;
+          const phase = GameRules.getPhase(
+            this.state.round,
+            this.state.maxRounds,
+          );
+          const salary = isEndless
+            ? GAME_CONSTANTS.GO_REWARD || 2_000_000
+            : phase.salary;
+          player.money += salary;
+        }
         return {
           message: `${player.name} đi đến Tiện ích gần nhất: ${this.getTile(target).name}!`,
           moveTarget: target,
+          utility10x: true,
         };
       }
 
@@ -235,8 +298,8 @@ export class GameEngine {
           return { success: false, error: "Không thể tung xúc xắc lúc này" };
         }
 
-        const val1 = action.val1 || Math.floor(Math.random() * 6) + 1;
-        const val2 = action.val2 || Math.floor(Math.random() * 6) + 1;
+        const val1 = action.val1 || Math.floor(this.rng() * 6) + 1;
+        const val2 = action.val2 || Math.floor(this.rng() * 6) + 1;
         const isDoubles = val1 === val2;
         const total = val1 + val2;
 
@@ -249,6 +312,7 @@ export class GameEngine {
             player.jailTurns = 0;
             this.state.consecutiveDoubles = 0;
             this.state.turnState = TURN_STATES.MOVING;
+            this.state.escapedJailThisTurn = true;
             return {
               success: true,
               event: "JAIL_FREE_DOUBLES",
@@ -314,8 +378,33 @@ export class GameEngine {
 
       case "COMPLETE_MOVEMENT": {
         const landingPos = action.position;
+        const prevPos = player.position;
         player.position = landingPos;
-        return this.evaluateLanding(player, landingPos);
+
+        let salaryEarned = 0;
+        let passedGo = false;
+        if (!player.inJail && landingPos < prevPos) {
+          const isEndless = !!this.state.isEndless || !this.state.maxRounds;
+          const phase = GameRules.getPhase(
+            this.state.round,
+            this.state.maxRounds,
+          );
+          const salary = isEndless
+            ? GAME_CONSTANTS.GO_REWARD || 2_000_000
+            : phase.salary;
+          if (salary > 0) {
+            player.money += salary;
+            salaryEarned = salary;
+            passedGo = true;
+          }
+        }
+
+        const landRes = this.evaluateLanding(player, landingPos, action);
+        if (passedGo) {
+          landRes.passedGo = true;
+          landRes.salary = salaryEarned;
+        }
+        return landRes;
       }
 
       case "PAY_JAIL_FINE": {
@@ -623,6 +712,12 @@ export class GameEngine {
             success: false,
             error: "Không có phiên đấu giá nào đang diễn ra",
           };
+        if (
+          this.state.auction.currentTurnPlayerId &&
+          this.state.auction.currentTurnPlayerId !== action.playerId
+        ) {
+          return { success: false, error: "Chưa tới lượt bạn đặt giá" };
+        }
         const bidder = this.state.players.find((p) => p.id === action.playerId);
         const bidAmount = action.amount;
         if (!bidder || bidder.isBankrupt)
@@ -688,6 +783,12 @@ export class GameEngine {
           return { success: false, error: "Không có phiên đấu giá" };
         const passer = this.state.players.find((p) => p.id === action.playerId);
         const passerId = passer ? passer.id : action.playerId;
+        if (
+          this.state.auction.currentTurnPlayerId &&
+          this.state.auction.currentTurnPlayerId !== passerId
+        ) {
+          return { success: false, error: "Chưa tới lượt bạn trong phiên đấu giá" };
+        }
         const oldIndex = this.state.auction.activePlayerIds.indexOf(passerId);
 
         // Loại người chơi khỏi danh sách đấu giá
@@ -846,7 +947,28 @@ export class GameEngine {
       }
 
       case "CLOSE_CARD": {
+        const pending = this.state.pendingAction;
+        const moveTarget = pending?.result?.moveTarget;
+        const cardBonus = {
+          doubleRent: pending?.result?.doubleRent,
+          utility10x: pending?.result?.utility10x,
+        };
         this.state.pendingAction = null;
+
+        if (player.inJail) {
+          this.state.turnState = TURN_STATES.END_TURN;
+          return {
+            success: true,
+            event: "CARD_PROCESSED",
+            state: this.state,
+          };
+        }
+
+        if (moveTarget !== undefined && moveTarget !== null) {
+          player.position = moveTarget;
+          return this.evaluateLanding(player, moveTarget, { ...action, ...cardBonus });
+        }
+
         this.state.turnState = TURN_STATES.END_TURN;
         return {
           success: true,
@@ -856,7 +978,19 @@ export class GameEngine {
       }
 
       case "END_TURN": {
+        if (this.state.turnState !== TURN_STATES.END_TURN) {
+          return {
+            success: false,
+            code: "TURN_NOT_FINISHED",
+            error: "Lượt chưa kết thúc",
+          };
+        }
+
+        const hadEscapedJail = !!this.state.escapedJailThisTurn;
+        this.state.escapedJailThisTurn = false;
+
         if (
+          !hadEscapedJail &&
           this.state.lastRoll &&
           this.state.lastRoll.isDoubles &&
           !player.inJail &&
@@ -927,7 +1061,7 @@ export class GameEngine {
     }
   }
 
-  evaluateLanding(player, landingPos) {
+  evaluateLanding(player, landingPos, action = {}) {
     const tile = this.getTile(landingPos);
     const diceTotal = this.state.lastRoll ? this.state.lastRoll.total : 7;
 
@@ -941,18 +1075,17 @@ export class GameEngine {
         card,
         player: { id: player.id, name: player.name },
         result: cardResult,
-        timestamp: new Date().toLocaleTimeString("vi-VN", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        timestamp: this.formatTimestamp(action?.timestamp),
       });
 
       this.state.turnState = TURN_STATES.ACTION_REQUIRED;
       this.state.pendingAction = {
         type: "CARD_PROMPT",
+        playerId: player.id,
         cardType: tile.type,
         card,
         result: cardResult,
+        defaultAction: { type: "CLOSE_CARD" },
       };
 
       return {
@@ -1058,11 +1191,13 @@ export class GameEngine {
       this.state.turnState = TURN_STATES.ACTION_REQUIRED;
       this.state.pendingAction = {
         type: "DEBT_PROMPT",
+        playerId: player.id,
         debtType: "TAX",
         creditorId: null,
         amount: taxAmount,
         tileId: tile.id,
         isDoubles: this.state.lastRoll?.isDoubles || false,
+        defaultAction: { type: "AUTO_RESOLVE_DEBT" },
       };
       return {
         success: true,
@@ -1085,8 +1220,10 @@ export class GameEngine {
         this.state.turnState = TURN_STATES.ACTION_REQUIRED;
         this.state.pendingAction = {
           type: "BUY_PROMPT",
+          playerId: player.id,
           tile,
           canAfford: player.money >= tile.price,
+          defaultAction: { type: "DECLINE_BUY" },
         };
         return {
           success: true,
@@ -1118,6 +1255,10 @@ export class GameEngine {
         this.state.properties,
         diceTotal,
         phase.rentMult,
+        {
+          doubleRent: !!action.doubleRent,
+          utility10x: !!action.utility10x,
+        },
       );
 
       // Nếu đủ tiền mặt -> Trả ngay
@@ -1180,11 +1321,13 @@ export class GameEngine {
       this.state.turnState = TURN_STATES.ACTION_REQUIRED;
       this.state.pendingAction = {
         type: "DEBT_PROMPT",
+        playerId: player.id,
         debtType: "RENT",
         creditorId: owner.id,
         amount: rent,
         tileId: tile.id,
         isDoubles: this.state.lastRoll?.isDoubles || false,
+        defaultAction: { type: "AUTO_RESOLVE_DEBT" },
       };
       return {
         success: true,
@@ -1344,6 +1487,31 @@ export class GameEngine {
       };
     }
     return null;
+  }
+
+  formatTimestamp(customTime) {
+    const raw = customTime ?? this.options.timestamp;
+    if (typeof raw === "string") return raw;
+    if (typeof raw === "number") {
+      const d = new Date(raw);
+      return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+    }
+    if (typeof this.options.getTimestamp === "function") {
+      return this.options.getTimestamp();
+    }
+    return new Date().toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  loadState(state) {
+    this.state = state;
+    if (state?.seed !== undefined && state.seed !== null) {
+      this.seed = state.seed;
+      this.rng = createMulberry32(state.seed);
+    }
+    return this.state;
   }
 }
 

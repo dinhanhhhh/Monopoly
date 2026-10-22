@@ -10,6 +10,16 @@ import {
   formatVNDFull,
 } from "../../../shared/constants.js";
 import { getPlayerAvatar } from "../render/AvatarsData.js";
+import { resolveToken } from "../render/TokensData.js";
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 export class HUD {
   constructor(container = null) {
@@ -31,6 +41,7 @@ export class HUD {
       (tile) => properties[tile.id]?.owner === p.id,
     );
     const avatarInfo = getPlayerAvatar(p.id, origIdx);
+    const tokenInfo = resolveToken(p.token, origIdx);
     const isLowCash = p.money < 500000 && !p.isBankrupt;
 
     // Hàng chip nhỏ theo màu nhóm đất người đó đang sở hữu (mỗi chip kèm số ô)
@@ -134,7 +145,7 @@ export class HUD {
         <!-- Thông tin trung tâm: Tên, Tiền mặt to, Tài sản rút gọn & Hàng chip nhóm đất -->
         <div class="player-card-main">
           <div class="player-name-row">
-            <span class="player-display-name" title="${p.name}">${p.name}</span>
+            <span class="player-display-name" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span>
           </div>
           <div class="player-cash-amount ${isLowCash ? "text-danger-cash" : ""}">
             ${formatVNDFull(p.money)}
@@ -150,8 +161,8 @@ export class HUD {
         </div>
 
         <!-- Icon quân cờ nhỏ của người chơi bên phải -->
-        <div class="player-token-badge" title="${p.token?.name || "Quân cờ"}">
-          ${p.token?.svg || ""}
+        <div class="player-token-badge" style="background: ${tokenInfo.bgColor || "#fff"};" title="${tokenInfo.name || "Quân cờ"}">
+          ${tokenInfo.svg || ""}
         </div>
       </div>
     `;

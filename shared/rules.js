@@ -178,7 +178,7 @@ export const GameRules = {
   /**
    * Tính toán tiền thuê đất chuẩn quốc tế (hỗ trợ hệ số lạm phát rentMult của Sudden Death)
    */
-  calculateRent(tile, owner, propertiesState, diceTotal = 7, rentMult = 1) {
+  calculateRent(tile, owner, propertiesState, diceTotal = 7, rentMult = 1, bonusOptions = {}) {
     if (!tile || !owner) return 0;
 
     const propState = propertiesState[tile.id];
@@ -211,6 +211,9 @@ export const GameRules = {
       if (ownedCount === 0) return 0;
       const rentIndex = Math.min(ownedCount, 4) - 1;
       baseRent = GAME_CONSTANTS.RAILROAD_RENTS[rentIndex] || 250_000;
+      if (bonusOptions.doubleRent) {
+        baseRent *= 2;
+      }
     } else if (tile.type === "utility") {
       const utilityTiles = SAIGON_BOARD_DATA.filter(
         (t) => t.type === "utility",
@@ -221,8 +224,9 @@ export const GameRules = {
       }).length;
 
       if (ownedCount === 0) return 0;
-      const multiplier =
-        ownedCount >= 2
+      const multiplier = bonusOptions.utility10x
+        ? 10
+        : ownedCount >= 2
           ? GAME_CONSTANTS.UTILITY_MULTIPLIERS[1]
           : GAME_CONSTANTS.UTILITY_MULTIPLIERS[0];
       // Tỷ lệ chuẩn: Hệ số x Xúc xắc x 10.000đ (Điện Lực / Cấp Nước)

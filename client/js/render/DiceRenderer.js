@@ -33,15 +33,22 @@ export class DiceRenderer {
     this.subTextEl = document.getElementById("dice-sub-text");
 
     if (this.btnRoll) {
-      this.btnRoll.onclick = () => this.roll();
+      this.btnRoll.onclick = () => {
+        if (typeof this.onRollRequested === "function") {
+          this.onRollRequested();
+        } else {
+          this.roll();
+        }
+      };
     }
   }
 
   /**
    * Kích hoạt tung xúc xắc với hiệu ứng xoay lắc 3D
    * @param {number|null} customDuration - Thời gian lắc (ms), null để dùng mặc định
+   * @param {Object|null} presetValues - Giá trị xúc xắc cố định { val1, val2 } do server gửi về
    */
-  roll(customDuration = null) {
+  roll(customDuration = null, presetValues = null) {
     if (this.isRolling) return;
     this.isRolling = true;
 
@@ -58,9 +65,9 @@ export class DiceRenderer {
     if (this.die1El) this.die1El.classList.add("rolling");
     if (this.die2El) this.die2El.classList.add("rolling");
 
-    // Random giá trị 1 đến 6 cho 2 viên
-    const val1 = Math.floor(Math.random() * 6) + 1;
-    const val2 = Math.floor(Math.random() * 6) + 1;
+    // Lấy giá trị được chỉ định (server) hoặc ngẫu nhiên (offline)
+    const val1 = presetValues?.val1 || Math.floor(Math.random() * 6) + 1;
+    const val2 = presetValues?.val2 || Math.floor(Math.random() * 6) + 1;
     const isDoubles = val1 === val2;
     const total = val1 + val2;
 

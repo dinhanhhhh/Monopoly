@@ -144,9 +144,17 @@
   box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
-.btn-buy-property:hover {
+.btn-buy-property:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(39, 174, 96, 0.45);
+}
+
+.btn-buy-property:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+  box-shadow: none;
+  transform: none;
 }
 
 .btn-decline-property {
@@ -1167,10 +1175,10 @@
   background: #fff;
   border-radius: 18px;
   width: 92%;
-  max-width: 450px;
-  max-height: 94vh;
+  max-width: 460px;
+  max-height: 88vh;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -1182,6 +1190,20 @@
   color: #fff;
   padding: 8px 14px 6px;
   text-align: center;
+  flex-shrink: 0;
+  border-bottom: 2px solid #f1c40f;
+}
+
+.setup-modal-header {
+  position: relative;
+  background: linear-gradient(135deg, #165369, #1f6f8b);
+  color: #fff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid #f1c40f;
+  flex-shrink: 0;
 }
 
 .setup-close-btn {
@@ -1228,8 +1250,28 @@
   margin: 1px 0 0;
 }
 
-.setup-body {
-  padding: 8px 16px;
+.setup-body,
+.setup-modal-body {
+  padding: 10px 14px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.setup-body::-webkit-scrollbar,
+.setup-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.setup-body::-webkit-scrollbar-thumb,
+.setup-modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.setup-body::-webkit-scrollbar-thumb:hover,
+.setup-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Banner Tiếp Tục Ván Trước */
@@ -1313,42 +1355,215 @@
 }
 
 .mode-card {
+  position: relative;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
-  padding: 5px 6px;
+  padding: 6px 8px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   background: #f8fafc;
 }
 
 .mode-card:hover {
   border-color: #ff7a00;
   background: #fff8f0;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 122, 0, 0.16);
 }
 
 .mode-card.selected {
   border-color: #ff7a00;
   background: #fff4e6;
-  box-shadow: 0 2px 10px rgba(255, 122, 0, 0.22);
+  box-shadow: 0 3px 12px rgba(255, 122, 0, 0.25);
 }
 
 .mode-icon {
-  font-size: 1.1rem;
-  margin-bottom: 1px;
+  font-size: 1.15rem;
+  margin-bottom: 2px;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mode-card:hover .mode-icon {
+  transform: scale(1.1);
 }
 
 .mode-name {
   font-size: 0.78rem;
   font-weight: 900;
   color: #2c3e50;
+  transition: color 0.2s ease;
 }
 
 .mode-desc {
   font-size: 0.65rem;
   color: #64748b;
   margin-top: 1px;
+}
+
+/* Badges cho Mode Card */
+.mode-badge {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+/* Chế độ 4 Máy Tự Đấu (AI Spectator / Khán giả) */
+.mode-card.mode-spectator {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #fbf7fd, #f5eef8);
+  border: 1.5px solid #d2b4de;
+  padding: 7px 12px;
+}
+
+.mode-card.mode-spectator .mode-name {
+  color: #6c3483;
+}
+
+.mode-card.mode-spectator .mode-badge {
+  background: #ebd7f5;
+  color: #6c3483;
+  border: 1px solid #d2b4de;
+}
+
+.mode-card.mode-spectator:hover {
+  border-color: #8e44ad;
+  background: linear-gradient(135deg, #f5eef8, #ebd7f5);
+  box-shadow: 0 5px 16px rgba(142, 68, 173, 0.3);
+  transform: translateY(-2px);
+}
+
+.mode-card.mode-spectator:hover .mode-name {
+  color: #8e44ad;
+}
+
+.mode-card.mode-spectator:hover .mode-badge {
+  background: #8e44ad;
+  color: #fff;
+  border-color: #7d3c98;
+  box-shadow: 0 2px 6px rgba(142, 68, 173, 0.4);
+}
+
+.mode-card.mode-spectator.selected {
+  border-color: #8e44ad;
+  border-width: 2px;
+  background: linear-gradient(135deg, #f3e5f5, #e8d0f5);
+  box-shadow: 0 5px 18px rgba(142, 68, 173, 0.38);
+}
+
+.mode-card.mode-spectator.selected .mode-badge {
+  background: #8e44ad;
+  color: #fff;
+  border-color: #7d3c98;
+}
+
+/* Chế độ Chơi Online Trực Tuyến (Multiplayer) */
+.mode-card.mode-online {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #f0faf7, #e8f8f5);
+  border: 1.5px solid #a3e4d7;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.mode-card.mode-online .mode-name {
+  color: #16a085;
+}
+
+.mode-card.mode-online .mode-badge {
+  background: #d4efdf;
+  color: #196f3d;
+  border: 1px solid #a9dfbf;
+}
+
+.mode-card.mode-online:hover {
+  border-color: #27ae60;
+  background: linear-gradient(135deg, #e8f8f5, #d5f5e3);
+  box-shadow: 0 5px 16px rgba(39, 174, 96, 0.32);
+  transform: translateY(-2px);
+}
+
+.mode-card.mode-online:hover .mode-name {
+  color: #1e8449;
+}
+
+.mode-card.mode-online:hover .mode-badge {
+  background: #27ae60;
+  color: #fff;
+  border-color: #1e8449;
+  box-shadow: 0 2px 6px rgba(39, 174, 96, 0.4);
+}
+
+.mode-card.mode-online.selected {
+  border-color: #27ae60;
+  border-width: 2px;
+  background: linear-gradient(135deg, #d4efdf, #c2eed5);
+  box-shadow: 0 5px 18px rgba(39, 174, 96, 0.4);
+}
+
+.mode-card.mode-online.selected .mode-badge {
+  background: #27ae60;
+  color: #fff;
+  border-color: #1e8449;
+}
+
+/* Chấm xanh radar phát sóng nhấp nháy (Live Pulse) */
+.pulse-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #27ae60;
+  box-shadow: 0 0 0 rgba(39, 174, 96, 0.4);
+  animation: pulseLive 1.5s infinite;
+}
+
+.mode-card.mode-online:hover .pulse-dot,
+.mode-card.mode-online.selected .pulse-dot {
+  background-color: #fff;
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0.6);
+  animation: pulseLiveWhite 1.5s infinite;
+}
+
+@keyframes pulseLive {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(39, 174, 96, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+  }
+}
+
+@keyframes pulseLiveWhite {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.9);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
 }
 
 .setup-input-name {
@@ -1420,8 +1635,13 @@
 }
 
 .setup-footer {
-  padding: 6px 16px 10px;
+  padding: 10px 14px 12px;
   background: #fff;
+  flex-shrink: 0;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 5;
 }
 
 .btn-start-game {
@@ -3468,6 +3688,78 @@
   bottom: auto;
   border-top: none;
   border-bottom: 5px solid #ffffff;
+}
+
+/* Đuôi nhọn trỏ sang trái (cho bubble-right: cạnh trái bàn cờ, bubble nằm bên phải quân cờ) */
+.token-emote-bubble.bubble-right {
+  transform: translate(0, -50%);
+  animation: emotePopInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.token-emote-bubble.bubble-right.fade-out {
+  animation: emoteFadeOut 0.35s ease forwards;
+}
+
+.token-emote-bubble.bubble-right .emote-tail {
+  left: -6px;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 6px solid #3b2a1a;
+  border-left: none;
+}
+
+.token-emote-bubble.bubble-right .emote-tail::after {
+  left: 2px;
+  top: -4px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 5px solid #ffffff;
+  border-left: none;
+}
+
+/* Đuôi nhọn trỏ sang phải (cho bubble-left: cạnh phải bàn cờ, bubble nằm bên trái quân cờ) */
+.token-emote-bubble.bubble-left {
+  transform: translate(-100%, -50%);
+  animation: emotePopInLeft 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.token-emote-bubble.bubble-left.fade-out {
+  animation: emoteFadeOut 0.35s ease forwards;
+}
+
+.token-emote-bubble.bubble-left .emote-tail {
+  right: -6px;
+  left: auto;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 6px solid #3b2a1a;
+  border-right: none;
+}
+
+.token-emote-bubble.bubble-left .emote-tail::after {
+  right: 2px;
+  left: auto;
+  top: -4px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #ffffff;
+  border-right: none;
+}
+
+@keyframes emotePopInRight {
+  0% { opacity: 0; transform: translate(12px, -50%) scale(0.6); }
+  100% { opacity: 1; transform: translate(0, -50%) scale(1); }
+}
+
+@keyframes emotePopInLeft {
+  0% { opacity: 0; transform: translate(-112%, -50%) scale(0.6); }
+  100% { opacity: 1; transform: translate(-100%, -50%) scale(1); }
 }
 
 /* ==========================================================================

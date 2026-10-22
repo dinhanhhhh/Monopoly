@@ -2,6 +2,8 @@
  * TokenRenderer.js - Quản lý và hiển thị vị trí các quân cờ trên bàn cờ
  */
 
+import { resolveToken } from "./TokensData.js";
+
 export class TokenRenderer {
   constructor(boardElement) {
     this.board = boardElement;
@@ -30,11 +32,11 @@ export class TokenRenderer {
 
     // Nhóm người chơi theo vị trí ô cờ để xếp cụm không bị đè nhau
     const tileGroups = {};
-    players.forEach((player) => {
+    players.forEach((player, pIdx) => {
       if (player.isBankrupt) return;
       const pos = player.position ?? 0;
       if (!tileGroups[pos]) tileGroups[pos] = [];
-      tileGroups[pos].push(player);
+      tileGroups[pos].push({ player, pIdx });
     });
 
     // Lấy vùng chứa tù nhân nếu có
@@ -50,7 +52,8 @@ export class TokenRenderer {
       const gridEl = document.createElement("div");
       gridEl.className = "tile-tokens-grid";
 
-      group.forEach((player) => {
+      group.forEach(({ player, pIdx }) => {
+        const tokenInfo = resolveToken(player.token, pIdx);
         const tokenEl = document.createElement("div");
         tokenEl.id = `player-token-${player.id}`;
         tokenEl.className = "player-token";
@@ -58,13 +61,13 @@ export class TokenRenderer {
         tokenEl.dataset.position = pos;
 
         tokenEl.style.backgroundColor =
-          player.token?.color || player.token?.bgColor || "#176B78";
+          tokenInfo.color || tokenInfo.bgColor || "#176B78";
 
         tokenEl.innerHTML = `
-          <div class="token-svg">${player.token?.svg || ""}</div>
+          <div class="token-svg">${tokenInfo.svg || ""}</div>
         `;
 
-        tokenEl.title = `${player.name} (${player.token?.name || ""}) - Ô: ${pos}${player.inJail ? " [Đang ở tù]" : ""}`;
+        tokenEl.title = `${player.name} (${tokenInfo.name || "Quân cờ"}) - Ô: ${pos}${player.inJail ? " [Đang ở tù]" : ""}`;
 
         // Nếu người chơi đang ở tù tại ô 10 -> đưa vào buồng giam
         if (pos === 10 && player.inJail && jailSlot) {
@@ -175,7 +178,7 @@ export class TokenRenderer {
    * @param {string} emoji - Icon cảm xúc (😭, 🤑, 😡, 😎,...)
    * @param {number} duration - Thời gian hiển thị (ms)
    */
-  showEmote(playerId, emoji, duration = 2600) {
+  showEmote(playerId, emoji, duration = 1800) {
     const tokenEl = document.getElementById(`player-token-${playerId}`);
     if (!tokenEl || !this.board) return;
 
@@ -187,27 +190,32 @@ export class TokenRenderer {
 
     const boardRect = this.board.getBoundingClientRect();
     const tokenRect = tokenEl.getBoundingClientRect();
-
-    // Tính tọa độ tâm quân cờ so với board, kẹp khoảng cách an toàn không tràn mép 2 bên
-    let left = tokenRect.left - boardRect.left + tokenRect.width / 2;
-    left = Math.max(28, Math.min(boardRect.width - 28, left));
-
-    const topDistFromBoardTop = tokenRect.top - boardRect.top;
-    const isNearTopEdge = topDistFromBoardTop < 55; // Nếu ở hàng trên cùng của bàn cờ
+    const pos = parseInt(tokenEl.dataset.position || "0", 10);
 
     const bubble = document.createElement("div");
-    bubble.className = `token-emote-bubble ${isNearTopEdge ? "bubble-below" : "bubble-above"}`;
     bubble.dataset.playerId = playerId;
-    bubble.style.left = `${left}px`;
 
-    if (isNearTopEdge) {
-      // Đặt ở phía dưới quân cờ, hướng vào khoảng không gian bao la của lòng bàn cờ
-      const top = tokenRect.bottom - boardRect.top + 4;
-      bubble.style.top = `${top}px`;
+    // Tự động hướng bong bóng vào trong lòng bàn cờ để không che tên và giá ô đất
+    if (pos >= 11 && pos <= 19) {
+      // Cạnh trái: bubble nằm bên phải quân cờ, hướng vào giữa bàn cờ
+      bubble.className = "token-emote-bubble bubble-right";
+      bubble.style.left = `${tokenRect.right - boardRect.left + 8}px`;
+      bubble.style.top = `${tokenRect.top - boardRect.top + tokenRect.height / 2}px`;
+    } else if (pos >= 31 && pos <= 39) {
+      // Cạnh phải: bubble nằm bên trái quân cờ, hướng vào giữa bàn cờ
+      bubble.className = "token-emote-bubble bubble-left";
+      bubble.style.left = `${tokenRect.left - boardRect.left - 8}px`;
+      bubble.style.top = `${tokenRect.top - boardRect.top + tokenRect.height / 2}px`;
+    } else if (pos >= 20 && pos <= 30) {
+      // Cạnh trên: bubble nằm bên dưới quân cờ, hướng xuống
+      bubble.className = "token-emote-bubble bubble-below";
+      bubble.style.left = `${tokenRect.left - boardRect.left + tokenRect.width / 2}px`;
+      bubble.style.top = `${tokenRect.bottom - boardRect.top + 6}px`;
     } else {
-      // Đặt ở phía trên quân cờ bình thường
-      const top = tokenRect.top - boardRect.top - 4;
-      bubble.style.top = `${top}px`;
+      // Cạnh đáy: bubble nằm bên trên quân cờ, hướng lên
+      bubble.className = "token-emote-bubble bubble-above";
+      bubble.style.left = `${tokenRect.left - boardRect.left + tokenRect.width / 2}px`;
+      bubble.style.top = `${tokenRect.top - boardRect.top - 6}px`;
     }
 
     bubble.innerHTML = `
@@ -219,7 +227,7 @@ export class TokenRenderer {
 
     setTimeout(() => {
       bubble.classList.add("fade-out");
-      setTimeout(() => bubble.remove(), 420);
+      setTimeout(() => bubble.remove(), 350);
     }, duration);
   }
 }
