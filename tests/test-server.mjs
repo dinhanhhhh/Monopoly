@@ -1,164 +1,120 @@
-import WebSocket from "ws";
+import { describe, it, before, after } from "node:test";
+import assert from "node:assert/strict";
+import { createTestServer, connectClient, waitForMessage, sendAndWait, destroyClient, httpGet } from "./helpers/test-server-helper.mjs";
 
-const WS_URL = "ws://127.0.0.1:3000";
+describe("Tích Hợp WebSocket Server (Multiplayer 2 Clients)", () => {
+  let serverInstance;
+  let ws1;
+  let ws2;
+  const TEST_ROOM_ID = `saigon-test-${Date.now()}`;
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function assert(condition, message) {
-  if (!condition) {
-    console.error(`❌ FAILED: ${message}`);
-    process.exit(1);
-  }
-}
-
-async function runTest() {
-  console.log("=== BẮT ĐẦU TEST TÍCH HỢP WEBSOCKET SERVER (2 CLIENTS) ===");
-
-  // 1. Kiểm tra HTTP Health
-  const res = await fetch("http://127.0.0.1:3000/health");
-  const health = await res.json();
-  assert(health.status === "ok", "Server health check phải trả về ok");
-  console.log("✅ 1. HTTP Server & Health Check: PASS");
-
-  // 2. Kết nối Client 1 (Host: An)
-  const ws1 = new WebSocket(WS_URL);
-  await new Promise((resolve) => ws1.on("open", resolve));
-  console.log("✅ 2. Client 1 (An) đã kết nối WebSocket");
-
-  const TEST_ROOM_ID = "saigon-cup-" + Math.floor(1000 + Math.random() * 9000);
-  let p1Data = null;
-  ws1.on("message", (raw) => {
-    const msg = JSON.parse(raw.toString());
-    if (msg.type === "JOINED_SUCCESS") p1Data = msg;
+  before(async () => {
+    // Khởi tạo server động trên cổng ngẫu nhiên listen(0)
+    serverInstance = await createTestServer();
   });
 
-  ws1.send(
-    JSON.stringify({
-      type: "JOIN_ROOM",
-      roomId: TEST_ROOM_ID,
-      playerName: "Trương Định An",
-      token: "car",
-    }),
-  );
-
-  await sleep(150);
-  assert(p1Data && p1Data.playerId === "p1", "Client 1 phải được gán ID p1");
-  console.log(`✅ 3. Client 1 tạo phòng '${TEST_ROOM_ID}' thành công (Host: p1)`);
-
-  // 3. Kết nối Client 2 (Khách: Bình)
-  const ws2 = new WebSocket(WS_URL);
-  await new Promise((resolve) => ws2.on("open", resolve));
-  console.log("✅ 4. Client 2 (Bình) đã kết nối WebSocket");
-
-  let p2Data = null;
-  ws2.on("message", (raw) => {
-    const msg = JSON.parse(raw.toString());
-    if (msg.type === "JOINED_SUCCESS") p2Data = msg;
+  after(async () => {
+    destroyClient(ws1);
+    destroyClient(ws2);
+    if (serverInstance) await serverInstance.close();
   });
 
-  ws2.send(
-    JSON.stringify({
-      type: "JOIN_ROOM",
-      roomId: TEST_ROOM_ID,
-      playerName: "Võ Thị Bình",
-      token: "hat",
-    }),
-  );
-
-  await sleep(150);
-  assert(p2Data && p2Data.playerId === "p2", "Client 2 phải được gán ID p2");
-  console.log("✅ 5. Client 2 vào phòng 'saigon-cup' thành công (Guest: p2)");
-
-  // 4. Client 2 bấm sẵn sàng
-  ws2.send(JSON.stringify({ type: "SET_READY", isReady: true }));
-  await sleep(100);
-
-  // 5. Client 1 (Host) bắt đầu ván cờ
-  let gameStartedP1 = null;
-  let gameStartedP2 = null;
-
-  ws1.on("message", (raw) => {
-    const msg = JSON.parse(raw.toString());
-    if (msg.type === "GAME_STARTED") gameStartedP1 = msg;
-  });
-  ws2.on("message", (raw) => {
-    const msg = JSON.parse(raw.toString());
-    if (msg.type === "GAME_STARTED") gameStartedP2 = msg;
+  it("1. HTTP Server & Health Check trả về status: ok", async () => {
+    const res = await httpGet(`${serverInstance.httpUrl}/health`);
+    assert.strictEqual(res.status, 200, "Mã phản hồi HTTP phải là 200");
+    const health = res.json();
+    assert.strictEqual(health.status, "ok", "Server health check phải trả về status: ok");
   });
 
-  ws1.send(JSON.stringify({ type: "START_GAME" }));
-  await sleep(200);
+  it("2. Client 1 (Host) kết nối và tạo phòng thành công", async () => {
+    ws1 = await connectClient(serverInstance.wsUrl);
+    assert.strictEqual(ws1.readyState, 1, "Client 1 phải ở trạng thái OPEN");
 
-  assert(gameStartedP1 && gameStartedP2, "Cả 2 client phải nhận được sự kiện GAME_STARTED");
-  assert(
-    gameStartedP1.seed === gameStartedP2.seed,
-    "Seed của ván cờ phải đồng bộ tuyệt đối giữa 2 client",
-  );
-  console.log(`✅ 6. Ván cờ bắt đầu đồng bộ! Seed = ${gameStartedP1.seed}`);
+    const p1Data = await sendAndWait(
+      ws1,
+      {
+        type: "JOIN_ROOM",
+        roomId: TEST_ROOM_ID,
+        playerName: "Trương Định An",
+        token: "car",
+      },
+      (msg) => msg.type === "JOINED_SUCCESS",
+    );
 
-  // 6. Kiểm tra quyền đổ xúc xắc (Anti-Cheat & Turn Control)
-  // p1 là người đi đầu -> p2 cố tình đổ xúc xắc lén sẽ bị từ chối
-  let p2ActionFailed = null;
-  ws2.on("message", (raw) => {
-    const msg = JSON.parse(raw.toString());
-    if (msg.type === "ACTION_FAILED") p2ActionFailed = msg;
+    assert.strictEqual(p1Data.playerId, "p1", "Client 1 phải được gán ID p1 (Host)");
+    assert.strictEqual(p1Data.roomId, TEST_ROOM_ID);
   });
 
-  ws2.send(
-    JSON.stringify({
-      type: "GAME_ACTION",
-      action: { type: "ROLL_DICE", val1: 6, val2: 6 }, // Cố tình hack xúc xắc 6-6
-    }),
-  );
-  await sleep(150);
+  it("3. Client 2 (Khách) kết nối và tham gia cùng phòng", async () => {
+    ws2 = await connectClient(serverInstance.wsUrl);
+    assert.strictEqual(ws2.readyState, 1, "Client 2 phải ở trạng thái OPEN");
 
-  assert(
-    p2ActionFailed && p2ActionFailed.error === "Chưa tới lượt của bạn",
-    "Server phải chặn không cho p2 đi khi chưa tới lượt",
-  );
-  console.log("✅ 7. Chặn thao tác trái lượt (Turn Enforce): PASS");
+    const p2Data = await sendAndWait(
+      ws2,
+      {
+        type: "JOIN_ROOM",
+        roomId: TEST_ROOM_ID,
+        playerName: "Võ Thị Bình",
+        token: "hat",
+      },
+      (msg) => msg.type === "JOINED_SUCCESS",
+    );
 
-  // 7. p1 đổ xúc xắc hợp lệ (bơm xúc xắc giả 6-6 nhưng server sẽ tự gieo bằng PRNG)
-  let p1RollBroadcast = null;
-  let p2RollBroadcast = null;
-
-  ws1.on("message", (raw) => {
-    const msg = JSON.parse(raw.toString());
-    if (msg.type === "ACTION_RESULT" && msg.action.type === "ROLL_DICE") p1RollBroadcast = msg;
-  });
-  ws2.on("message", (raw) => {
-    const msg = JSON.parse(raw.toString());
-    if (msg.type === "ACTION_RESULT" && msg.action.type === "ROLL_DICE") p2RollBroadcast = msg;
+    assert.strictEqual(p2Data.playerId, "p2", "Client 2 phải được gán ID p2");
   });
 
-  ws1.send(
-    JSON.stringify({
-      type: "GAME_ACTION",
-      action: { type: "ROLL_DICE", val1: 6, val2: 6 },
-    }),
-  );
-  await sleep(200);
+  it("4. Bắt đầu trận đấu và đồng bộ trạng thái GAME_STARTED cho cả 2 client", async () => {
+    // Client 2 sẵn sàng
+    ws2.send(JSON.stringify({ type: "SET_READY", isReady: true }));
 
-  assert(p1RollBroadcast && p2RollBroadcast, "Cả 2 bên phải nhận được broadcast kết quả gieo xúc xắc");
-  assert(
-    p1RollBroadcast.result.val1 === p2RollBroadcast.result.val1 &&
-    p1RollBroadcast.result.val2 === p2RollBroadcast.result.val2,
-    "Giá trị xúc xắc broadcast phải giống hệt nhau ở cả 2 client",
-  );
-  console.log(
-    `✅ 8. Tung xúc xắc qua Server thành công: Đổ được ${p1RollBroadcast.result.val1} + ${p1RollBroadcast.result.val2} = ${p1RollBroadcast.result.total}`,
-  );
+    // Đặt listener chờ GAME_STARTED trên cả 2 socket
+    const waitStartP1 = waitForMessage(ws1, (msg) => msg.type === "GAME_STARTED");
+    const waitStartP2 = waitForMessage(ws2, (msg) => msg.type === "GAME_STARTED");
 
-  // 8. Đóng kết nối
-  ws1.close();
-  ws2.close();
-  console.log("🎉 TẤT CẢ TEST BƯỚC 2 ĐÃ PASS 100%! SERVER NODE.JS HOẠT ĐỘNG HOÀN HẢO!");
-  process.exit(0);
-}
+    // Host bấm bắt đầu
+    ws1.send(JSON.stringify({ type: "START_GAME" }));
 
-runTest().catch((err) => {
-  console.error("Test error:", err);
-  process.exit(1);
+    const [startedP1, startedP2] = await Promise.all([waitStartP1, waitStartP2]);
+    assert.ok(startedP1, "Client 1 phải nhận GAME_STARTED");
+    assert.ok(startedP2, "Client 2 phải nhận GAME_STARTED");
+    assert.strictEqual(startedP1.room.status, "PLAYING");
+  });
+
+  it("5. Chặn thao tác trái lượt (Anti-Cheat / Turn Enforcement)", async () => {
+    // p1 đi trước -> p2 cố tình tung xúc xắc lén sẽ bị từ chối
+    const p2Wait = waitForMessage(ws2, (msg) => msg.type === "ACTION_FAILED");
+
+    ws2.send(
+      JSON.stringify({
+        type: "GAME_ACTION",
+        action: { type: "ROLL_DICE", val1: 6, val2: 6 },
+      }),
+    );
+
+    const failMsg = await p2Wait;
+    assert.strictEqual(failMsg.error, "Chưa tới lượt của bạn", "Server phải chặn thao tác khi chưa tới lượt");
+  });
+
+  it("6. Người chơi đúng lượt (p1) tung xúc xắc hợp lệ và broadcast đồng bộ", async () => {
+    const p1RollWait = waitForMessage(
+      ws1,
+      (msg) => msg.type === "ACTION_RESULT" && msg.action.type === "ROLL_DICE",
+    );
+    const p2RollWait = waitForMessage(
+      ws2,
+      (msg) => msg.type === "ACTION_RESULT" && msg.action.type === "ROLL_DICE",
+    );
+
+    ws1.send(
+      JSON.stringify({
+        type: "GAME_ACTION",
+        action: { type: "ROLL_DICE" },
+      }),
+    );
+
+    const [resP1, resP2] = await Promise.all([p1RollWait, p2RollWait]);
+    assert.strictEqual(resP1.result.val1, resP2.result.val1, "Xúc xắc 1 phải đồng bộ");
+    assert.strictEqual(resP1.result.val2, resP2.result.val2, "Xúc xắc 2 phải đồng bộ");
+    assert.ok(resP1.result.total >= 2 && resP1.result.total <= 12, "Tổng điểm xúc xắc nằm trong [2, 12]");
+  });
 });

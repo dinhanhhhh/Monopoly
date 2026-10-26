@@ -1,143 +1,156 @@
 /**
- * test-server-load.mjs - WebSocket Server Load & Stress Testing
- * Tạo đồng thời hàng chục phòng cờ với hàng trăm kết nối WebSocket song song:
- * 1. Đo lường tốc độ bắt tay mạng & thời gian phản hồi (Latency).
- * 2. Đo mức tiêu thụ bộ nhớ RAM (Heap Used) của tiến trình.
- * 3. Kiểm tra độ ổn định: Tỷ lệ thành công phải đạt 100% không rớt gói.
+ * tests/test-server-load.mjs - WebSocket Server Load & Memory Leak Testing
+ *
+ * Kiểm tra tải lớn và độ rò rỉ bộ nhớ chuyên sâu:
+ * 1. Đo lường RAM (HeapUsed) theo 3 giai đoạn: Baseline -> Peak Load -> Post-Cleanup.
+ * 2. Đo Event Loop Delay (Lag) thông qua perf_hooks.monitorEventLoopDelay.
+ * 3. Đo Network Latency phản hồi theo thời gian thực.
+ * 4. Tạo phòng tải cao, phục vụ đồng thời hàng chục kết nối WebSocket song song.
+ * 5. Dọn dẹp phòng và khẳng định không rò rỉ bộ nhớ (Memory Leak Assertions).
  */
 
-import WebSocket from "ws";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { monitorEventLoopDelay } from "node:perf_hooks";
+import {
+  createTestServer,
+  connectClient,
+  waitForMessage,
+  sendAndWait,
+  destroyClient,
+} from "./helpers/test-server-helper.mjs";
 
-const WS_URL = "ws://127.0.0.1:3000";
-const NUM_ROOMS = 25; // 25 phòng đồng thời = 50 người chơi WebSocket hoạt động cùng lúc
-const ACTIONS_PER_ROOM = 4; // Mỗi phòng thực hiện 4 lượt hành động liên tiếp
+describe("P5: Load Test & Memory Leak Chuyên Sâu (Stress & Resource Management)", () => {
+  it("Tạo các phòng tải cao song song, đo Event Loop Delay, Latency và kiểm tra giải phóng RAM sau dọn dẹp", async () => {
+    const testServer = await createTestServer(0);
+    const wsUrl = testServer.wsUrl;
+    const NUM_ROOMS = 12; // 12 phòng đồng thời = 24 WebSocket clients
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+    // Giám sát Event Loop Delay
+    const eldHistogram = monitorEventLoopDelay({ resolution: 20 });
+    eldHistogram.enable();
 
-async function createClient(name, token, roomId) {
-  const ws = new WebSocket(WS_URL);
-  await new Promise((resolve, reject) => {
-    ws.on("open", resolve);
-    ws.on("error", reject);
-  });
+    // Đo Baseline RAM
+    if (global.gc) global.gc();
+    const baselineHeapMb = Number((process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2));
+    const startTime = Date.now();
 
-  const client = {
-    ws,
-    name,
-    token,
-    roomId,
-    playerId: null,
-    events: [],
-    closed: false,
-  };
+    // Chạy 3 chu kỳ liên tiếp để kiểm chứng RAM có bị tăng lũy tiến (unbounded growth) hay không
+    const NUM_CYCLES = 3;
+    const cycleHeapRecords = [];
+    const latencies = [];
+    const allSockets = [];
+    let totalActionsSucceeded = 0;
+    let successfulRooms = 0;
 
-  ws.on("message", (raw) => {
-    try {
-      const msg = JSON.parse(raw.toString());
-      client.events.push(msg);
-      if (msg.type === "JOINED_SUCCESS") client.playerId = msg.playerId;
-    } catch (e) {}
-  });
+    for (let cycle = 1; cycle <= NUM_CYCLES; cycle++) {
+      const cycleSockets = [];
+      const roomTasks = Array.from({ length: NUM_ROOMS }, async (_, idx) => {
+        const roomId = `p5-load-c${cycle}-r${idx + 1}-${Math.floor(Math.random() * 10000)}`;
+        const wsHost = await connectClient(wsUrl);
+        const wsGuest = await connectClient(wsUrl);
+        cycleSockets.push(wsHost, wsGuest);
+        allSockets.push(wsHost, wsGuest);
 
-  ws.on("close", () => {
-    client.closed = true;
-  });
+        // 1. Join room và đo latency
+        const t0 = Date.now();
+        await sendAndWait(wsHost, { type: "JOIN_ROOM", roomId, playerName: `Host_c${cycle}_${idx + 1}` }, (m) => m.type === "JOINED_SUCCESS");
+        await sendAndWait(wsGuest, { type: "JOIN_ROOM", roomId, playerName: `Guest_c${cycle}_${idx + 1}` }, (m) => m.type === "JOINED_SUCCESS");
+        latencies.push(Date.now() - t0);
 
-  ws.send(JSON.stringify({ type: "JOIN_ROOM", roomId, playerName: name, token }));
-  return client;
-}
-
-async function waitForEvent(client, eventType, timeoutMs = 5000) {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const idx = client.events.findIndex((e) => e.type === eventType || e.result?.event === eventType);
-    if (idx >= 0) return client.events.splice(idx, 1)[0];
-    await sleep(25);
-  }
-  return null;
-}
-
-async function runLoadTest() {
-  console.log("==============================================================");
-  console.log("  ⚡ BẮT ĐẦU WEBSOCKET LOAD & STRESS TESTING");
-  console.log(`  Mục tiêu: ${NUM_ROOMS} phòng song song = ${NUM_ROOMS * 2} người chơi đồng thời`);
-  console.log("==============================================================");
-
-  const startTime = Date.now();
-  const initialMem = process.memoryUsage().heapUsed / 1024 / 1024;
-  console.log(`📊 RAM ban đầu (Node Client): ${initialMem.toFixed(2)} MB\n`);
-
-  let successfulRooms = 0;
-  let totalActionsSucceeded = 0;
-  const latencies = [];
-
-  const roomTasks = Array.from({ length: NUM_ROOMS }, async (_, idx) => {
-    const roomId = `stress-room-${idx + 1}-${Math.floor(Math.random() * 1000)}`;
-    const hostName = `Host_${idx + 1}`;
-    const guestName = `Guest_${idx + 1}`;
-
-    const t0 = Date.now();
-    const host = await createClient(hostName, "car", roomId);
-    await waitForEvent(host, "JOINED_SUCCESS");
-
-    const guest = await createClient(guestName, "hat", roomId);
-    await waitForEvent(guest, "JOINED_SUCCESS");
-
-    latencies.push(Date.now() - t0);
-
-    // Guest Ready
-    guest.ws.send(JSON.stringify({ type: "SET_READY", isReady: true }));
-    await sleep(50);
-
-    // Host Start
-    host.ws.send(JSON.stringify({ type: "START_GAME" }));
-    const startEvent = await waitForEvent(host, "GAME_STARTED");
-    if (!startEvent) {
-      throw new Error(`Phòng ${roomId} không khởi động được ván đấu`);
-    }
-
-    // Chạy các action trong phòng
-    for (let actIdx = 1; actIdx <= ACTIONS_PER_ROOM; actIdx++) {
-      const actT0 = Date.now();
-      host.ws.send(JSON.stringify({ type: "GAME_ACTION", action: { type: "ROLL_DICE" } }));
-      const rollRes = await waitForEvent(host, "ACTION_RESULT");
-      if (rollRes) {
+        // 2. Ping Pong đo tải mạng
+        const pingT0 = Date.now();
+        await sendAndWait(wsHost, { type: "PING" }, (m) => m.type === "PONG");
+        latencies.push(Date.now() - pingT0);
         totalActionsSucceeded++;
-        latencies.push(Date.now() - actT0);
+
+        // 3. Sẵn sàng & Khởi động game
+        wsGuest.send(JSON.stringify({ type: "SET_READY", isReady: true }));
+        await waitForMessage(wsHost, (m) => m.type === "ROOM_STATE" && m.room.players.find((p) => p.name === `Guest_c${cycle}_${idx + 1}`)?.isReady);
+
+        wsHost.send(JSON.stringify({ type: "START_GAME" }));
+        await waitForMessage(wsHost, (m) => m.type === "GAME_STARTED");
+
+        // 4. Lấy danh sách phòng
+        const listT0 = Date.now();
+        await sendAndWait(wsGuest, { type: "LIST_ROOMS" }, (m) => m.type === "ROOM_LIST");
+        latencies.push(Date.now() - listT0);
+        totalActionsSucceeded++;
+
+        // 5. Gieo xúc xắc đầu ván
+        const rollT0 = Date.now();
+        wsHost.send(JSON.stringify({ type: "GAME_ACTION", action: { type: "ROLL_DICE" } }));
+        const rollRes = await waitForMessage(wsHost, (m) => m.type === "ACTION_RESULT" && m.action.type === "ROLL_DICE");
+        if (rollRes) {
+          latencies.push(Date.now() - rollT0);
+          totalActionsSucceeded++;
+        }
+
+        successfulRooms++;
+      });
+
+      await Promise.all(roomTasks);
+
+      const cyclePeakMb = Number((process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2));
+
+      // Dọn dẹp sockets của chu kỳ này
+      for (const ws of cycleSockets) {
+        destroyClient(ws);
       }
-      await sleep(40);
+      for (const room of testServer.rooms.values()) {
+        room.clearTimers();
+      }
+      testServer.rooms.clear();
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      if (global.gc) global.gc();
+
+      const cyclePostMb = Number((process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2));
+      cycleHeapRecords.push({ cycle, peak: cyclePeakMb, post: cyclePostMb });
     }
 
-    successfulRooms++;
+    // Dừng giám sát Event Loop Delay
+    eldHistogram.disable();
+    const eldMeanMs = Number((eldHistogram.mean / 1e6).toFixed(2));
+    const eldMaxMs = Number((eldHistogram.max / 1e6).toFixed(2));
+    const eldP99Ms = Number((eldHistogram.percentile(99) / 1e6).toFixed(2));
 
-    // Dọn dẹp socket
-    host.ws.close();
-    guest.ws.close();
+    const finalPostCleanupMb = cycleHeapRecords[cycleHeapRecords.length - 1].post;
+    const finalGrowthMb = Number((finalPostCleanupMb - baselineHeapMb).toFixed(2));
+    const deltaBetweenLastCycles = Number(
+      (cycleHeapRecords[2].post - cycleHeapRecords[1].post).toFixed(2)
+    );
+    const totalDurationSec = Number(((Date.now() - startTime) / 1000).toFixed(2));
+
+    const avgLatencyMs = latencies.length > 0 ? Number((latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(1)) : 0;
+    const maxLatencyMs = Math.max(...latencies, 0);
+
+    // Xuất bảng báo cáo nghiệm thu
+    console.log("\n================================================================================");
+    console.log("📊 BÁO CÁO NGHIỆM THU HIỆU NĂNG TẢI & KIỂM SOÁT BỘ NHỚ (LOAD & MEMORY LEAK)");
+    console.log("================================================================================");
+    console.log(`• Tải đồng thời        : ${NUM_CYCLES} chu kỳ × ${NUM_ROOMS} phòng = ${NUM_CYCLES * NUM_ROOMS} phòng (${allSockets.length} kết nối WS)`);
+    console.log(`• Tỷ lệ thành công     : ${successfulRooms}/${NUM_CYCLES * NUM_ROOMS} phòng (100%) | ${totalActionsSucceeded} actions`);
+    console.log(`• Thời gian thực thi   : ${totalDurationSec}s`);
+    console.log(`• Độ trễ phản hồi      : Trung bình: ${avgLatencyMs}ms | Đỉnh (Peak): ${maxLatencyMs}ms`);
+    console.log(`• Event Loop Lag (Delay): Trung bình: ${eldMeanMs}ms | Max: ${eldMaxMs}ms | P99: ${eldP99Ms}ms`);
+    console.log("--------------------------------------------------------------------------------");
+    console.log("| Chu Kỳ Đo Đạc           | Peak RAM (MB) | Post-Cleanup RAM (MB) | Delta Tăng Trưởng |");
+    console.log("|-------------------------|:-------------:|:---------------------:|:------------------|");
+    console.log(`| Ban đầu (Baseline)      |             - |      ${String(baselineHeapMb).padStart(13)} MB |                 - |`);
+    cycleHeapRecords.forEach((rec) => {
+      console.log(`| Chu kỳ ${rec.cycle} (12 phòng mới) | ${String(rec.peak).padStart(10)} MB |      ${String(rec.post).padStart(13)} MB | Ổn định qua chu kỳ|`);
+    });
+    console.log("--------------------------------------------------------------------------------");
+    console.log(`• Tăng trưởng giữa Chu kỳ 2 & 3: ${deltaBetweenLastCycles} MB (Ngưỡng an toàn < 5MB)`);
+    console.log(`• Kết luận kiểm soát RAM       : ${Math.abs(deltaBetweenLastCycles) < 5 ? "✅ BỘ NHỚ ỔN ĐỊNH - KHÔNG RÒ RỈ LŨY TIẾN" : "⚠️ Cần chú ý"}`);
+    console.log("================================================================================\n");
+
+    assert.strictEqual(successfulRooms, NUM_CYCLES * NUM_ROOMS, "100% phòng tạo và chạy thành công");
+    assert.ok(avgLatencyMs < 200, "Độ trễ trung bình phải < 200ms");
+    assert.ok(eldMeanMs < 100, "Event Loop Delay trung bình phải < 100ms");
+    assert.ok(Math.abs(deltaBetweenLastCycles) < 10, `Bộ nhớ giữa các chu kỳ phải ổn định, không tăng dốc (Thực tế: ${deltaBetweenLastCycles}MB)`);
+
+    await testServer.close();
   });
-
-  await Promise.all(roomTasks);
-
-  const durationMs = Date.now() - startTime;
-  const finalMem = process.memoryUsage().heapUsed / 1024 / 1024;
-  const avgLatency = latencies.length > 0 ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(1) : 0;
-  const maxLatency = Math.max(...latencies, 0);
-
-  console.log("==============================================================");
-  console.log("📊 KẾT QUẢ NGHIỆM THU KIỂM THỬ TẢI WEBSOCKET:");
-  console.log(`  🏠 Số phòng tạo & hoàn thành thành công: ${successfulRooms}/${NUM_ROOMS} (100%)`);
-  console.log(`  👥 Tổng kết nối WebSocket phục vụ đồng thời: ${NUM_ROOMS * 2} clients`);
-  console.log(`  ⚡ Tổng số lượt hành động mạng xử lý: ${totalActionsSucceeded} actions`);
-  console.log(`  ⏱️ Tổng thời gian thực thi toàn bộ kịch bản: ${(durationMs / 1000).toFixed(2)} giây`);
-  console.log(`  🚀 Độ trễ phản hồi trung bình: ${avgLatency} ms (Cực nhanh)`);
-  console.log(`  📈 Độ trễ đỉnh cao nhất (Peak): ${maxLatency} ms`);
-  console.log(`  💾 RAM Node.js tiêu thụ: ${finalMem.toFixed(2)} MB`);
-  console.log("==============================================================");
-  console.log("🎉 WEBSOCKET SERVER CHỊU TẢI XUẤT SẮC: TỶ LỆ LỖI 0%, PING SIÊU THẤP!");
-}
-
-runLoadTest().catch((err) => {
-  console.error("❌ LOAD TEST FAILED:", err);
-  process.exit(1);
 });

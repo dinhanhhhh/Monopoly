@@ -1,6 +1,7 @@
 import WebSocket from "ws";
+import { startServer } from "../server/server.mjs";
 
-const WS_URL = "ws://localhost:3000";
+let WS_URL = "ws://127.0.0.1:3000";
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -101,6 +102,9 @@ async function runFullSimulation() {
   console.log("  🚀 BẮT ĐẦU TEST TOÀN DIỆN CHẾ ĐỘ MULTIPLAYER (SIMULATION)");
   console.log("==============================================================");
 
+  const testServer = await startServer(0);
+  WS_URL = `ws://127.0.0.1:${testServer.port}`;
+
   const ROOM_ID = "phong-vip-" + Math.floor(Math.random() * 10000);
 
   // 1. Host (Anh Ba) tạo phòng
@@ -133,9 +137,8 @@ async function runFullSimulation() {
   const guestGameStart = await waitForEvent(guest, "GAME_STARTED");
 
   assert(hostGameStart && guestGameStart, "Cả 2 bên phải nhận được GAME_STARTED");
-  assert(hostGameStart.seed === guestGameStart.seed, "Seed phải đồng bộ");
   assert(hostGameStart.state.players.length === 3, "Bàn cờ phải có 3 người chơi (2 người + 1 bot)");
-  console.log(`✅ Trận đấu bắt đầu thành công! Seed = ${hostGameStart.seed}`);
+  console.log(`✅ Trận đấu bắt đầu thành công!`);
 
   // 5. Lượt 1: Host (p1) đổ xúc xắc
   console.log("\n--- BƯỚC 4: THAO TÁC ĐỔ XÚC XẮC & CHỐNG HACK LƯỢT ---");
@@ -328,6 +331,7 @@ async function runFullSimulation() {
   // Dọn dẹp
   host.ws.close();
   wsReconnect.close();
+  await testServer.close();
 
   console.log("\n==============================================================");
   console.log("🎉 TOÀN BỘ 7 BƯỚC GIẢ LẬP MULTIPLAYER ĐÃ PASS XUẤT SẮC 100%!");

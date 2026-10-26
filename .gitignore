@@ -1,20 +1,65 @@
-# Dependency directories
-node_modules/
+# ==============================================================================
+# .gitignore - Dự án Cờ Tỷ Phú Sài Gòn (Saigon Tycoon)
+# ==============================================================================
 
-# Local Dev Tools & Test Panels (Chỉ dùng nội bộ ở máy dev, không push lên GitHub)
+# 1. Dependency directories
+node_modules/
+jspm_packages/
+
+# 2. Local Dev Tools & Test Panels (Nội bộ máy dev, không push lên GitHub)
 client/js/dev/
 
-# Environment files & Secrets
+# 3. Environment files & Secrets
 .env
 .env.local
 .env.*.local
-*.log
+*.env
+*.pem
+*.key
 
-# Editor & System Files
+# 4. Logs & Debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 5. Testing, Playwright & Code Coverage
+test-results/
+playwright-report/
+blob-report/
+coverage/
+.nyc_output/
+*.lcov
+report.[0-9]*.json
+
+# 6. Build, Cache & Temporary outputs
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+tmp/
+temp/
+*.tmp
+*.temp
+*.tsbuildinfo
+
+# 7. Editor, IDE & System Files
 .vscode/
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+desktop.ini
 .gemini/
 .agents/
-.DS_Store
-Thumbs.db
-desktop.ini

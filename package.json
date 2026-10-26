@@ -9,12 +9,14 @@
   "scripts": {
     "dev": "node --watch server/server.mjs",
     "start": "node server/server.mjs",
-    "test": "node tests/test-client-imports.mjs && node tests/test-deterministic.mjs",
-    "test:server": "node tests/test-server.mjs",
-    "test:fuzz": "node tests/test-fuzzing-engine.mjs",
-    "test:chaos": "node tests/test-chaos-network.mjs",
-    "test:load": "node tests/test-server-load.mjs",
-    "test:all": "node tests/test-client-imports.mjs && node tests/test-deterministic.mjs && node tests/test-fuzzing-engine.mjs && node tests/test-card-effects.mjs && node tests/test-audit-fixes.mjs && node tests/test-server.mjs && node tests/test-turn-skip-fix.mjs && node tests/test-online-simulation.mjs && node tests/test-chaos-network.mjs && node tests/test-server-load.mjs"
+    "test": "node --test tests/test-server.mjs tests/test-turn-skip-fix.mjs tests/test-known-bugs.mjs tests/test-security-auth.mjs tests/test-fast-check-engine.mjs tests/test-chaos-advanced.mjs tests/test-server-load.mjs tests/simulate-bots.mjs",
+    "test:security": "node --test tests/test-security-auth.mjs",
+    "test:fast-check": "node --test tests/test-fast-check-engine.mjs",
+    "test:chaos": "node --test tests/test-chaos-advanced.mjs",
+    "test:load": "node --test tests/test-server-load.mjs",
+    "test:simulate": "node tests/simulate-bots.mjs",
+    "test:e2e": "npx playwright test",
+    "test:all": "npm test && npm run test:e2e"
   },
   "repository": {
     "type": "git",
@@ -30,5 +32,9 @@
   "homepage": "https://github.com/dinhanhhhh/Monopoly#readme",
   "dependencies": {
     "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "fast-check": "^4.10.2"
   }
 }

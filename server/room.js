@@ -51,6 +51,16 @@ export class GameRoom {
     };
   }
 
+  getMaskedState(rawState = this.engine?.state) {
+    if (!rawState) return null;
+    const { seed, chanceDeck, chestDeck, ...publicState } = rawState;
+    return {
+      ...publicState,
+      chanceDeckRemaining: Array.isArray(chanceDeck) ? chanceDeck.length : 0,
+      chestDeckRemaining: Array.isArray(chestDeck) ? chestDeck.length : 0,
+    };
+  }
+
   join(ws, { playerName, token, reconnectToken = null, isBot = false, personality = "balanced" }) {
     // 1. Kiểm tra tái kết nối (Reconnect)
     if (reconnectToken) {
@@ -77,7 +87,7 @@ export class GameRoom {
             playerId: pId,
             reconnectToken: client.reconnectToken,
             room: this.getPublicRoomInfo(),
-            gameState: this.engine ? this.engine.state : null,
+            gameState: this.engine ? this.getMaskedState() : null,
           };
         }
       }
@@ -261,7 +271,7 @@ export class GameRoom {
 
     this.broadcast({
       type: "GAME_STARTED",
-      state: this.engine.state,
+      state: this.getMaskedState(),
       room: this.getPublicRoomInfo(),
     });
 
@@ -374,7 +384,7 @@ export class GameRoom {
       playerId,
       action,
       result,
-      state: this.engine.state,
+      state: this.getMaskedState(),
     });
 
     // Kiểm tra kết thúc ván
@@ -384,7 +394,7 @@ export class GameRoom {
       this.broadcast({
         type: "GAME_OVER",
         winner: this.engine.state.winner,
-        state: this.engine.state,
+        state: this.getMaskedState(),
       });
       return result;
     }
